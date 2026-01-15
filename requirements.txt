@@ -1,0 +1,9 @@
+swisseph
+pydantic
+networkx
+typer
+geopy
+tzdata
+timezonefinder
+dateparser
+rapidfuzz

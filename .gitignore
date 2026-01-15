@@ -1,0 +1,52 @@
+# Environment
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Cache with sensitive coordinates
+.cache_places.json
+.cache_places.json.backup
+
+# Credentials and secrets
+.env
+.env.local
+.env.*.local
+secrets.json
+config/secrets/
+
+# Logs that might contain PII
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.tmp/
+temp/
+
+# User data (never commit real birth data)
+data/user_*.json
+*.backup
