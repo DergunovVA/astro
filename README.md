@@ -2,6 +2,13 @@
 
 Production-grade input normalization pipeline for astrological calculations. Handles date/time parsing, geolocation, timezone conversion with **ZERO personal data retention**.
 
+**Phase 3 Status**: ✅ **OPTIMIZED & HARDENED**
+
+- Structured logging with PII redaction
+- Performance benchmarks (pytest-benchmark)
+- Fuzzy city matching for typo correction
+- All 40+ tests passing
+
 ## 🔐 Privacy First
 
 ✅ **GDPR Compliant** | No PII stored | Coordinate caching only | Optional geopy
@@ -10,12 +17,13 @@ See [PRIVACY.md](PRIVACY.md) for full data policy.
 
 ## Features
 
-- **Multi-format date parsing**: ISO, European (DD.MM.YYYY), US (MM/DD/YYYY)
-- **City resolution**: 80+ global city aliases + Nominatim geolocation
-- **Timezone accuracy**: Handles DST, fallback to UTC
+- **Multi-format date parsing**: ISO, European (DD.MM.YYYY), US (MM/DD/YYYY), text ("15 Jan 2000"), compact (YYYYMMDD)
+- **City resolution**: 80+ global city aliases + Nominatim geolocation + fuzzy typo correction
+- **Timezone accuracy**: Handles DST, fallback to UTC, ZoneInfo with fold parameter
 - **Reproducible caching**: Local `.cache_places.json` prevents repeated API calls
 - **Strict mode**: Explicit validation for ambiguous inputs
 - **Graceful degradation**: Works without geopy/timezonefinder
+- **Structured logging**: PII-safe observability for debugging
 
 ## Quick Start
 
@@ -225,19 +233,56 @@ typer>=0.4  (for CLI)
 pytest>=7.0  (for testing)
 ```
 
-## Contributing
+## Observability & Logging
 
-This is a stable implementation. For issues:
+Enable structured logging with PII redaction:
 
-1. Check [PRIVACY.md](PRIVACY.md) for data handling rules
-2. Run tests: `pytest test_input_pipeline.py -v`
-3. Test with `--devils` flag for debugging
+```python
+import logging
+from input_pipeline.resolver_city import resolve_city
+
+# Enable logging (all PII automatically redacted)
+logging.basicConfig(level=logging.DEBUG)
+
+place = resolve_city("Moscow")
+# Log output: resolve_city: success | {'source': 'alias', 'confidence': 0.95}
+```
+
+**Redacted Fields**:
+
+- Dates: `2000-01-15` → `XXXX-XX-XX`
+- Coordinates: `55.7558` → `X.XX`
+- Place names: `Moscow, RU` → `[Place: RU]`
+
+## Performance
+
+Run benchmarks:
+
+```bash
+python -m pytest test_performance_benchmarks.py -v --benchmark-only
+```
+
+**Baseline Targets**:
+
+- Date parsing (ISO): <1ms ✅
+- City resolution (alias): <1ms ✅
+- Typo correction: <50ms ✅
+- Full pipeline: <20ms ✅
 
 ## Known Limitations
 
 - 80 city aliases (covers major cities globally)
 - No caching TTL (assumes stable geographic data)
 - Synchronous I/O only (10s geopy timeout)
+
+## Contributing
+
+This is a stable implementation. For issues:
+
+1. Check [PRIVACY.md](PRIVACY.md) for data handling rules
+2. Run tests: `python -m pytest -q`
+3. Test with `--devils` flag for debugging
+4. Run benchmarks before and after optimization
 
 ## License
 
