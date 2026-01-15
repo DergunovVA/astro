@@ -159,6 +159,77 @@ class TestIntegrationAllCommands:
         # May or may not have warnings (Moscow is cached, no warnings)
         assert "warnings" in result["input_metadata"]
 
+    def test_comparative_cli_cities(self):
+        """Test comparative command with CLI city arguments."""
+        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "Moscow", "London")
+        
+        # Check structure
+        assert "comparative_data" in result
+        assert "charts" in result
+        assert "errors" in result
+        
+        # Check comparative_data
+        data = result["comparative_data"]
+        assert data["chart_type"] == "natal"
+        assert data["date"] == "1985-01-15"
+        assert data["time"] == "14:30"
+        assert data["cities_count"] == 2
+        assert data["successful"] == 2
+        assert data["failed"] == 0
+        
+        # Check charts
+        assert len(result["charts"]) == 2
+        assert result["charts"][0]["place"] == "Moscow"
+        assert result["charts"][1]["place"] == "London"
+        assert all(chart["chart_type"] == "natal" for chart in result["charts"])
+        assert all("facts" in chart for chart in result["charts"])
+        assert all("planets" in chart for chart in result["charts"])
+        assert all("houses" in chart for chart in result["charts"])
+
+    def test_comparative_file_input(self):
+        """Test comparative command with cities file."""
+        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "--cities-file", "cities_sample.txt")
+        
+        # Check structure
+        assert "comparative_data" in result
+        assert "charts" in result
+        assert "errors" in result
+        
+        # Check comparative_data - should have 5 cities from file
+        data = result["comparative_data"]
+        assert data["cities_count"] == 5
+        assert data["successful"] == 5
+        assert data["failed"] == 0
+        
+        # Check charts
+        assert len(result["charts"]) == 5
+        cities = [chart["place"] for chart in result["charts"]]
+        assert cities == ["Moscow", "London", "Tokyo", "Sydney", "New York"]
+
+    def test_comparative_chart_types(self):
+        """Test comparative command with different chart types."""
+        for chart_type in ["natal", "transit", "solar", "relocation"]:
+            result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", chart_type, "Moscow")
+            
+            assert result["comparative_data"]["chart_type"] == chart_type
+            assert result["comparative_data"]["successful"] == 1
+            assert result["charts"][0]["chart_type"] == chart_type
+
+    def test_comparative_partial_failure(self):
+        """Test comparative command with one invalid city."""
+        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "Moscow", "InvalidCityXYZ")
+        
+        # Check partial success
+        assert result["comparative_data"]["successful"] == 1
+        assert result["comparative_data"]["failed"] == 1
+        assert len(result["charts"]) == 1
+        assert result["charts"][0]["place"] == "Moscow"
+        
+        # Check error recorded
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["place"] == "InvalidCityXYZ"
+        assert "error" in result["errors"][0]
+
 
 class TestGlobalCache:
     """Test global cache functionality."""
