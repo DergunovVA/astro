@@ -1,9 +1,34 @@
 from __future__ import annotations
 
 from typing import Optional
+import logging
 
 from .cache import JsonCache
 from .models import ResolvedPlace, ParseWarning
+
+# Module logger (lazy init to avoid circular imports)
+_logger = None
+
+def _get_logger():
+    global _logger
+    if _logger is None:
+        _logger = logging.getLogger('astro.input_pipeline.resolver_city')
+        # Only configure if not already configured
+        if not _logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setLevel(logging.DEBUG)
+            _logger.addHandler(handler)
+            _logger.setLevel(logging.DEBUG)
+            _logger.propagate = False
+    return _logger
+
+def _log_operation(operation: str, status: str, **kwargs) -> None:
+    """Log operation with optional context."""
+    logger = _get_logger()
+    msg_parts = [f"{operation}: {status}"]
+    if kwargs:
+        msg_parts.append(str(kwargs))
+    logger.debug(" | ".join(msg_parts))
 
 
 # MVP: local aliases. Later load from json.
@@ -104,11 +129,13 @@ def resolve_city(place: str, cache: Optional[JsonCache] = None) -> ResolvedPlace
     if cache:
         cached = cache.get(key)
         if cached:
+            _log_operation('resolve_city', 'success', source='cache', confidence=0.95)
             return ResolvedPlace(**cached)
 
     # 2) check aliases (fast path)
     if key in ALIASES:
         name, country, lat, lon, tz, conf, source = ALIASES[key]
+        _log_operation('resolve_city', 'success', source='alias', confidence=conf)
         rp = ResolvedPlace(
             query=q,
             name=name,
@@ -155,6 +182,7 @@ def resolve_city(place: str, cache: Optional[JsonCache] = None) -> ResolvedPlace
                 # Use first part of address as city name
                 city_name = loc.address.split(",")[0].strip()
                 
+                _log_operation('resolve_city', 'success', source='geopy', confidence=0.8)
                 rp = ResolvedPlace(
                     query=q,
                     name=city_name,
@@ -182,6 +210,7 @@ def resolve_city(place: str, cache: Optional[JsonCache] = None) -> ResolvedPlace
     if typo_match:
         alias_key, confidence = typo_match
         name, country, lat, lon, tz, conf, source = ALIASES[alias_key]
+        _log_operation('resolve_city', 'fallback', source='typo_correction', confidence=confidence)
         warnings.append(ParseWarning(
             code="TYPO_DETECTED",
             message=f"City '{q}' not found. Did you mean '{name}'? (match: {confidence*100:.0f}%)"
