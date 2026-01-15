@@ -7,3 +7,5 @@ tzdata
 timezonefinder
 dateparser
 rapidfuzz
+pytest>=7.0
+pytest-benchmark>=4.0
