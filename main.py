@@ -1,8 +1,18 @@
+import sys
+import os
+import io
 import typer
 import json
 from astro_adapter import natal_calculation
 from interpretation_layer import facts_from_calculation, signals_from_facts, decisions_from_signals
 from input_pipeline import normalize_input, InputContext
+
+# Force UTF-8 encoding for all I/O (fixes Windows cp1252 encoding issues)
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+os.environ['PYTHONIOENCODING'] = 'utf-8'
 
 app = typer.Typer()
 

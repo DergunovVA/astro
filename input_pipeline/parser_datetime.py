@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from .models import ParseWarning
@@ -19,6 +19,7 @@ def parse_date_time(date_str: str, time_str: str, locale: Optional[str] = None) 
     """
     Parse date/time from messy user input.
     Core rule: returns normalized ISO strings, not datetime yet.
+    Validates date is within astrologically reasonable range: 1800-2300.
     """
     warnings: list[ParseWarning] = []
 
@@ -40,6 +41,44 @@ def parse_date_time(date_str: str, time_str: str, locale: Optional[str] = None) 
         else:
             # If all formats failed, raise error (don't use dateparser to avoid strptime issues)
             raise ValueError(f"Cannot parse date: {date_str}")
+
+    # 3) CRITICAL: Validate date is within reasonable astrological range
+    MIN_DATE = date(1800, 1, 1)   # Earliest sensible birth date
+    MAX_DATE = date(2300, 12, 31) # Far future predictions
+    TODAY = date.today()
+
+    if d < MIN_DATE:
+        raise ValueError(
+            f"Date too old: {d.strftime('%Y-%m-%d')} (before {MIN_DATE.strftime('%Y-%m-%d')}). "
+            f"Historical dates before 1800 may not have reliable astrological interpretation."
+        )
+    
+    if d > MAX_DATE:
+        raise ValueError(
+            f"Date too far in future: {d.strftime('%Y-%m-%d')} (after {MAX_DATE.strftime('%Y-%m-%d')}). "
+            f"Predictions beyond 2300 are not supported."
+        )
+
+    # 4) MEDIUM: Warn if birth date is in the future
+    if d > TODAY:
+        warnings.append(ParseWarning(
+            code="FUTURE_BIRTH_DATE",
+            message=f"Birth date is {(d - TODAY).days} days in the future. Results are predictive only."
+        ))
+
+    # 5) MEDIUM: Warn if birth date is very old
+    age_days = (TODAY - d).days
+    if age_days > 70000:  # ~190 years
+        warnings.append(ParseWarning(
+            code="VERY_OLD_DATE",
+            message="Birth date is more than 190 years in the past. Consider verifying accuracy."
+        ))
+    
+    if d.year < 1850:
+        warnings.append(ParseWarning(
+            code="HISTORICAL_DATE",
+            message="Birth before 1850 - astrological calculation reliability is uncertain."
+        ))
 
     # time
     try:
