@@ -238,6 +238,7 @@ print(f"\n{YELLOW}[TEST 3] CALCULATION ACCURACY & PRECISION{RESET}")
 # Test 3.1: Julian day precision
 print("\n3.1: Julian day calculation precision")
 tester.total += 1
+ni1 = None
 try:
     ni1 = normalize_input("1990-01-01", "12:00:00", "Moscow")
     ni2 = normalize_input("1990-01-01", "12:00:01", "Moscow")
@@ -275,23 +276,31 @@ extreme_cases = [
     ("Antimeridian", 0.0, 180.0),
 ]
 poles_ok = True
-for name, lat, lon in extreme_cases:
-    try:
-        result = natal_calculation(ni1.utc_dt, lat, lon)
-        if "houses" not in result or len(result["houses"]) != 12:
+if ni1 is not None:
+    for name, lat, lon in extreme_cases:
+        try:
+            result = natal_calculation(ni1.utc_dt, lat, lon)
+            if "houses" not in result or len(result["houses"]) != 12:
+                poles_ok = False
+                tester.log_issue(
+                    "HIGH",
+                    "Calculation",
+                    f"Invalid house count at {name}: {len(result.get('houses', []))}",
+                )
+        except Exception as e:
             poles_ok = False
             tester.log_issue(
                 "HIGH",
                 "Calculation",
-                f"Invalid house count at {name}: {len(result.get('houses', []))}",
+                f"Calculation failed at {name} ({lat}, {lon}): {type(e).__name__}",
             )
-    except Exception as e:
-        poles_ok = False
-        tester.log_issue(
-            "HIGH",
-            "Calculation",
-            f"Calculation failed at {name} ({lat}, {lon}): {type(e).__name__}",
-        )
+else:
+    poles_ok = False
+    tester.log_issue(
+        "CRITICAL",
+        "Calculation",
+        "ni1 is None, extreme coordinates test skipped due to previous failure.",
+    )
 
 print_result("Extreme coordinates", poles_ok)
 if poles_ok:
