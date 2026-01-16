@@ -1,4 +1,3 @@
-
 from typer.testing import CliRunner
 import main
 
@@ -36,6 +35,6 @@ def test_devils_basic():
 
 
 def test_rectify_basic():
-    result = runner.invoke(main.app, ["rectify", "[]"])
+    result = runner.invoke(main.app, ["rectify", "1990-01-01", "12:00", "Moscow"])
     assert result.exit_code == 0
     assert "candidates" in result.output

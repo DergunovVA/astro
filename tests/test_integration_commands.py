@@ -13,35 +13,38 @@ class TestIntegrationAllCommands:
     def run_command(self, *args) -> dict:
         """Run main.py command and parse JSON output using current Python environment."""
         # Use the same Python executable as the test
+        project_root = Path(__file__).parent.parent
         result = run(
-            [sys.executable, "-m", "main"] + list(args),
+            [sys.executable, str(project_root / "main.py")] + list(args),
             stdout=PIPE,
             stderr=STDOUT,
             text=True,
-            cwd=str(Path(__file__).parent)
+            cwd=str(project_root),
         )
         if result.returncode != 0:
             raise RuntimeError(f"Command failed: {result.stdout}")
-        
+
         # Parse JSON output (skip warnings/other output)
-        lines = result.stdout.strip().split('\n')
-        json_start = next((i for i, line in enumerate(lines) if line.startswith('{')), None)
+        lines = result.stdout.strip().split("\n")
+        json_start = next(
+            (i for i, line in enumerate(lines) if line.startswith("{")), None
+        )
         if json_start is None:
             raise RuntimeError(f"No JSON output found: {result.stdout}")
-        json_str = '\n'.join(lines[json_start:])
+        json_str = "\n".join(lines[json_start:])
         return json.loads(json_str)
 
     def test_natal_moscow(self):
         """Test natal command with Moscow (cached alias)."""
         result = self.run_command("natal", "1990-01-01", "12:00", "Moscow")
-        
+
         # Check input_metadata
         assert "input_metadata" in result
         assert result["input_metadata"]["confidence"] == 0.95
         assert result["input_metadata"]["timezone"] == "Europe/Moscow"
         assert result["input_metadata"]["coordinates"]["lat"] == 55.7558
         assert result["input_metadata"]["coordinates"]["lon"] == 37.6173
-        
+
         # Check results
         assert "facts" in result
         assert len(result["facts"]) > 0
@@ -50,7 +53,7 @@ class TestIntegrationAllCommands:
     def test_natal_new_city_alias(self):
         """Test natal command with new city alias (New York)."""
         result = self.run_command("natal", "1990-01-01", "12:00", "New York")
-        
+
         # Check coordinates are correct
         assert result["input_metadata"]["coordinates"]["lat"] == 40.7128
         assert result["input_metadata"]["coordinates"]["lon"] == -74.006
@@ -59,12 +62,12 @@ class TestIntegrationAllCommands:
     def test_transit_london(self):
         """Test transit command with London."""
         result = self.run_command("transit", "2025-01-15", "12:00", "London")
-        
+
         # Check minimal metadata
         assert "input_metadata" in result
         assert "coordinates" in result["input_metadata"]
         assert result["input_metadata"]["timezone"] == "Europe/London"
-        
+
         # Check results exist
         assert "facts" in result
         assert "signals" in result
@@ -73,7 +76,7 @@ class TestIntegrationAllCommands:
     def test_solar_tokyo(self):
         """Test solar command with Tokyo."""
         result = self.run_command("solar", "2025", "1990-01-01", "12:00", "Tokyo")
-        
+
         # Check Tokyo coordinates (with some tolerance for precision)
         assert abs(result["input_metadata"]["coordinates"]["lat"] - 35.6762) < 0.001
         assert result["input_metadata"]["timezone"] == "Asia/Tokyo"
@@ -81,7 +84,7 @@ class TestIntegrationAllCommands:
     def test_rectify_sydney(self):
         """Test rectify command with Sydney."""
         result = self.run_command("rectify", "1990-01-01", "12:00", "Sydney")
-        
+
         # Check Sydney data
         assert result["input_metadata"]["timezone"] == "Australia/Sydney"
         assert result["input_metadata"]["coordinates"]["lat"] == -33.8688
@@ -89,11 +92,11 @@ class TestIntegrationAllCommands:
     def test_devils_paris(self):
         """Test devils command with Paris."""
         result = self.run_command("devils", "1990-01-01", "12:00", "Paris")
-        
+
         # Check full metadata with place info
         assert result["input_metadata"]["place"]["country"] == "FR"
         assert result["input_metadata"]["place"]["name"] == "Paris"
-        
+
         # Check devils output
         assert "devils" in result
         assert result["devils"]["raw"] is True
@@ -101,7 +104,7 @@ class TestIntegrationAllCommands:
     def test_relocate_new_city(self):
         """Test relocate command with new city."""
         result = self.run_command("relocate", "Berlin")
-        
+
         # Check coordinates
         assert result["coords"]["lat"] == 52.52
         assert result["coords"]["lon"] == 13.405
@@ -109,15 +112,17 @@ class TestIntegrationAllCommands:
 
     def test_tz_override_parameter(self):
         """Test --tz parameter to override auto-detection."""
-        result = self.run_command("natal", "1990-01-01", "12:00", "Moscow", "--tz", "UTC")
-        
+        result = self.run_command(
+            "natal", "1990-01-01", "12:00", "Moscow", "--tz", "UTC"
+        )
+
         # Timezone should be overridden to UTC
         assert result["input_metadata"]["timezone"] == "UTC"
 
     def test_cyrillic_input(self):
         """Test with Cyrillic city names."""
         result = self.run_command("natal", "1990-01-01", "12:00", "москва")
-        
+
         # Should resolve to Moscow
         assert result["input_metadata"]["timezone"] == "Europe/Moscow"
         assert result["input_metadata"]["coordinates"]["lat"] == 55.7558
@@ -125,7 +130,7 @@ class TestIntegrationAllCommands:
     def test_explain_flag(self):
         """Test --explain flag adds explanations."""
         result = self.run_command("natal", "1990-01-01", "12:00", "Moscow", "--explain")
-        
+
         # Should have explain and fix sections
         assert "explain" in result
         assert "fix" in result
@@ -134,7 +139,7 @@ class TestIntegrationAllCommands:
     def test_devils_flag(self):
         """Test --devils flag adds raw calculation data."""
         result = self.run_command("natal", "1990-01-01", "12:00", "Moscow", "--devils")
-        
+
         # Should have devils section with calc data
         assert "devils" in result
         assert "calc" in result["devils"]
@@ -143,7 +148,7 @@ class TestIntegrationAllCommands:
     def test_european_date_format(self):
         """Test European date format (DD.MM.YYYY)."""
         result = self.run_command("natal", "01.01.1990", "12:00", "Moscow")
-        
+
         # Should parse correctly
         assert "facts" in result
         assert len(result["facts"]) > 0
@@ -151,23 +156,31 @@ class TestIntegrationAllCommands:
     def test_confidence_and_warnings(self):
         """Test that confidence and warnings are returned."""
         result = self.run_command("natal", "1990-01-01", "12:00", "Moscow")
-        
+
         # Should have confidence
         assert "confidence" in result["input_metadata"]
         assert 0 <= result["input_metadata"]["confidence"] <= 1.0
-        
+
         # May or may not have warnings (Moscow is cached, no warnings)
         assert "warnings" in result["input_metadata"]
 
     def test_comparative_cli_cities(self):
         """Test comparative command with CLI city arguments."""
-        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "Moscow", "London")
-        
+        result = self.run_command(
+            "comparative",
+            "1985-01-15",
+            "14:30",
+            "--chart-type",
+            "natal",
+            "Moscow",
+            "London",
+        )
+
         # Check structure
         assert "comparative_data" in result
         assert "charts" in result
         assert "errors" in result
-        
+
         # Check comparative_data
         data = result["comparative_data"]
         assert data["chart_type"] == "natal"
@@ -176,7 +189,7 @@ class TestIntegrationAllCommands:
         assert data["cities_count"] == 2
         assert data["successful"] == 2
         assert data["failed"] == 0
-        
+
         # Check charts
         assert len(result["charts"]) == 2
         assert result["charts"][0]["place"] == "Moscow"
@@ -188,19 +201,27 @@ class TestIntegrationAllCommands:
 
     def test_comparative_file_input(self):
         """Test comparative command with cities file."""
-        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "--cities-file", "cities_sample.txt")
-        
+        result = self.run_command(
+            "comparative",
+            "1985-01-15",
+            "14:30",
+            "--chart-type",
+            "natal",
+            "--cities-file",
+            "data/cities_sample.txt",
+        )
+
         # Check structure
         assert "comparative_data" in result
         assert "charts" in result
         assert "errors" in result
-        
+
         # Check comparative_data - should have 5 cities from file
         data = result["comparative_data"]
         assert data["cities_count"] == 5
         assert data["successful"] == 5
         assert data["failed"] == 0
-        
+
         # Check charts
         assert len(result["charts"]) == 5
         cities = [chart["place"] for chart in result["charts"]]
@@ -209,22 +230,37 @@ class TestIntegrationAllCommands:
     def test_comparative_chart_types(self):
         """Test comparative command with different chart types."""
         for chart_type in ["natal", "transit", "solar", "relocation"]:
-            result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", chart_type, "Moscow")
-            
+            result = self.run_command(
+                "comparative",
+                "1985-01-15",
+                "14:30",
+                "--chart-type",
+                chart_type,
+                "Moscow",
+            )
+
             assert result["comparative_data"]["chart_type"] == chart_type
             assert result["comparative_data"]["successful"] == 1
             assert result["charts"][0]["chart_type"] == chart_type
 
     def test_comparative_partial_failure(self):
         """Test comparative command with one invalid city."""
-        result = self.run_command("comparative", "1985-01-15", "14:30", "--chart-type", "natal", "Moscow", "InvalidCityXYZ")
-        
+        result = self.run_command(
+            "comparative",
+            "1985-01-15",
+            "14:30",
+            "--chart-type",
+            "natal",
+            "Moscow",
+            "InvalidCityXYZ",
+        )
+
         # Check partial success
         assert result["comparative_data"]["successful"] == 1
         assert result["comparative_data"]["failed"] == 1
         assert len(result["charts"]) == 1
         assert result["charts"][0]["place"] == "Moscow"
-        
+
         # Check error recorded
         assert len(result["errors"]) == 1
         assert result["errors"][0]["place"] == "InvalidCityXYZ"
@@ -237,29 +273,29 @@ class TestGlobalCache:
     def test_global_cache_persistent(self):
         """Test that global cache persists across calls."""
         from input_pipeline import get_global_cache, reset_global_cache, resolve_city
-        
+
         # Reset cache
         reset_global_cache()
-        
+
         # First call
         cache1 = get_global_cache()
         resolve_city("Moscow", cache1)
-        
+
         # Second call should return same instance
         cache2 = get_global_cache()
         assert cache1 is cache2
-        
+
         # Moscow should be in cache
         resolve_city("Moscow", cache2)
 
     def test_reset_cache(self):
         """Test cache reset function."""
         from input_pipeline import get_global_cache, reset_global_cache
-        
+
         cache1 = get_global_cache()
         reset_global_cache()
         cache2 = get_global_cache()
-        
+
         # Should be different instances after reset
         assert cache1 is not cache2
 
@@ -270,10 +306,10 @@ class TestInputContext:
     def test_input_context_from_normalized(self):
         """Test InputContext factory method."""
         from input_pipeline import normalize_input, InputContext
-        
+
         ni = normalize_input("1990-01-01", "12:00", "Moscow")
         ctx = InputContext.from_normalized(ni)
-        
+
         # Should have all fields
         assert ctx.tz_name == "Europe/Moscow"
         assert ctx.lat == 55.7558
@@ -282,10 +318,10 @@ class TestInputContext:
     def test_input_context_to_metadata(self):
         """Test InputContext metadata dict generation."""
         from input_pipeline import normalize_input, InputContext
-        
+
         ni = normalize_input("1990-01-01", "12:00", "Moscow")
         ctx = InputContext.from_normalized(ni)
-        
+
         metadata = ctx.to_metadata_dict()
         assert "confidence" in metadata
         assert "timezone" in metadata
@@ -295,10 +331,10 @@ class TestInputContext:
     def test_input_context_helpers(self):
         """Test InputContext helper methods."""
         from input_pipeline import normalize_input, InputContext
-        
+
         ni = normalize_input("1990-01-01", "12:00", "Moscow")
         ctx = InputContext.from_normalized(ni)
-        
+
         # Test helper methods
         assert ctx.get_coordinates() == (55.7558, 37.6173)
         assert ctx.get_utc_datetime() is not None

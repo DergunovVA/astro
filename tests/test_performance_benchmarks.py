@@ -19,6 +19,7 @@ class TestPerformanceBenchmarks:
 
     def test_parse_date_time_iso(self, benchmark):
         """ISO date parsing should be <1ms."""
+
         def parse():
             return parse_date_time("2000-01-15", "14:30:00")
 
@@ -27,6 +28,7 @@ class TestPerformanceBenchmarks:
 
     def test_parse_date_time_european(self, benchmark):
         """European date parsing should be <1ms."""
+
         def parse():
             return parse_date_time("15.01.2000", "14:30:00")
 
@@ -35,6 +37,7 @@ class TestPerformanceBenchmarks:
 
     def test_parse_date_time_text(self, benchmark):
         """Text date parsing should be <2ms."""
+
         def parse():
             return parse_date_time("15 Jan 2000", "14:30:00")
 
@@ -43,6 +46,7 @@ class TestPerformanceBenchmarks:
 
     def test_resolve_city_alias_hit(self, benchmark):
         """City alias lookup (cache hit) should be <1ms."""
+
         def resolve():
             return resolve_city("Moscow")
 
@@ -51,6 +55,7 @@ class TestPerformanceBenchmarks:
 
     def test_resolve_city_typo_correction(self, benchmark):
         """Typo detection should be <10ms."""
+
         def resolve():
             return resolve_city("Moskow")  # Typo correction via fuzzy match
 
@@ -69,17 +74,18 @@ class TestPerformanceBenchmarks:
 
     def test_resolve_tz_name(self, benchmark):
         """Timezone name resolution should be <10ms."""
+
         def resolve():
             return resolve_tz_name(55.7558, 37.6173)
 
         result = benchmark(resolve)
-        assert result == "Europe/Moscow"
+        assert result[0] == "Europe/Moscow"
 
     def test_cache_set_and_get(self, benchmark):
         """Cache operations should be <5ms."""
         with tempfile.TemporaryDirectory() as tmpdir:
             cache_file = os.path.join(tmpdir, "test_cache.json")
-            cache = JsonCache(filepath=cache_file)
+            cache = JsonCache(path=cache_file)
 
             def cache_ops():
                 cache.set("moscow", {"name": "Moscow", "lat": 55.7558})
@@ -90,6 +96,7 @@ class TestPerformanceBenchmarks:
 
     def test_normalize_input_full_pipeline_alias(self, benchmark):
         """Full pipeline with alias lookup should be <10ms."""
+
         def normalize():
             return normalize_input(
                 date_str="2000-01-15",
@@ -102,6 +109,7 @@ class TestPerformanceBenchmarks:
 
     def test_normalize_input_full_pipeline_with_warnings(self, benchmark):
         """Full pipeline with warnings should still be <10ms."""
+
         def normalize():
             return normalize_input(
                 date_str="15.01.2000",  # European format (low confidence)
