@@ -62,8 +62,8 @@ def calculate_synastry_aspects(
 
 
 def calculate_composite_chart(
-    natal1: Dict[str, any],
-    natal2: Dict[str, any]
+    natal1: Dict[str, Any],
+    natal2: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Calculate composite (midpoint) chart from two natal charts.
     

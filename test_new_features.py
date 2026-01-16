@@ -162,7 +162,6 @@ class TestNewFeatures:
         
         aspects = result["synastry_aspects"]
         # Should have some minor aspects when flag is set
-        has_minor = any(a["category"] == "minor" for a in aspects)
         # At least some charts will have minor aspects
         # (This might not always be true, so we just check structure is correct)
         assert all(a["category"] in ["major", "minor"] for a in aspects)

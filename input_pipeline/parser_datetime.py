@@ -69,11 +69,9 @@ def parse_date_time(date_str: str, time_str: str, locale: Optional[str] = None) 
             ]
             
             d = None
-            matched_format = None
             for fmt, description in formats:
                 try:
                     d = datetime.strptime(date_str, fmt).date()
-                    matched_format = description
                     warnings.append(ParseWarning(
                         code="LOW_CONFIDENCE_DATE",
                         message=f"Date parsed as {description}"

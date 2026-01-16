@@ -268,10 +268,6 @@ def synastry(
         calc1 = natal_calculation(ctx1.utc_dt, ctx1.lat, ctx1.lon, house_method=house_system)
         calc2 = natal_calculation(ctx2.utc_dt, ctx2.lat, ctx2.lon, house_method=house_system)
         
-        # Interpret each chart
-        facts1 = facts_from_calculation(calc1)
-        facts2 = facts_from_calculation(calc2)
-        
         # Calculate synastry aspects (cross-chart)
         synastry_aspects = calculate_synastry_aspects(
             calc1["planets"], calc2["planets"],

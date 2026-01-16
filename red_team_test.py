@@ -356,7 +356,7 @@ try:
         try:
             ni = normalize_input('1990-01-01', '12:00', place)
             added += 1
-        except:
+        except Exception:
             pass
     
     test_result('Memory pressure (10 cities)', True, f'Cached {added} unique entries')

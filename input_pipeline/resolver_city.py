@@ -67,7 +67,6 @@ ALIASES = {
     "tokyo": ("Tokyo", "JP", 35.6762, 139.6503, "Asia/Tokyo", 0.95, "alias"),
     "токио": ("Tokyo", "JP", 35.6762, 139.6503, "Asia/Tokyo", 0.9, "alias"),
     "beijing": ("Beijing", "CN", 39.9042, 116.4074, "Asia/Shanghai", 0.95, "alias"),
-    "beijing": ("Beijing", "CN", 39.9042, 116.4074, "Asia/Shanghai", 0.95, "alias"),
     "bangkok": ("Bangkok", "TH", 13.7563, 100.5018, "Asia/Bangkok", 0.95, "alias"),
     "delhi": ("Delhi", "IN", 28.7041, 77.1025, "Asia/Kolkata", 0.95, "alias"),
     "dubai": ("Dubai", "AE", 25.2048, 55.2708, "Asia/Dubai", 0.95, "alias"),

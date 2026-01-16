@@ -56,7 +56,6 @@ def calc_aspects(
             for asp_name, asp_config in aspects_to_check.items():
                 asp_angle = asp_config["angle"]
                 asp_orb = asp_config["orb"]
-                asp_type = asp_config["type"]
                 
                 # Calculate shortest distance to aspect angle
                 diff = min(abs(angle - asp_angle), abs(360 - angle - asp_angle))
