@@ -50,19 +50,21 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
             details={}
         ))
     
-    # Aspects
+    # Aspects (now returns 5-tuple with aspect category)
     aspects = calculate_aspects(planets, ASPECTS_CONFIG)
-    for p1, p2, asp_name, orb in aspects:
+    for p1, p2, asp_name, orb, asp_category in aspects:
         facts.append(Fact(
             id=f"{p1}_{p2}_{asp_name}",
             type="aspect",
             object=f"{p1}-{p2}",
             value=asp_name,
-            details={"orb": round(orb, 2)}
+            details={
+                "orb": round(orb, 2),
+                "category": asp_category  # "major" or "minor"
+            }
         ))
     
     return facts
-
 def signals_from_facts(facts: List[Fact]) -> List[Signal]:
     """Aggregate facts into signals (no calculations, just grouping)."""
     # Demo: simple aggregation

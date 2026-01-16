@@ -8,6 +8,7 @@ from astro_adapter import natal_calculation
 from interpretation_layer import facts_from_calculation, signals_from_facts, decisions_from_signals
 from input_pipeline import normalize_input, InputContext
 from comparative_charts import comparative_charts, load_cities_from_file
+from synastry import calculate_synastry_aspects, calculate_composite_chart
 
 # Force UTF-8 encoding for all I/O (fixes Windows cp1252 encoding issues)
 if sys.platform == 'win32':
@@ -19,14 +20,14 @@ os.environ['PYTHONIOENCODING'] = 'utf-8'
 app = typer.Typer()
 
 @app.command()
-def natal(date: str, time: str, place: str, tz: str | None = None, lat: float | None = None, lon: float | None = None, locale: str | None = None, strict: bool = False, explain: bool = False, devils: bool = False):
+def natal(date: str, time: str, place: str, tz: str | None = None, lat: float | None = None, lon: float | None = None, locale: str | None = None, strict: bool = False, explain: bool = False, devils: bool = False, house_system: str = "Placidus"):
     try:
         # Step 1: Normalize input
         ni = normalize_input(date, time, place, tz_override=tz, lat_override=lat, lon_override=lon, locale=locale, strict=strict)
         ctx = InputContext.from_normalized(ni)
         
         # Step 2: Calculate using normalized data directly
-        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon)
+        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system)
         
         # Step 3: Interpret
         facts = facts_from_calculation(calc_result)
@@ -232,6 +233,79 @@ def comparative(
     except FileNotFoundError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=2)
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+@app.command()
+def synastry(
+    date1: str, time1: str, place1: str,
+    date2: str, time2: str, place2: str,
+    tz1: str | None = None, tz2: str | None = None,
+    house_system: str = "Placidus",
+    include_minor: bool = False
+):
+    """Compare two natal charts (synastry/relationship astrology).
+    
+    Usage:
+    python main.py synastry 1990-05-15 14:30 Moscow 1992-03-20 10:15 London
+    
+    Returns: Synastry aspects, composite chart insights, relationship indicators.
+    """
+    try:
+        # Normalize both inputs
+        ni1 = normalize_input(date1, time1, place1, tz_override=tz1)
+        ni2 = normalize_input(date2, time2, place2, tz_override=tz2)
+        ctx1 = InputContext.from_normalized(ni1)
+        ctx2 = InputContext.from_normalized(ni2)
+        
+        # Calculate both natal charts
+        calc1 = natal_calculation(ctx1.utc_dt, ctx1.lat, ctx1.lon, house_method=house_system)
+        calc2 = natal_calculation(ctx2.utc_dt, ctx2.lat, ctx2.lon, house_method=house_system)
+        
+        # Interpret each chart
+        facts1 = facts_from_calculation(calc1)
+        facts2 = facts_from_calculation(calc2)
+        
+        # Calculate synastry aspects (cross-chart)
+        synastry_aspects = calculate_synastry_aspects(
+            calc1["planets"], calc2["planets"],
+            include_minor=include_minor
+        )
+        
+        # Calculate composite chart
+        composite = calculate_composite_chart(calc1, calc2)
+        
+        # Sort synastry aspects by importance (major hard > major soft > minor)
+        def aspect_priority(asp):
+            category_val = 0 if asp["category"] == "major" else 1
+            type_val = 0 if asp["type"] == "hard" else 1
+            orb_val = asp["orb"]  # Smaller orb = tighter = more important
+            return (category_val, type_val, orb_val)
+        
+        synastry_aspects.sort(key=aspect_priority)
+        
+        result = {
+            "synastry_summary": {
+                "person1": {"date": date1, "time": time1, "place": place1},
+                "person2": {"date": date2, "time": time2, "place": place2},
+                "total_aspects": len(synastry_aspects),
+                "house_system": house_system
+            },
+            "synastry_aspects": synastry_aspects[:20],  # Top 20 aspects
+            "chart1_metadata": ctx1.to_metadata_dict(),
+            "chart2_metadata": ctx2.to_metadata_dict(),
+            "composite_planets": composite["planets"],
+            "composite_houses": composite["houses"]
+        }
+        
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+        
     except ValueError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=2)

@@ -2,6 +2,7 @@
 import swisseph as swe
 from datetime import datetime
 from typing import Dict, Any, List
+from house_systems import calc_houses
 
 def calc_planets_raw(jd: float) -> Dict[str, float]:
     """Get planet longitudes (float only) from Swiss Ephemeris."""
@@ -13,15 +14,19 @@ def calc_planets_raw(jd: float) -> Dict[str, float]:
     return planets
 
 def calc_houses_raw(jd: float, lat: float, lon: float, method: str = "Placidus") -> List[float]:
-    """Get house cusps (floats only) from Swiss Ephemeris."""
-    if method == "Placidus":
-        cusps_tuple = swe.houses(jd, lat, lon)
-        return list(cusps_tuple[0])  # Unwrap to list of floats
-    elif method == "WholeSign":
-        asc = swe.houses(jd, lat, lon)[0][0]
-        return [(asc + i * 30) % 360 for i in range(12)]
-    else:
-        raise ValueError("Unknown house method")
+    """Get house cusps (floats only) from house_systems module.
+    
+    Args:
+        jd: Julian Day number
+        lat: Observer latitude
+        lon: Observer longitude
+        method: House system name (Placidus, Koch, Regiomontanus, Campanus, 
+                Topocentric, Equal, Porphyry, Alcabitius, Whole Sign)
+                
+    Returns:
+        List of 12 house cusp longitudes (floats)
+    """
+    return calc_houses(jd, lat, lon, method=method)
 
 def julian_day(utc_dt: datetime) -> float:
     """Convert UTC datetime to Julian Day.
@@ -43,26 +48,27 @@ def julian_day(utc_dt: datetime) -> float:
     return swe.julday(dt_utc.year, dt_utc.month, dt_utc.day, 
                      dt_utc.hour + dt_utc.minute / 60.0 + dt_utc.second / 3600.0)
 
-def natal_calculation(utc_dt: datetime, lat: float, lon: float) -> Dict[str, Any]:
+def natal_calculation(utc_dt: datetime, lat: float, lon: float, house_method: str = "Placidus") -> Dict[str, Any]:
     """Perform complete natal calculation: unwrap Swiss Ephemeris → return floats.
     
     Args:
         utc_dt: timezone-aware datetime in UTC (from normalize_input)
         lat: latitude in decimal degrees (from normalize_input)
         lon: longitude in decimal degrees (from normalize_input)
+        house_method: House system to use (default: Placidus)
         
     Returns:
-        Dict with jd, planets, houses, coords
+        Dict with jd, planets, houses, coords, house_method
         
     Note: Coordinates should be pre-computed by normalize_input to avoid double-geocoding
     """
     jd = julian_day(utc_dt)
     planets = calc_planets_raw(jd)
-    houses = calc_houses_raw(jd, lat, lon, method="Placidus")
+    houses = calc_houses_raw(jd, lat, lon, method=house_method)
     
     return {
         "jd": jd,
         "planets": planets,
         "houses": houses,
-        "coords": {"lon": lon, "lat": lat}
-    }
+        "coords": {"lon": lon, "lat": lat},
+        "house_method": house_method    }

@@ -63,10 +63,18 @@ def planet_in_house(lon: float, house_cusps: List[float]) -> int:
                 return i + 1
     return 1  # Default fallback
 
-def calculate_aspects(planets: dict, aspects_config: dict) -> List[Tuple[str, str, str, float]]:
-    """Calculate all aspects between planets. Returns (planet1, planet2, aspect_name, orb)."""
+def calculate_aspects(planets: dict, aspects_config: dict) -> List[Tuple[str, str, str, float, str]]:
+    """Calculate all aspects between planets.
+    
+    Returns tuples: (planet1, planet2, aspect_name, orb, aspect_category)
+    where aspect_category is "major" or "minor"
+    """
     result = []
     names = list(planets.keys())
+    
+    # Import MAJOR_ASPECTS to classify aspects
+    from aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+    
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             p1, p2 = names[i], names[j]
@@ -76,7 +84,15 @@ def calculate_aspects(planets: dict, aspects_config: dict) -> List[Tuple[str, st
                 asp_angle = ensure_float(asp_angle)
                 match, orb_error = aspect_match(lon1, lon2, asp_angle, orb=8.0)
                 if match:
-                    result.append((p1, p2, asp_name, orb_error))
+                    # Determine if aspect is major or minor
+                    if asp_name in MAJOR_ASPECTS:
+                        category = "major"
+                    elif asp_name in MINOR_ASPECTS:
+                        category = "minor"
+                    else:
+                        category = "major"  # Default to major if not found
+                    
+                    result.append((p1, p2, asp_name, orb_error, category))
     return result
 
 def calculate_house_positions(cusps: List[float], planets: dict) -> dict:
