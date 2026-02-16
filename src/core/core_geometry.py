@@ -76,16 +76,78 @@ def planet_in_house(lon: float, house_cusps: List[float]) -> int:
     return 1  # Default fallback
 
 
+def is_aspect_applying(
+    lon1: float,
+    speed1: float,
+    lon2: float,
+    speed2: float,
+    aspect_angle: float,
+    current_orb: float,
+) -> str:
+    """Determine if aspect is applying (converging) or separating (diverging).
+
+    Args:
+        lon1: Longitude of planet 1 (0-360°)
+        speed1: Speed of planet 1 (degrees/day, negative if retrograde)
+        lon2: Longitude of planet 2
+        speed2: Speed of planet 2
+        aspect_angle: Target aspect angle (e.g., 0, 60, 90, 120, 180)
+        current_orb: Current orb (distance from exact aspect)
+
+    Returns:
+        "applying" if planets are moving towards exact aspect
+        "separating" if planets are moving away from exact aspect
+        "stationary" if aspect is nearly stable (both planets similar speeds)
+
+    Method:
+    - Simulate positions after 1 day
+    - Compare future orb with current orb
+    - Decreasing orb = applying, increasing orb = separating
+    """
+    lon1 = ensure_float(lon1)
+    lon2 = ensure_float(lon2)
+    speed1 = ensure_float(speed1)
+    speed2 = ensure_float(speed2)
+    aspect_angle = ensure_float(aspect_angle)
+
+    # If speeds are nearly identical, aspect is stationary
+    if abs(speed1 - speed2) < 0.01:  # Less than 0.01°/day difference
+        return "stationary"
+
+    # Calculate positions after 1 day
+    future_lon1 = normalize_longitude(lon1 + speed1)
+    future_lon2 = normalize_longitude(lon2 + speed2)
+
+    # Calculate future angular separation
+    future_diff = angle_diff(future_lon1, future_lon2)
+    future_orb = abs(future_diff - aspect_angle)
+
+    # Also check wrapped variant (for aspects near 360°)
+    future_orb_alt = abs((360 - future_diff) - aspect_angle)
+    future_orb = min(future_orb, future_orb_alt)
+
+    # Compare: is future orb smaller (applying) or larger (separating)?
+    if future_orb < current_orb - 0.001:  # Small threshold to avoid floating point
+        return "applying"
+    elif future_orb > current_orb + 0.001:
+        return "separating"
+    else:
+        return "stationary"
+
+
 def calculate_aspects(
     planets: dict, aspects_config: dict
-) -> List[Tuple[str, str, str, float, str]]:
+) -> List[Tuple[str, str, str, float, str, str]]:
     """Calculate all aspects between planets.
 
-    Returns tuples: (planet1, planet2, aspect_name, orb, aspect_category)
-    where aspect_category is "major" or "minor"
+    Returns tuples: (planet1, planet2, aspect_name, orb, aspect_category, motion)
+    where:
+    - aspect_category is "major" or "minor"
+    - motion is "applying", "separating", or "stationary" (if extended data available)
+      or None if speed data not available
 
     Supports both simple format (Dict[str, float]) and extended format
-    (Dict[str, dict]) with planet metadata.
+    (Dict[str, dict]) with planet metadata including speeds.
     """
     result = []
     names = list(planets.keys())
@@ -103,13 +165,17 @@ def calculate_aspects(
 
             if isinstance(p1_data, dict):
                 lon1 = ensure_float(p1_data.get("longitude", p1_data))
+                speed1 = p1_data.get("speed", None)
             else:
                 lon1 = ensure_float(p1_data)
+                speed1 = None
 
             if isinstance(p2_data, dict):
                 lon2 = ensure_float(p2_data.get("longitude", p2_data))
+                speed2 = p2_data.get("speed", None)
             else:
                 lon2 = ensure_float(p2_data)
+                speed2 = None
 
             for asp_name, asp_angle in aspects_config.items():
                 asp_angle = ensure_float(asp_angle)
@@ -123,7 +189,14 @@ def calculate_aspects(
                     else:
                         category = "major"  # Default to major if not found
 
-                    result.append((p1, p2, asp_name, orb_error, category))
+                    # Determine applying/separating if speed data available
+                    motion = None
+                    if speed1 is not None and speed2 is not None:
+                        motion = is_aspect_applying(
+                            lon1, speed1, lon2, speed2, asp_angle, orb_error
+                        )
+
+                    result.append((p1, p2, asp_name, orb_error, category, motion))
     return result
 
 

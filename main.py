@@ -50,7 +50,7 @@ def natal(
     explain: bool = False,
     devils: bool = False,
     house_system: str = "Placidus",
-    extended: bool = False,
+    extended: bool = True,  # Changed default to True for applying/separating aspects
     psychological: bool = False,
 ):
     try:

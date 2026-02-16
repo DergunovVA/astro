@@ -94,7 +94,6 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
         # Add retrograde indicator if applicable
         if is_retrograde:
             details["retrograde"] = True
-            details["symbol"] = f"{planet}℞"  # Add retrograde symbol
 
         facts.append(
             Fact(
@@ -175,19 +174,28 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
             )
         )
 
-    # Aspects (now returns 5-tuple with aspect category)
+    # Aspects (now returns 6-tuple with aspect category and motion)
+    # Use original planets data (not normalized) to preserve speed information
     aspects = calculate_aspects(planets, ASPECTS_CONFIG)
-    for p1, p2, asp_name, orb, asp_category in aspects:
+    for p1, p2, asp_name, orb, asp_category, motion in aspects:
+        aspect_details = {
+            "orb": round(orb, 2),
+            "category": asp_category,  # "major" or "minor"
+        }
+
+        # Add applying/separating info if available
+        if motion:
+            aspect_details["motion"] = (
+                motion  # "applying", "separating", or "stationary"
+            )
+
         facts.append(
             Fact(
                 id=f"{p1}_{p2}_{asp_name}",
                 type="aspect",
                 object=f"{p1}-{p2}",
                 value=asp_name,
-                details={
-                    "orb": round(orb, 2),
-                    "category": asp_category,  # "major" or "minor"
-                },
+                details=aspect_details,
             )
         )
 
