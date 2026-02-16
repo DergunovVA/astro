@@ -152,8 +152,9 @@ def calculate_aspects(
     result = []
     names = list(planets.keys())
 
-    # Import MAJOR_ASPECTS to classify aspects
+    # Import aspects classification and orb calculator
     from core.aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+    from core.orbs import get_aspect_orb
 
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
@@ -179,7 +180,11 @@ def calculate_aspects(
 
             for asp_name, asp_angle in aspects_config.items():
                 asp_angle = ensure_float(asp_angle)
-                match, orb_error = aspect_match(lon1, lon2, asp_angle, orb=8.0)
+
+                # Calculate variable orb based on planets and aspect type
+                variable_orb = get_aspect_orb(p1, p2, asp_name)
+
+                match, orb_error = aspect_match(lon1, lon2, asp_angle, orb=variable_orb)
                 if match:
                     # Determine if aspect is major or minor
                     if asp_name in MAJOR_ASPECTS:
@@ -240,8 +245,9 @@ def calculate_aspects_to_angles(
     """
     result = []
 
-    # Import MAJOR_ASPECTS to classify aspects
+    # Import aspects classification and orb calculator
     from core.aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+    from core.orbs import get_orb_for_angle
 
     # Define the four angles
     angles = {
@@ -262,8 +268,12 @@ def calculate_aspects_to_angles(
         for angle_name, angle_lon in angles.items():
             for asp_name, asp_angle in aspects_config.items():
                 asp_angle = ensure_float(asp_angle)
+
+                # Calculate variable orb for planet-to-angle aspect
+                variable_orb = get_orb_for_angle(planet_name, asp_name)
+
                 match, orb_error = aspect_match(
-                    planet_lon, angle_lon, asp_angle, orb=orb
+                    planet_lon, angle_lon, asp_angle, orb=variable_orb
                 )
 
                 if match:
@@ -302,8 +312,9 @@ def calculate_aspects_to_house_cusps(
     """
     result = []
 
-    # Import MAJOR_ASPECTS to classify aspects
+    # Import aspects classification and orb calculator
     from core.aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+    from core.orbs import get_orb_for_angle
 
     # Check each planet against each house cusp
     for planet_name, planet_data in planets.items():
@@ -318,8 +329,15 @@ def calculate_aspects_to_house_cusps(
 
             for asp_name, asp_angle in aspects_config.items():
                 asp_angle = ensure_float(asp_angle)
+
+                # Use angle orb calculator (house cusps treated like angles but less critical)
+                # Apply 0.7 multiplier for non-angular houses (2,3,5,6,8,9,11,12)
+                variable_orb = get_orb_for_angle(planet_name, asp_name)
+                if house_num not in [1, 4, 7, 10]:  # Non-angular houses
+                    variable_orb *= 0.7
+
                 match, orb_error = aspect_match(
-                    planet_lon, cusp_lon, asp_angle, orb=orb
+                    planet_lon, cusp_lon, asp_angle, orb=variable_orb
                 )
 
                 if match:
