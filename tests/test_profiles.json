@@ -1,0 +1,104 @@
+{
+  "profiles": [
+    {
+      "id": "tech_founder",
+      "name": "Steve Jobs",
+      "date": "24 Feb 1955",
+      "time": "19:15",
+      "place": "San Francisco",
+      "profession": "Tech Founder / Visionary",
+      "expected_traits": [
+        "Innovation",
+        "Control freak",
+        "Charisma",
+        "Perfectionism",
+        "Revolutionary thinking"
+      ]
+    },
+    {
+      "id": "astrologer",
+      "name": "Liz Greene",
+      "date": "4 Sep 1946",
+      "time": "12:00",
+      "place": "New Jersey",
+      "profession": "Astrologer / Psychologist",
+      "expected_traits": [
+        "Psychological depth",
+        "Occult knowledge",
+        "Teaching ability",
+        "Analytical mind"
+      ]
+    },
+    {
+      "id": "scientist",
+      "name": "Carl Sagan",
+      "date": "9 Nov 1934",
+      "time": "12:00",
+      "place": "New York",
+      "profession": "Scientist / Communicator",
+      "expected_traits": [
+        "Scientific thinking",
+        "Communication skills",
+        "Philosophical mind",
+        "Popularizer"
+      ]
+    },
+    {
+      "id": "artist",
+      "name": "David Bowie",
+      "date": "8 Jan 1947",
+      "time": "09:00",
+      "place": "London",
+      "profession": "Artist / Musician",
+      "expected_traits": [
+        "Creativity",
+        "Transformations",
+        "Androgyny",
+        "Innovation in art"
+      ]
+    },
+    {
+      "id": "politician",
+      "name": "Vladimir Putin",
+      "date": "7 Oct 1952",
+      "time": "09:30",
+      "place": "St Petersburg",
+      "profession": "Politician / Leader",
+      "expected_traits": [
+        "Power focus",
+        "Strategic thinking",
+        "Control",
+        "Secrecy"
+      ]
+    },
+    {
+      "id": "tech_ceo",
+      "name": "Elon Musk",
+      "date": "28 Jun 1971",
+      "time": "07:30",
+      "place": "Pretoria",
+      "profession": "Tech CEO / Entrepreneur",
+      "expected_traits": [
+        "Workaholic",
+        "Vision",
+        "Risk-taking",
+        "Mars energy",
+        "Controversial"
+      ]
+    },
+    {
+      "id": "user",
+      "name": "User (Saratov)",
+      "date": "8 Jan 1982",
+      "time": "13:40",
+      "place": "Saratov",
+      "profession": "Tech / Developer",
+      "expected_traits": [
+        "Mercury-focused",
+        "Aquarius influence",
+        "Transformation theme",
+        "Relocation"
+      ]
+    }
+  ]
+}
