@@ -21,6 +21,7 @@ from modules.interpretation_layer import (  # noqa: E402
     signals_from_facts,
     decisions_from_signals,
 )
+from modules.psychological_layer import get_psychological_analysis  # noqa: E402
 from input_pipeline import normalize_input, InputContext  # noqa: E402
 from modules.comparative_charts import comparative_charts, load_cities_from_file  # noqa: E402
 from modules.synastry import calculate_synastry_aspects, calculate_composite_chart  # noqa: E402
@@ -49,6 +50,8 @@ def natal(
     explain: bool = False,
     devils: bool = False,
     house_system: str = "Placidus",
+    extended: bool = False,
+    psychological: bool = False,
 ):
     try:
         # Step 1: Normalize input
@@ -65,8 +68,9 @@ def natal(
         ctx = InputContext.from_normalized(ni)
 
         # Step 2: Calculate using normalized data directly
+        # Use extended=True to include retrograde indicators and full planet data
         calc_result = natal_calculation(
-            ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system
+            ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system, extended=extended
         )
 
         # Step 3: Interpret
@@ -88,6 +92,9 @@ def natal(
             result["fix"] = [{"signal": s.id, "advice": "Demo advice"} for s in signals]
         if devils:
             result["devils"] = {"raw": True, "calc": calc_result}
+        if psychological:
+            psych = get_psychological_analysis(calc_result, facts)
+            result["psychological"] = psych
         typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
     except ValueError as e:
         typer.echo(f"Error: {e}", err=True)
@@ -445,6 +452,92 @@ def synastry(
             "composite_planets": composite["planets"],
             "composite_houses": composite["houses"],
         }
+
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def psychology(
+    date: str,
+    time: str,
+    place: str,
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+    focus: str | None = None,  # shadow, demon, impulse, proof, revenge
+):
+    """
+    Глубинный психологический анализ натальной карты.
+
+    Анализирует:
+    - Тени (подавленные качества)
+    - Демоны (деструктивные паттерны)
+    - Позывы (неосознанные мотивации)
+    - Доказухи (компенсаторное поведение)
+    - Мести (обиды, желание компенсировать)
+
+    Примеры:
+    python main.py psychology "8 Jan 1982" "13:40" "Saratov"
+    python main.py psychology "8 Jan 1982" "13:40" "Saratov" --focus shadow
+    """
+    try:
+        # Normalize input
+        ni = normalize_input(
+            date,
+            time,
+            place,
+            tz_override=tz,
+            lat_override=lat,
+            lon_override=lon,
+            locale=locale,
+            strict=strict,
+        )
+        ctx = InputContext.from_normalized(ni)
+
+        # Calculate with extended mode for retrograde detection
+        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon, extended=True)
+        facts = facts_from_calculation(calc_result)
+
+        # Psychological analysis
+        psych = get_psychological_analysis(calc_result, facts)
+
+        # Filter by focus if specified
+        if focus:
+            valid_types = ["shadow", "demon", "impulse", "proof", "revenge"]
+            if focus not in valid_types:
+                typer.echo(f"Error: focus must be one of {valid_types}", err=True)
+                raise typer.Exit(code=2)
+
+            # Map singular to plural key
+            key_map = {
+                "shadow": "shadows",
+                "demon": "demons",
+                "impulse": "impulses",
+                "proof": "proofs",
+                "revenge": "revenges",
+            }
+            key = key_map[focus]
+            result = {
+                "input_metadata": ctx.to_metadata_dict_minimal(),
+                focus: psych[key],
+            }
+        else:
+            result = {
+                "input_metadata": ctx.to_metadata_dict_minimal(),
+                "psychological": psych,
+            }
 
         typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
 
