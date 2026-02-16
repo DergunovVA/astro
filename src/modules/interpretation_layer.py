@@ -34,18 +34,50 @@ ZODIAC_SIGNS = [
 
 
 def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
-    """Transform core calculation (floats) into Fact objects (no math)."""
+    """Transform core calculation (floats) into Fact objects (no math).
+
+    Supports both simple planet data (Dict[str, float]) and extended data
+    (Dict[str, dict]) with retrograde indicators.
+    """
     facts = []
 
     # Planet positions (sign + house)
     planets = calc_result["planets"]
     houses = calc_result["houses"]
-    planet_houses = calculate_house_positions(houses, planets)
 
-    for planet, lon in planets.items():
+    # Normalize planets to dict format for uniform processing
+    # Handle both old format (float) and new format (dict with "longitude")
+    normalized_planets = {}
+    planet_metadata = {}  # Store retrograde and other metadata
+
+    for planet, data in planets.items():
+        if isinstance(data, dict):
+            # Extended format: {"longitude": 123.45, "retrograde": True, ...}
+            normalized_planets[planet] = data["longitude"]
+            planet_metadata[planet] = data
+        else:
+            # Simple format: just float
+            normalized_planets[planet] = data
+            planet_metadata[planet] = {"longitude": data, "retrograde": False}
+
+    planet_houses = calculate_house_positions(houses, normalized_planets)
+
+    for planet, lon in normalized_planets.items():
         sign_idx = planet_in_sign(lon)
         sign = ZODIAC_SIGNS[sign_idx]
         house = planet_houses[planet]
+
+        # Get metadata
+        metadata = planet_metadata.get(planet, {})
+        is_retrograde = metadata.get("retrograde", False)
+
+        # Build details
+        details = {"longitude": lon, "house": house}
+
+        # Add retrograde indicator if applicable
+        if is_retrograde:
+            details["retrograde"] = True
+            details["symbol"] = f"{planet}℞"  # Add retrograde symbol
 
         facts.append(
             Fact(
@@ -53,7 +85,7 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
                 type="planet_in_sign",
                 object=planet,
                 value=f"{sign}",
-                details={"longitude": lon, "house": house},
+                details=details,
             )
         )
 
@@ -81,6 +113,25 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
                 details={
                     "orb": round(orb, 2),
                     "category": asp_category,  # "major" or "minor"
+                },
+            )
+        )
+
+    # Aspects to angles (ASC, DESC, MC, IC)
+    from core.core_geometry import calculate_aspects_to_angles
+
+    angle_aspects = calculate_aspects_to_angles(planets, houses, ASPECTS_CONFIG)
+    for planet, angle, asp_name, orb, asp_category in angle_aspects:
+        facts.append(
+            Fact(
+                id=f"{planet}_{angle}_{asp_name}",
+                type="aspect_to_angle",
+                object=f"{planet}-{angle}",
+                value=asp_name,
+                details={
+                    "orb": round(orb, 2),
+                    "category": asp_category,
+                    "angle": angle,  # Which angle: Ascendant, Midheaven, etc.
                 },
             )
         )

@@ -83,6 +83,9 @@ def calculate_aspects(
 
     Returns tuples: (planet1, planet2, aspect_name, orb, aspect_category)
     where aspect_category is "major" or "minor"
+
+    Supports both simple format (Dict[str, float]) and extended format
+    (Dict[str, dict]) with planet metadata.
     """
     result = []
     names = list(planets.keys())
@@ -93,8 +96,21 @@ def calculate_aspects(
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             p1, p2 = names[i], names[j]
-            lon1 = ensure_float(planets[p1])
-            lon2 = ensure_float(planets[p2])
+
+            # Handle both float and dict format
+            p1_data = planets[p1]
+            p2_data = planets[p2]
+
+            if isinstance(p1_data, dict):
+                lon1 = ensure_float(p1_data.get("longitude", p1_data))
+            else:
+                lon1 = ensure_float(p1_data)
+
+            if isinstance(p2_data, dict):
+                lon2 = ensure_float(p2_data.get("longitude", p2_data))
+            else:
+                lon2 = ensure_float(p2_data)
+
             for asp_name, asp_angle in aspects_config.items():
                 asp_angle = ensure_float(asp_angle)
                 match, orb_error = aspect_match(lon1, lon2, asp_angle, orb=8.0)
@@ -112,10 +128,82 @@ def calculate_aspects(
 
 
 def calculate_house_positions(cusps: List[float], planets: dict) -> dict:
-    """Map each planet to its house. Returns {planet_name: house_number}."""
+    """Map each planet to its house. Returns {planet_name: house_number}.
+
+    Supports both simple format (Dict[str, float]) and extended format
+    (Dict[str, dict]) with planet metadata.
+    """
     result = {}
     cusps = [ensure_float(c) for c in cusps]
-    for planet, lon in planets.items():
-        lon = ensure_float(lon)
+    for planet, data in planets.items():
+        # Handle both float and dict format
+        if isinstance(data, dict):
+            lon = ensure_float(data.get("longitude", data))
+        else:
+            lon = ensure_float(data)
         result[planet] = planet_in_house(lon, cusps)
+    return result
+
+
+def calculate_aspects_to_angles(
+    planets: dict, houses: List[float], aspects_config: dict, orb: float = 8.0
+) -> List[Tuple[str, str, str, float, str]]:
+    """Calculate aspects from planets to chart angles (ASC, DESC, MC, IC).
+
+    Args:
+        planets: Dict of planet positions (supports both float and dict format)
+        houses: List of 12 house cusps
+        aspects_config: Dict of aspect names to angles (e.g., {"conjunction": 0})
+        orb: Maximum orb in degrees (default: 8.0)
+
+    Returns:
+        List of tuples: (planet_name, angle_name, aspect_name, orb, aspect_category)
+
+    Note: Angles are the four cardinal points of the chart:
+        - Ascendant (ASC): 1st house cusp - self, appearance, how others see you
+        - Descendant (DESC): 7th house cusp (opposite ASC) - partnerships, relationships
+        - Midheaven (MC): 10th house cusp - career, public image, achievements
+        - Imum Coeli (IC): 4th house cusp (opposite MC) - home, family, roots
+    """
+    result = []
+
+    # Import MAJOR_ASPECTS to classify aspects
+    from core.aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+
+    # Define the four angles
+    angles = {
+        "Ascendant": ensure_float(houses[0]),  # 1st house cusp
+        "Midheaven": ensure_float(houses[9]),  # 10th house cusp
+        "Descendant": (ensure_float(houses[0]) + 180) % 360,  # Opposite of ASC
+        "IC": (ensure_float(houses[9]) + 180) % 360,  # Opposite of MC (4th house)
+    }
+
+    # Check each planet against each angle
+    for planet_name, planet_data in planets.items():
+        # Handle both float and dict format
+        if isinstance(planet_data, dict):
+            planet_lon = ensure_float(planet_data.get("longitude", planet_data))
+        else:
+            planet_lon = ensure_float(planet_data)
+
+        for angle_name, angle_lon in angles.items():
+            for asp_name, asp_angle in aspects_config.items():
+                asp_angle = ensure_float(asp_angle)
+                match, orb_error = aspect_match(
+                    planet_lon, angle_lon, asp_angle, orb=orb
+                )
+
+                if match:
+                    # Determine if aspect is major or minor
+                    if asp_name in MAJOR_ASPECTS:
+                        category = "major"
+                    elif asp_name in MINOR_ASPECTS:
+                        category = "minor"
+                    else:
+                        category = "major"
+
+                    result.append(
+                        (planet_name, angle_name, asp_name, orb_error, category)
+                    )
+
     return result
