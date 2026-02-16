@@ -47,6 +47,10 @@ Thumbs.db
 .tmp/
 temp/
 
+# Output files from tests and analysis
+psychology_output.json
+tests/test_results_*.json
+
 # User data (never commit real birth data)
 data/user_*.json
 *.backup
