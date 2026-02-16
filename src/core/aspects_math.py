@@ -7,7 +7,7 @@ MAJOR_ASPECTS = {
     "opposition": {"angle": 180, "orb": 8, "type": "hard"},
     "trine": {"angle": 120, "orb": 8, "type": "soft"},
     "square": {"angle": 90, "orb": 8, "type": "hard"},
-    "sextile": {"angle": 60, "orb": 6, "type": "soft"}
+    "sextile": {"angle": 60, "orb": 6, "type": "soft"},
 }
 
 # Minor aspects (secondary significance)
@@ -15,7 +15,14 @@ MINOR_ASPECTS = {
     "semisextile": {"angle": 30, "orb": 2, "type": "soft"},
     "semisquare": {"angle": 45, "orb": 2, "type": "hard"},
     "sesquiquadrate": {"angle": 135, "orb": 2, "type": "hard"},
-    "quincunx": {"angle": 150, "orb": 2, "type": "hard"}
+    "quincunx": {"angle": 150, "orb": 2, "type": "hard"},
+    # Quintile family (5th harmonic - creativity, talent)
+    "quintile": {"angle": 72, "orb": 2, "type": "soft"},
+    "biquintile": {"angle": 144, "orb": 2, "type": "soft"},
+    # Septile family (7th harmonic - fate, spiritual)
+    "septile": {"angle": 51.43, "orb": 1, "type": "neutral"},
+    # Novile family (9th harmonic - completion, wisdom)
+    "novile": {"angle": 40, "orb": 1, "type": "soft"},
 }
 
 # All aspects combined (major first for priority)
@@ -24,48 +31,47 @@ ASPECTS = {**MAJOR_ASPECTS, **MINOR_ASPECTS}
 # For backward compatibility
 ORB = 8  # degrees (default for major aspects)
 
+
 def calc_aspects(
-    planets: Dict[str, float],
-    include_minor: bool = True,
-    min_orb: float = 1.0
+    planets: Dict[str, float], include_minor: bool = True, min_orb: float = 1.0
 ) -> List[Tuple[str, str, str, float, str]]:
     """Calculate aspects between planets.
-    
+
     Args:
         planets: Dict of planet names to longitudes (degrees)
         include_minor: If True, include minor aspects. If False, major only.
         min_orb: Filter out aspects with orb smaller than this (helps with noise)
-        
+
     Returns:
         List of (planet1, planet2, aspect_name, orb, aspect_type) tuples
         where aspect_type is "major" or "minor"
     """
     result = []
     names = list(planets.keys())
-    
+
     # Select aspects to check
     aspects_to_check = MAJOR_ASPECTS.copy()
     if include_minor:
         aspects_to_check.update(MINOR_ASPECTS)
-    
+
     for i in range(len(names)):
-        for j in range(i+1, len(names)):
+        for j in range(i + 1, len(names)):
             a, b = names[i], names[j]
             angle = abs(planets[a] - planets[b]) % 360
-            
+
             for asp_name, asp_config in aspects_to_check.items():
                 asp_angle = asp_config["angle"]
                 asp_orb = asp_config["orb"]
-                
+
                 # Calculate shortest distance to aspect angle
                 diff = min(abs(angle - asp_angle), abs(360 - angle - asp_angle))
-                
+
                 # Check if within orb and above minimum threshold
                 if diff <= asp_orb and diff >= min_orb:
                     # Determine if aspect is major or minor
                     aspect_category = "major" if asp_name in MAJOR_ASPECTS else "minor"
                     result.append((a, b, asp_name, diff, aspect_category))
-    
+
     return result
 
 
@@ -89,6 +95,6 @@ def get_aspect_meaning(aspect_name: str) -> str:
         "semisextile": "Minor adjustment needed",
         "semisquare": "Minor tension",
         "sesquiquadrate": "Minor struggle",
-        "quincunx": "Adjustment and adaptation required"
+        "quincunx": "Adjustment and adaptation required",
     }
     return meanings.get(aspect_name, "Unknown aspect")

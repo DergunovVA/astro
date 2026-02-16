@@ -207,3 +207,59 @@ def calculate_aspects_to_angles(
                     )
 
     return result
+
+
+def calculate_aspects_to_house_cusps(
+    planets: dict, houses: List[float], aspects_config: dict, orb: float = 6.0
+) -> List[Tuple[str, int, str, float, str]]:
+    """Calculate aspects from planets to all 12 house cusps.
+
+    Args:
+        planets: Dict of planet positions (supports both float and dict format)
+        houses: List of 12 house cusps
+        aspects_config: Dict of aspect names to angles (e.g., {"conjunction": 0})
+        orb: Maximum orb in degrees (default: 6.0, tighter than planet-planet)
+
+    Returns:
+        List of tuples: (planet_name, house_number, aspect_name, orb, aspect_category)
+
+    Note: Aspects to house cusps show where planetary energy manifests in life areas.
+    Angular houses (1,4,7,10) are most significant.
+    Conjunction to a cusp is most important (planet "coloring" that house).
+    """
+    result = []
+
+    # Import MAJOR_ASPECTS to classify aspects
+    from core.aspects_math import MAJOR_ASPECTS, MINOR_ASPECTS
+
+    # Check each planet against each house cusp
+    for planet_name, planet_data in planets.items():
+        # Handle both float and dict format
+        if isinstance(planet_data, dict):
+            planet_lon = ensure_float(planet_data.get("longitude", planet_data))
+        else:
+            planet_lon = ensure_float(planet_data)
+
+        for house_num in range(1, 13):  # Houses 1-12
+            cusp_lon = ensure_float(houses[house_num - 1])  # 0-indexed list
+
+            for asp_name, asp_angle in aspects_config.items():
+                asp_angle = ensure_float(asp_angle)
+                match, orb_error = aspect_match(
+                    planet_lon, cusp_lon, asp_angle, orb=orb
+                )
+
+                if match:
+                    # Determine if aspect is major or minor
+                    if asp_name in MAJOR_ASPECTS:
+                        category = "major"
+                    elif asp_name in MINOR_ASPECTS:
+                        category = "minor"
+                    else:
+                        category = "major"
+
+                    result.append(
+                        (planet_name, house_num, asp_name, orb_error, category)
+                    )
+
+    return result

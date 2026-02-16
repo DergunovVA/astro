@@ -10,11 +10,22 @@ from core.core_geometry import (
 from typing import List, Dict, Any
 
 ASPECTS_CONFIG = {
+    # Major aspects
     "conjunction": 0,
     "opposition": 180,
     "trine": 120,
     "square": 90,
     "sextile": 60,
+    # Minor aspects (basic)
+    "semisextile": 30,
+    "semisquare": 45,
+    "sesquiquadrate": 135,
+    "quincunx": 150,
+    # Minor aspects (advanced)
+    "quintile": 72,  # 5th harmonic - creativity, talent
+    "biquintile": 144,  # 5th harmonic
+    "septile": 51.43,  # 7th harmonic - fate, spiritual
+    "novile": 40,  # 9th harmonic - completion, wisdom
 }
 
 ZODIAC_SIGNS = [
@@ -118,7 +129,10 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
         )
 
     # Aspects to angles (ASC, DESC, MC, IC)
-    from core.core_geometry import calculate_aspects_to_angles
+    from core.core_geometry import (
+        calculate_aspects_to_angles,
+        calculate_aspects_to_house_cusps,
+    )
 
     angle_aspects = calculate_aspects_to_angles(planets, houses, ASPECTS_CONFIG)
     for planet, angle, asp_name, orb, asp_category in angle_aspects:
@@ -132,6 +146,64 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
                     "orb": round(orb, 2),
                     "category": asp_category,
                     "angle": angle,  # Which angle: Ascendant, Midheaven, etc.
+                },
+            )
+        )
+
+    # Aspects to house cusps (all 12 houses)
+    cusp_aspects = calculate_aspects_to_house_cusps(
+        planets, houses, ASPECTS_CONFIG, orb=6.0
+    )
+    for planet, house_num, asp_name, orb, asp_category in cusp_aspects:
+        facts.append(
+            Fact(
+                id=f"{planet}_house{house_num}_{asp_name}",
+                type="aspect_to_cusp",
+                object=f"{planet}-House{house_num}",
+                value=asp_name,
+                details={
+                    "orb": round(orb, 2),
+                    "category": asp_category,
+                    "house": house_num,
+                },
+            )
+        )
+
+    # Special points (Lilith, Vertex, East Point, Parts)
+    special_points = calc_result.get("special_points", {})
+    for point_name, longitude in special_points.items():
+        sign_idx = planet_in_sign(longitude)
+        sign = ZODIAC_SIGNS[sign_idx]
+
+        # Calculate house position for special point
+        house = None
+        for h in range(12):
+            next_h = (h + 1) % 12
+            cusp = houses[h]
+            next_cusp = houses[next_h]
+
+            # Handle wrapping around 360°
+            if cusp < next_cusp:
+                if cusp <= longitude < next_cusp:
+                    house = h + 1
+                    break
+            else:  # Wraps around 0°
+                if longitude >= cusp or longitude < next_cusp:
+                    house = h + 1
+                    break
+
+        if house is None:
+            house = 1  # Fallback
+
+        facts.append(
+            Fact(
+                id=f"{point_name}_position",
+                type="special_point",
+                object=point_name,
+                value=f"{sign}",
+                details={
+                    "longitude": round(longitude, 2),
+                    "house": house,
                 },
             )
         )
