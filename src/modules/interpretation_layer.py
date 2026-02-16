@@ -7,6 +7,12 @@ from core.core_geometry import (
     calculate_house_positions,
     planet_in_sign,
 )
+from core.dignities import (
+    calculate_essential_dignity,
+    is_day_chart,
+    get_dispositor_chain,
+    find_mutual_receptions,
+)
 from typing import List, Dict, Any
 
 ASPECTS_CONFIG = {
@@ -97,6 +103,63 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
                 object=planet,
                 value=f"{sign}",
                 details=details,
+            )
+        )
+
+    # Essential Dignities
+    # Determine if day or night chart
+    sun_lon = normalized_planets.get("Sun", 0.0)
+    asc_lon = houses[0]  # 1st house cusp = Ascendant
+    is_day = is_day_chart(sun_lon, asc_lon)
+
+    # Calculate dignities for each planet
+    for planet, lon in normalized_planets.items():
+        dignity = calculate_essential_dignity(planet, lon, is_day)
+
+        facts.append(
+            Fact(
+                id=f"{planet}_dignity",
+                type="essential_dignity",
+                object=planet,
+                value=dignity["dignity_level"],
+                details={
+                    "score": dignity["score"],
+                    "domicile": dignity["domicile"],
+                    "exaltation": dignity["exaltation"],
+                    "detriment": dignity["detriment"],
+                    "fall": dignity["fall"],
+                    "triplicity": dignity["triplicity"],
+                },
+            )
+        )
+
+    # Dispositor chains
+    dispositor_chains = get_dispositor_chain(normalized_planets)
+    for planet, chain in dispositor_chains.items():
+        if chain:  # Only if there's a chain
+            facts.append(
+                Fact(
+                    id=f"{planet}_dispositor_chain",
+                    type="dispositor",
+                    object=planet,
+                    value=chain[0] if chain else None,  # First dispositor
+                    details={"chain": chain, "has_cycle": "(cycle)" in " ".join(chain)},
+                )
+            )
+
+    # Mutual receptions
+    mutual_receptions = find_mutual_receptions(normalized_planets)
+    for p1, p2, rec_type in mutual_receptions:
+        facts.append(
+            Fact(
+                id=f"{p1}_{p2}_reception",
+                type="mutual_reception",
+                object=f"{p1}-{p2}",
+                value=rec_type,
+                details={
+                    "planets": [p1, p2],
+                    "type": rec_type,  # "mutual_domicile" or "mixed"
+                },
             )
         )
 
