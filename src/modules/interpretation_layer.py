@@ -13,6 +13,10 @@ from core.dignities import (
     get_dispositor_chain,
     find_mutual_receptions,
 )
+from core.accidental_dignities import (
+    calculate_accidental_dignity,
+    get_total_dignity,
+)
 from typing import List, Dict, Any
 
 ASPECTS_CONFIG = {
@@ -113,21 +117,70 @@ def facts_from_calculation(calc_result: Dict[str, Any]) -> List[Fact]:
 
     # Calculate dignities for each planet
     for planet, lon in normalized_planets.items():
-        dignity = calculate_essential_dignity(planet, lon, is_day)
+        # Essential dignity
+        essential_dignity = calculate_essential_dignity(planet, lon, is_day)
 
         facts.append(
             Fact(
-                id=f"{planet}_dignity",
+                id=f"{planet}_essential_dignity",
                 type="essential_dignity",
                 object=planet,
-                value=dignity["dignity_level"],
+                value=essential_dignity["dignity_level"],
                 details={
-                    "score": dignity["score"],
-                    "domicile": dignity["domicile"],
-                    "exaltation": dignity["exaltation"],
-                    "detriment": dignity["detriment"],
-                    "fall": dignity["fall"],
-                    "triplicity": dignity["triplicity"],
+                    "score": essential_dignity["score"],
+                    "domicile": essential_dignity["domicile"],
+                    "exaltation": essential_dignity["exaltation"],
+                    "detriment": essential_dignity["detriment"],
+                    "fall": essential_dignity["fall"],
+                    "triplicity": essential_dignity["triplicity"],
+                },
+            )
+        )
+
+        # Accidental dignity (requires house, speed, retrograde status)
+        metadata = planet_metadata.get(planet, {})
+        house = planet_houses.get(planet, 1)
+        is_retro = metadata.get("retrograde", False)
+        speed = metadata.get("speed", 0.0)
+
+        accidental_dignity = calculate_accidental_dignity(
+            planet=planet,
+            house=house,
+            is_retrograde=is_retro,
+            speed=speed,
+            longitude=lon,
+            sun_longitude=sun_lon,
+        )
+
+        facts.append(
+            Fact(
+                id=f"{planet}_accidental_dignity",
+                type="accidental_dignity",
+                object=planet,
+                value=accidental_dignity["strength_level"],
+                details={
+                    "score": accidental_dignity["score"],
+                    "house_strength": accidental_dignity["house_strength"],
+                    "motion_strength": accidental_dignity["motion_strength"],
+                    "speed_strength": accidental_dignity["speed_strength"],
+                    "oriental_occidental": accidental_dignity["oriental_occidental"],
+                },
+            )
+        )
+
+        # Total dignity (combined essential + accidental)
+        total = get_total_dignity(essential_dignity, accidental_dignity)
+
+        facts.append(
+            Fact(
+                id=f"{planet}_total_dignity",
+                type="total_dignity",
+                object=planet,
+                value=total["overall_strength"],
+                details={
+                    "total_score": total["total_score"],
+                    "essential_score": total["essential_score"],
+                    "accidental_score": total["accidental_score"],
                 },
             )
         )
