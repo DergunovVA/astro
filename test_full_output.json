@@ -1,0 +1,2 @@
+resolve_city: success | {'source': 'cache', 'confidence': 0.95}
+Error: 'charmap' codec can't encode characters in position 67467-67477: character maps to <undefined>

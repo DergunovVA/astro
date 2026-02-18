@@ -27,10 +27,16 @@ from modules.comparative_charts import comparative_charts, load_cities_from_file
 from modules.synastry import calculate_synastry_aspects, calculate_composite_chart  # noqa: E402
 
 # Force UTF-8 encoding for all I/O (fixes Windows cp1252 encoding issues)
-# Note: Disabled when testing as it can conflict with pytest's capture
-# if sys.platform == "win32":
-#     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-#     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+# Force UTF-8 encoding on Windows for proper Unicode output
+# Note: Use reconfigure() instead of TextIOWrapper to avoid pytest conflicts
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        # Python <3.7 fallback
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
@@ -52,6 +58,9 @@ def natal(
     house_system: str = "Placidus",
     extended: bool = True,  # Changed default to True for applying/separating aspects
     psychological: bool = False,
+    format: str = "json",  # Output format: json, summary, table, markdown
+    validate: bool = False,  # Professional: validate formulas and calculations
+    find_events: str = "",  # Professional: find events/patterns (e.g., "mars saturn", "grand trine", "stellium")
 ):
     try:
         # Step 1: Normalize input
@@ -95,7 +104,52 @@ def natal(
         if psychological:
             psych = get_psychological_analysis(calc_result, facts)
             result["psychological"] = psych
-        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+        # Professional tools
+        if validate:
+            from src.professional import validate_aspect_orbs, validate_dignities
+
+            # Convert Pydantic models to dicts for professional tools
+            facts_dict = [
+                f.model_dump() if hasattr(f, "model_dump") else f for f in facts
+            ]
+
+            result["validation"] = {
+                "orbs": validate_aspect_orbs(facts_dict, strict=False),
+                "dignities": validate_dignities(facts_dict),
+            }
+
+        if find_events:
+            from src.professional.event_finder import search_events
+
+            # Convert Pydantic models to dicts for professional tools
+            facts_dict = [
+                f.model_dump() if hasattr(f, "model_dump") else f for f in facts
+            ]
+
+            result["events"] = search_events(facts_dict, find_events, max_orb=5.0)
+
+        # Output formatting based on format parameter
+        if format == "json":
+            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+        elif format == "summary":
+            from src.modules.output_formatter import format_summary
+
+            typer.echo(format_summary(result))
+        elif format == "table":
+            from src.modules.output_formatter import format_table
+
+            typer.echo(format_table(result))
+        elif format == "markdown":
+            from src.modules.output_formatter import format_markdown
+
+            typer.echo(format_markdown(result))
+        else:
+            typer.echo(
+                f"Unknown format: {format}. Use: json, summary, table, markdown",
+                err=True,
+            )
+            raise typer.Exit(code=2)
     except ValueError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=2)
