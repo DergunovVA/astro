@@ -26,6 +26,7 @@ class TestCLIDSLBasic:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -46,6 +47,7 @@ class TestCLIDSLBasic:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         if result.returncode == 0 and result.stdout:
@@ -68,6 +70,7 @@ class TestCLIDSLBasic:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -87,6 +90,7 @@ class TestCLIDSLBasic:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -110,6 +114,7 @@ class TestCLIDSLComplex:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -129,6 +134,7 @@ class TestCLIDSLComplex:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -148,6 +154,7 @@ class TestCLIDSLComplex:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -167,6 +174,7 @@ class TestCLIDSLComplex:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -190,6 +198,7 @@ class TestCLIDSLInOperator:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -209,6 +218,7 @@ class TestCLIDSLInOperator:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -232,6 +242,7 @@ class TestCLIDSLAggregators:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -251,6 +262,7 @@ class TestCLIDSLAggregators:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -270,6 +282,7 @@ class TestCLIDSLAggregators:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 0
@@ -319,6 +332,7 @@ class TestCLIDSLErrors:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode != 0
@@ -338,6 +352,7 @@ class TestCLIDSLErrors:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         # Jupiter есть в наших планетах, но если его не будет - ошибка
@@ -362,6 +377,7 @@ class TestCLIDSLOutput:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert "Formula: Sun.Sign == Capricorn" in result.stdout
@@ -380,6 +396,7 @@ class TestCLIDSLOutput:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert "Result:" in result.stdout
@@ -399,6 +416,7 @@ class TestCLIDSLOutput:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert "Chart Context" in result.stdout
