@@ -61,6 +61,7 @@ def natal(
     format: str = "json",  # Output format: json, summary, table, markdown
     validate: bool = False,  # Professional: validate formulas and calculations
     find_events: str = "",  # Professional: find events/patterns (e.g., "mars saturn", "grand trine", "stellium")
+    check: str = "",  # DSL: check formula on chart (e.g., "Sun.Sign == Capricorn AND Moon.House IN [1,4,7,10]")
 ):
     try:
         # Step 1: Normalize input
@@ -128,6 +129,52 @@ def natal(
             ]
 
             result["events"] = search_events(facts_dict, find_events, max_orb=5.0)
+
+        # DSL formula check
+        if check:
+            from src.dsl import evaluate
+            from src.dsl.chart_converter import (
+                convert_chart_for_evaluator,
+                format_dsl_result,
+            )
+            from src.dsl.lexer import LexerError
+            from src.dsl.parser import ParserError
+            from src.dsl.evaluator import EvaluatorError
+
+            try:
+                # Конвертируем данные карты в формат для Evaluator
+                chart_data = convert_chart_for_evaluator(calc_result)
+
+                # Выполняем DSL формулу
+                dsl_result = evaluate(check, chart_data)
+
+                # Форматируем результат
+                formatted = format_dsl_result(
+                    formula=check,
+                    result=dsl_result,
+                    chart_data=chart_data,
+                    verbose=True,
+                )
+
+                # Если check используется, выводим только результат DSL
+                typer.echo(formatted)
+                return  # Завершаем выполнение, не выводим JSON
+
+            except LexerError as e:
+                typer.echo(f"❌ Lexer Error: {e}", err=True)
+                raise typer.Exit(code=2)
+            except ParserError as e:
+                typer.echo(f"❌ Parser Error: {e}", err=True)
+                raise typer.Exit(code=2)
+            except EvaluatorError as e:
+                typer.echo(f"❌ Evaluator Error: {e}", err=True)
+                raise typer.Exit(code=2)
+            except Exception as e:
+                typer.echo(f"❌ Unexpected DSL Error: {e}", err=True)
+                import traceback
+
+                traceback.print_exc()
+                raise typer.Exit(code=1)
 
         # Output formatting based on format parameter
         if format == "json":

@@ -156,14 +156,18 @@ class Parser:
         Raises:
             ParserError: Если формула некорректна
         """
+        from src.dsl.lexer import TokenType
+
         if not self.tokens:
+            raise ParserError("Пустая формула")
+
+        # Проверяем, что формула не пустая (не только EOF)
+        if len(self.tokens) == 1 and self.tokens[0].type == TokenType.EOF:
             raise ParserError("Пустая формула")
 
         ast = self._parse_expression()
 
         # Проверяем, что дошли до конца
-        from src.dsl.lexer import TokenType
-
         if self.current and self.current.type != TokenType.EOF:
             raise ParserError(f"Неожиданный токен: {self.current.value}", self.current)
 
@@ -295,7 +299,9 @@ class Parser:
 
         # Числа
         if self.current.type == TokenType.NUMBER:
-            value = self.current.value
+            value_str = self.current.value
+            # Конвертируем строку в число
+            value = int(value_str) if "." not in value_str else float(value_str)
             self._advance()
             return ASTNode(type=NodeType.NUMBER, value=value)
 
@@ -368,7 +374,9 @@ class Parser:
             raise ParserError("Неожиданный конец списка")
 
         if self.current.type == TokenType.NUMBER:
-            value = self.current.value
+            value_str = self.current.value
+            # Конвертируем строку в число
+            value = int(value_str) if "." not in value_str else float(value_str)
             self._advance()
             return ASTNode(type=NodeType.NUMBER, value=value)
 
