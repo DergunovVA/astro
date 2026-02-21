@@ -294,5 +294,286 @@ class TestIntegration:
             assert len(r) == 2  # Each reception is a tuple of 2 planets
 
 
+class TestDispositorChains:
+    """Test dispositor chain functionality (Task 4.1.2)"""
+
+    def test_basic_chain(self):
+        """Basic chain: Moon in Gemini → Mercury"""
+        chart_data = {
+            "planets": {
+                "Moon": {"Sign": "Gemini", "Degree": 10.0},
+                "Mercury": {"Sign": "Virgo", "Degree": 15.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("Moon")
+
+        # Moon in Gemini → Mercury (rules Gemini)
+        # Mercury in Virgo → Mercury (rules its own sign)
+        assert len(chain) == 2
+        assert chain[0] == "Moon"
+        assert chain[1] == "Mercury"
+
+    def test_final_dispositor_in_own_sign(self):
+        """Planet in its own sign is final dispositor"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("Sun")
+
+        # Sun in Leo → Sun (rules its own sign)
+        assert len(chain) == 1
+        assert chain[0] == "Sun"
+
+        final = graph.find_final_dispositor("Sun")
+        assert final == "Sun"
+
+    def test_three_level_chain(self):
+        """Three-level chain: Moon → Mercury → Jupiter"""
+        chart_data = {
+            "planets": {
+                "Moon": {"Sign": "Gemini", "Degree": 10.0},
+                "Mercury": {"Sign": "Pisces", "Degree": 15.0},
+                "Jupiter": {"Sign": "Sagittarius", "Degree": 20.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="traditional")
+        chain = graph.build_dispositor_chain("Moon")
+
+        # Moon in Gemini → Mercury (rules Gemini)
+        # Mercury in Pisces → Jupiter (traditional ruler)
+        # Jupiter in Sagittarius → Jupiter (rules its own sign)
+        assert len(chain) == 3
+        assert chain == ["Moon", "Mercury", "Jupiter"]
+
+        final = graph.find_final_dispositor("Moon")
+        assert final == "Jupiter"
+
+    def test_mutual_reception_loop(self):
+        """Mutual reception creates loop in chain"""
+        chart_data = {
+            "planets": {
+                "Venus": {"Sign": "Aries", "Degree": 15.0},
+                "Mars": {"Sign": "Taurus", "Degree": 20.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("Venus")
+
+        # Venus in Aries → Mars (rules Aries)
+        # Mars in Taurus → Venus (rules Taurus) - loop!
+        assert len(chain) == 3
+        assert chain[0] == "Venus"
+        assert chain[1] == "Mars"
+        assert "(loop)" in chain[2]
+        assert "Venus" in chain[2]
+
+    def test_analyze_dispositor_tree(self):
+        """Analyze complete dispositor tree for chart"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+                "Moon": {"Sign": "Gemini", "Degree": 10.0},
+                "Mercury": {"Sign": "Virgo", "Degree": 20.0},
+                "Venus": {"Sign": "Aries", "Degree": 5.0},
+                "Mars": {"Sign": "Taurus", "Degree": 8.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        analysis = graph.analyze_dispositor_tree()
+
+        # Check structure
+        assert "final_dispositors" in analysis
+        assert "chains" in analysis
+        assert "loops" in analysis
+
+        # Sun in Leo → Sun (final)
+        # Mercury in Virgo → Mercury (final)
+        assert "Sun" in analysis["final_dispositors"]
+        assert "Mercury" in analysis["final_dispositors"]
+
+        # Venus-Mars mutual reception loop
+        assert len(analysis["loops"]) == 1
+        assert ("Mars", "Venus") in analysis["loops"] or ("Venus", "Mars") in analysis[
+            "loops"
+        ]
+
+        # Check all planets have chains
+        assert len(analysis["chains"]) == 5
+        assert "Sun" in analysis["chains"]
+        assert "Moon" in analysis["chains"]
+
+    def test_traditional_vs_modern_rulers(self):
+        """Traditional and modern modes produce different chains"""
+        chart_data = {
+            "planets": {
+                "Moon": {"Sign": "Pisces", "Degree": 10.0},
+                "Jupiter": {"Sign": "Sagittarius", "Degree": 15.0},
+                "Neptune": {"Sign": "Capricorn", "Degree": 20.0},
+            }
+        }
+
+        # Traditional: Pisces ruled by Jupiter
+        graph_trad = ChartGraph(chart_data, mode="traditional")
+        chain_trad = graph_trad.build_dispositor_chain("Moon")
+        # Moon in Pisces → Jupiter → Jupiter (final)
+        assert chain_trad[-1] == "Jupiter"
+
+        # Modern: Pisces ruled by Neptune
+        graph_mod = ChartGraph(chart_data, mode="modern")
+        chain_mod = graph_mod.build_dispositor_chain("Moon")
+        # Moon in Pisces → Neptune → Saturn → ...
+        assert "Neptune" in chain_mod
+
+    def test_complex_tree_analysis(self):
+        """Full 10-planet chart dispositor analysis"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Capricorn", "Degree": 17.45},
+                "Moon": {"Sign": "Aquarius", "Degree": 22.11},
+                "Mercury": {"Sign": "Capricorn", "Degree": 5.33},
+                "Venus": {"Sign": "Sagittarius", "Degree": 28.76},
+                "Mars": {"Sign": "Pisces", "Degree": 13.21},
+                "Jupiter": {"Sign": "Scorpio", "Degree": 5.67},
+                "Saturn": {"Sign": "Libra", "Degree": 10.45},
+                "Uranus": {"Sign": "Sagittarius", "Degree": 8.12},
+                "Neptune": {"Sign": "Sagittarius", "Degree": 20.33},
+                "Pluto": {"Sign": "Libra", "Degree": 28.89},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        analysis = graph.analyze_dispositor_tree()
+
+        # All 10 planets should have chains
+        assert len(analysis["chains"]) == 10
+
+        # Each chain should start with the planet itself
+        for planet, chain in analysis["chains"].items():
+            assert chain[0] == planet
+
+        # This chart creates complex loops with no final dispositors
+        # (Jupiter → Pluto → Venus → Jupiter creates 3-way loop)
+        # Total final dispositors + loops should be > 0
+        assert len(analysis["final_dispositors"]) + len(analysis["loops"]) > 0
+
+    def test_missing_planet_data(self):
+        """Handle planet with missing sign data"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Degree": 15.0},  # Missing Sign
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("Sun")
+
+        # Should return just the planet itself
+        assert chain == ["Sun"]
+
+    def test_unknown_planet(self):
+        """Handle unknown planet gracefully"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("UnknownPlanet")
+
+        # Should return just the planet name
+        assert chain == ["UnknownPlanet"]
+
+    def test_find_final_dispositor_no_loop(self):
+        """Find final dispositor for normal chain"""
+        chart_data = {
+            "planets": {
+                "Moon": {"Sign": "Gemini", "Degree": 10.0},
+                "Mercury": {"Sign": "Virgo", "Degree": 15.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        final = graph.find_final_dispositor("Moon")
+
+        # Moon → Mercury (final)
+        assert final == "Mercury"
+
+    def test_find_final_dispositor_with_loop(self):
+        """Find final dispositor when chain has loop"""
+        chart_data = {
+            "planets": {
+                "Venus": {"Sign": "Aries", "Degree": 15.0},
+                "Mars": {"Sign": "Taurus", "Degree": 20.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        final = graph.find_final_dispositor("Venus")
+
+        # Venus → Mars → Venus (loop) - final should be Venus without "(loop)"
+        assert final == "Venus"
+        assert "(loop)" not in final
+
+
+class TestDispositorEdgeCases:
+    """Edge cases for dispositor chains"""
+
+    def test_empty_chart(self):
+        """Empty chart analysis"""
+        chart_data = {"planets": {}}
+
+        graph = ChartGraph(chart_data, mode="modern")
+        analysis = graph.analyze_dispositor_tree()
+
+        assert analysis["final_dispositors"] == []
+        assert analysis["chains"] == {}
+        assert analysis["loops"] == []
+
+    def test_single_planet_analysis(self):
+        """Single planet in own sign"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        analysis = graph.analyze_dispositor_tree()
+
+        assert "Sun" in analysis["final_dispositors"]
+        assert len(analysis["loops"]) == 0
+        assert analysis["chains"]["Sun"] == ["Sun"]
+
+    def test_chain_safety_limit(self):
+        """Chain building has safety limit to prevent infinite loops"""
+        # This shouldn't happen in real charts, but test the safety mechanism
+        chart_data = {
+            "planets": {
+                "Planet1": {"Sign": "Aries", "Degree": 10.0},
+                "Mars": {"Sign": "Taurus", "Degree": 15.0},
+                "Venus": {"Sign": "Gemini", "Degree": 20.0},
+                "Mercury": {"Sign": "Cancer", "Degree": 25.0},
+                "Moon": {"Sign": "Leo", "Degree": 30.0},
+                "Sun": {"Sign": "Virgo", "Degree": 5.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        chain = graph.build_dispositor_chain("Planet1")
+
+        # Should stop at safety limit or find final dispositor
+        assert len(chain) <= 13  # Max 12 iterations + original planet
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -207,16 +207,144 @@ class ChartGraph:
         return None
 
     # ============================================================
-    # DISPOSITOR CHAINS (To be implemented in Task 4.1.2)
+    # DISPOSITOR CHAINS
     # ============================================================
 
     def build_dispositor_chain(self, planet: str) -> List[str]:
-        """Build dispositor chain for planet (TODO: Task 4.1.2)"""
-        raise NotImplementedError("Task 4.1.2: Dispositor chains")
+        """
+        Build dispositor chain for planet.
+
+        Dispositor: ruler of the sign a planet is in
+        Chain: planet → its dispositor → dispositor's dispositor → ...
+
+        Example:
+            Moon in Gemini → Mercury (rules Gemini)
+            Mercury in Pisces → Jupiter (traditional ruler)
+            Jupiter in Sagittarius → Jupiter (rules its own sign)
+            Chain: Moon → Mercury → Jupiter → Jupiter (final dispositor)
+
+        Args:
+            planet: Planet name to build chain for
+
+        Returns:
+            List of planets in dispositor chain
+            Last element may have "(loop)" suffix if mutual reception detected
+        """
+        planets = self.chart.get("planets", {})
+
+        if planet not in planets:
+            return [planet]
+
+        chain = [planet]
+        current = planet
+        visited = set([planet])
+
+        while True:
+            # Get sign where current planet is located
+            planet_data = planets.get(current)
+            if not planet_data:
+                break
+
+            sign = planet_data.get("Sign")
+            if not sign:
+                break
+
+            # Get ruler of that sign
+            dispositor = self._get_sign_ruler(sign)
+            if not dispositor:
+                break
+
+            # Check if planet is in its own sign (final dispositor)
+            if dispositor == current:
+                break
+
+            # Check for mutual reception loop
+            if dispositor in visited:
+                chain.append(f"{dispositor} (loop)")
+                break
+
+            # Add to chain and continue
+            chain.append(dispositor)
+            visited.add(dispositor)
+            current = dispositor
+
+            # Safety: max 12 iterations (should never happen naturally)
+            if len(chain) > 12:
+                break
+
+        return chain
 
     def find_final_dispositor(self, planet: str) -> str:
-        """Find final dispositor in chain (TODO: Task 4.1.2)"""
-        raise NotImplementedError("Task 4.1.2: Dispositor chains")
+        """
+        Find final dispositor in chain.
+
+        The final dispositor is either:
+        - A planet in its own sign (dignified)
+        - A planet involved in a mutual reception loop
+
+        Args:
+            planet: Planet name
+
+        Returns:
+            Final dispositor planet name (without "(loop)" suffix)
+        """
+        chain = self.build_dispositor_chain(planet)
+        if not chain:
+            return planet
+
+        final = chain[-1]
+        return final.replace(" (loop)", "")
+
+    def analyze_dispositor_tree(self) -> Dict:
+        """
+        Analyze complete dispositor tree for chart.
+
+        Returns:
+            Dictionary with:
+            - 'final_dispositors': List of planets that are final dispositors
+            - 'chains': Dict mapping each planet to its dispositor chain
+            - 'loops': List of planet pairs in mutual reception loops
+
+        Example:
+            >>> analysis = graph.analyze_dispositor_tree()
+            >>> print(analysis['final_dispositors'])
+            ['Jupiter', 'Venus']
+            >>> print(analysis['chains']['Moon'])
+            ['Moon', 'Mercury', 'Jupiter']
+            >>> print(analysis['loops'])
+            [('Mars', 'Venus')]
+        """
+        analysis = {
+            "final_dispositors": set(),
+            "chains": {},
+            "loops": [],
+        }
+
+        planets = self.chart.get("planets", {})
+
+        for planet in planets.keys():
+            chain = self.build_dispositor_chain(planet)
+            analysis["chains"][planet] = chain
+
+            if not chain:
+                continue
+
+            final = chain[-1]
+            if "(loop)" in final:
+                # Extract loop planets
+                loop_planet = final.replace(" (loop)", "")
+                # Find the planet before the loop marker
+                if len(chain) >= 2:
+                    prev_planet = chain[-2]
+                    loop_pair = tuple(sorted([prev_planet, loop_planet]))
+                    if loop_pair not in analysis["loops"]:
+                        analysis["loops"].append(loop_pair)
+            else:
+                # Final dispositor (planet in own sign)
+                analysis["final_dispositors"].add(final)
+
+        analysis["final_dispositors"] = list(analysis["final_dispositors"])
+        return analysis
 
     # ============================================================
     # ASPECT RELATIONSHIPS (To be implemented in Task 4.1.3)
