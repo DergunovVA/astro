@@ -1,0 +1,125 @@
+# English message catalog for Astro DSL
+# Used for error messages, warnings, and user-facing text
+
+# Validation errors
+errors:
+  # Retrograde errors
+  retrograde_not_allowed: "{planet} cannot be retrograde!"
+  retrograde_explanation: |
+    Only planets can be retrograde: Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.
+    {planet} is NEVER retrograde.
+    
+    The Sun and Moon are always direct (not retrograde).
+    The Ascendant (Asc), MC, IC, DSC are chart angles, not celestial bodies.
+    
+  # House validation
+  house_range_error: "House number must be 1-12, got {num}"
+  house_range_explanation: |
+    In astrology, there are exactly 12 houses in a horoscope.
+    Valid house numbers: 1 (Ascendant), 2, 3, ..., 10 (MC), 11, 12.
+    
+  # Degree validation
+  degree_range_error: "Degree must be 0-{max}°, got {degree}°"
+  degree_in_sign_explanation: |
+    Each zodiac sign contains 30 degrees (0° - 29°59').
+    Valid range: 0-29 degrees within a sign.
+    
+  degree_absolute_explanation: |
+    The zodiac circle contains 360 degrees total.
+    Valid range: 0-359 degrees absolute position.
+    
+  # Aspect errors
+  planet_aspect_self: "A planet cannot aspect itself!"
+  planet_aspect_explanation: |
+    Check your formula: Asp({planet1}, {planet2}, ...)
+    {planet1} and {planet2} must be different celestial bodies.
+    
+  # Dignity errors
+  dignity:
+    ruler_error: "{planet}.Ruler == {target} makes no sense!"
+    ruler_explanation: |
+      A planet doesn't "rule" another planet.
+      A planet rules a SIGN (or is in a sign it rules).
+      
+      Example: Mars.Sign == Aries (Mars is in the sign it rules)
+      
+    exaltation_error: "{planet} is exalted in {correct_sign}, NOT in {wrong_sign}!"
+    exaltation_list: |
+      Planet exaltations (traditional):
+      • Sun: Aries (19°)
+      • Moon: Taurus (3°)
+      • Mercury: Virgo (15°)
+      • Venus: Pisces (27°)
+      • Mars: Capricorn (28°)
+      • Jupiter: Cancer (15°)
+      • Saturn: Libra (21°)
+      
+    detriment_error: "{planet} is in detriment in {sign}!"
+    detriment_explanation: |
+      A planet in detriment is in the sign opposite to its rulership.
+      This weakens the planet's expression.
+      
+    fall_error: "{planet} is in fall in {sign}!"
+    fall_explanation: |
+      A planet in fall is in the sign opposite to its exaltation.
+      This is the weakest position for the planet.
+
+# Validation warnings
+warnings:
+  planet_weak: "{planet} in {dignity} in {sign}"
+  planet_weak_details: "Planet is in a weak position (detriment or fall), may manifest with difficulty."
+  
+  conflicting_conditions: "Conflicting conditions detected"
+  conflicting_explanation: |
+    Your formula contains contradictory conditions that cannot both be true.
+    Example: Sun.Sign == Aries AND Sun.Sign == Taurus
+    
+  rare_combination: "Rare astrological combination"
+  rare_explanation: "This combination is astronomically possible but very rare in practice."
+
+# Suggestions and help
+suggestions:
+  try_instead: "Try instead:"
+  examples: "Examples:"
+  did_you_mean: "Did you mean:"
+  
+  check_formula: "Check your formula for typos or logical errors."
+  check_data: "Verify your birth data (date, time, place)."
+  
+# Validation info messages
+info:
+  validation_passed: "Formula validation passed"
+  no_issues: "No astrological issues detected"
+  
+  educational_note: "Educational note:"
+  best_practice: "Best practice:"
+
+# CLI messages
+cli:
+  checking_formula: "Checking formula..."
+  parsing: "Parsing..."
+  evaluating: "Evaluating on chart..."
+  
+  result_true: "Result: True"
+  result_false: "Result: False"
+  
+  validation_issues: "Validation issues found:"
+  no_validation_issues: "No validation issues"
+  
+  verbose_mode: "Verbose mode enabled (educational output)"
+  quiet_mode: "Quiet mode enabled (minimal output)"
+
+# Performance messages  
+performance:
+  ast_cached: "AST cached for formula"
+  cache_hit: "Cache hit (using cached AST)"
+  cache_miss: "Cache miss (parsing formula)"
+  
+  batch_processing: "Processing {count} formulas in batch mode"
+  batch_complete: "Batch processing complete: {count} formulas in {time}ms"
+
+# Success messages
+success:
+  formula_valid: "Formula is astrologically valid"
+  evaluation_complete: "Evaluation complete"
+  all_tests_passed: "All validation tests passed"

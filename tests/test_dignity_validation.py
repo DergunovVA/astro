@@ -27,14 +27,14 @@ from src.dsl.validator import (
 
 @pytest.fixture
 def validator():
-    """Фикстура валидатора в modern режиме"""
-    return AstrologicalValidator(mode="modern")
+    """Фикстура валидатора в modern режиме с русским языком"""
+    return AstrologicalValidator(mode="modern", lang="ru")
 
 
 @pytest.fixture
 def traditional_validator():
-    """Фикстура валидатора в traditional режиме"""
-    return AstrologicalValidator(mode="traditional")
+    """Фикстура валидатора в traditional режиме с русским языком"""
+    return AstrologicalValidator(mode="traditional", lang="ru")
 
 
 # ============================================================================
@@ -165,7 +165,7 @@ class TestRulerValidation:
         assert result.is_valid == False
         assert result.level == ValidationLevel.ERROR
         assert "бессмысленна" in result.message
-        assert "не управляет другой планетой" in result.details
+        assert "Планета не" in result.details
 
     def test_ruler_sign_is_ok(self, validator):
         """Mars.Ruler == Aries (знак) - валидно на уровне базовой проверки"""
@@ -179,7 +179,7 @@ class TestRulerValidation:
         result = validator.check_ruler_usage("Sun", "Moon")
 
         assert result.details is not None
-        assert "Объяснение" in result.details
+        assert "Планета" in result.details  # Should explain about planets/signs
         assert result.suggestions is not None
 
 
@@ -448,15 +448,17 @@ class TestErrorMessages:
     """Тесты качества сообщений об ошибках"""
 
     def test_error_has_emoji(self, validator):
-        """Сообщения об ошибках содержат emoji для визуальности"""
+        """Сообщения об ошибках чёткие и информативные"""
         result = validator.check_retrograde("Sun")
-        assert "❌" in result.message
+        # i18n messages don't use emoji - they're language-neutral
+        assert "не может" in result.message
 
     def test_error_has_details(self, validator):
         """Сообщения содержат детальное объяснение"""
         result = validator.check_retrograde("Sun")
         assert result.details is not None
-        assert "Объяснение" in result.details or "почему" in result.details.lower()
+        # Should have explanatory content about retrograde
+        assert "Ретроградными" in result.details or "планет" in result.details.lower()
 
     def test_error_has_suggestions(self, validator):
         """Сообщения содержат предложения по исправлению"""

@@ -17,6 +17,7 @@ import yaml
 from typing import Dict, List, Set, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from src.i18n import get_localizer
 
 
 class ValidationLevel(Enum):
@@ -91,15 +92,20 @@ class AstrologicalValidator:
         "Pluto",
     }
 
-    def __init__(self, config_path: Optional[str] = None, mode: str = "modern"):
+    def __init__(
+        self, config_path: Optional[str] = None, mode: str = "modern", lang: str = "en"
+    ):
         """
         Инициализация валидатора
 
         Args:
             config_path: Путь к dignities.yaml (если None, использует дефолтный)
             mode: 'traditional' или 'modern' (влияет на управителей)
+            lang: Язык сообщений ('en' или 'ru')
         """
         self.mode = mode
+        self.lang = lang
+        self.loc = get_localizer(lang)
         self._load_dignities_config(config_path)
         self._build_lookup_tables()
 
@@ -188,14 +194,8 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=f"❌ Астрологическая ошибка: {body} не может быть ретроградным!",
-                details=(
-                    f"\nℹ️  Объяснение:\n"
-                    f"Ретроградными могут быть только планеты: Mercury, Venus, Mars,\n"
-                    f"Jupiter, Saturn, Uranus, Neptune, Pluto.\n\n"
-                    f"{body} НИКОГДА не бывает ретроградным"
-                    + (" (Земля вращается вокруг Солнца)." if body == "Sun" else ".")
-                ),
+                message=self.loc._("errors.retrograde_not_allowed", planet=body),
+                details=self.loc._("errors.retrograde_explanation", planet=body),
                 suggestions=[
                     "Mercury.Retrograde == True",
                     "Venus.Retrograde == True",
@@ -212,8 +212,10 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message="❌ Ошибка: Планета не может иметь аспект к самой себе!",
-                details=f"\nПроверьте формулу: Asp({planet1}, {planet2}, ...)",
+                message=self.loc._("errors.planet_aspect_self"),
+                details=self.loc._(
+                    "errors.planet_aspect_explanation", planet1=planet1, planet2=planet2
+                ),
                 suggestions=[
                     f"Asp({planet1}, Saturn, Conj)",
                     f"Asp(Mars, {planet1}, Square)",
@@ -227,8 +229,8 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=f"❌ Ошибка: Номер дома должен быть от 1 до 12, получено: {house_num}",
-                details="\nℹ️  В астрологии используется 12 домов гороскопа.",
+                message=self.loc._("errors.house_range_error", num=house_num),
+                details=self.loc._("errors.house_range_explanation"),
                 suggestions=[
                     "Venus.House == 10",
                     "Mars.House IN [1, 4, 7, 10]  # Угловые дома",
@@ -249,11 +251,13 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=f"❌ Ошибка: Градус должен быть 0-{max_degree}°, получено: {degree}°",
+                message=self.loc._(
+                    "errors.degree_range_error", max=max_degree, degree=degree
+                ),
                 details=(
-                    "\n(Если нужен абсолютный градус зодиака, используйте .AbsoluteDegree)"
+                    self.loc._("errors.degree_in_sign_explanation")
                     if not absolute
-                    else None
+                    else self.loc._("errors.degree_absolute_explanation")
                 ),
                 suggestions=None,
             )
@@ -274,12 +278,10 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=f"❌ Ошибка: {planet}.Ruler == {target} бессмысленна!",
-                details=(
-                    "\nℹ️  Объяснение:\n"
-                    "Планета не управляет другой планетой.\n"
-                    "Планета управляет ЗНАКОМ (или находится в знаке, которым управляет).\n"
+                message=self.loc._(
+                    "errors.dignity.ruler_error", planet=planet, target=target
                 ),
+                details=self.loc._("errors.dignity.ruler_explanation"),
                 suggestions=[
                     f"{planet}.Dignity == Rulership  # Планета в своем доме",
                     f"{planet}.Sign.Ruler == {planet}  # Планета управляет своим знаком",
@@ -310,12 +312,13 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=f"❌ Астрологическая ошибка: {planet} экзальтирован в {correct_sign}, НЕ в {sign}!",
-                details=(
-                    "\nℹ️  Экзальтации планет:\n"
-                    "   Sun: Aries, Moon: Taurus, Mercury: Virgo, Venus: Pisces\n"
-                    "   Mars: Capricorn, Jupiter: Cancer, Saturn: Libra\n"
+                message=self.loc._(
+                    "errors.dignity.exaltation_error",
+                    planet=planet,
+                    correct_sign=correct_sign,
+                    wrong_sign=sign,
                 ),
+                details=self.loc._("errors.dignity.exaltation_list"),
                 suggestions=[
                     f"{planet}.Sign == {correct_sign} AND {planet}.Dignity == Exaltation"
                 ],
@@ -520,25 +523,35 @@ class AstrologicalValidator:
 # УДОБНЫЕ ФУНКЦИИ
 # ============================================================================
 
-# Глобальный валидатор (singleton)
-_default_validator = None
+# Глобальный валидатор (singleton) - кэш по (mode, lang)
+_validators_cache: Dict[Tuple[str, str], AstrologicalValidator] = {}
 
 
-def get_validator(mode: str = "modern") -> AstrologicalValidator:
-    """Получить глобальный экземпляр валидатора"""
-    global _default_validator
-    if _default_validator is None:
-        _default_validator = AstrologicalValidator(mode=mode)
-    return _default_validator
+def get_validator(mode: str = "modern", lang: str = "en") -> AstrologicalValidator:
+    """
+    Получить экземпляр валидатора (с кэшированием)
+
+    Args:
+        mode: 'traditional' или 'modern'
+        lang: 'en' или 'ru'
+
+    Returns:
+        AstrologicalValidator экземпляр
+    """
+    cache_key = (mode, lang)
+    if cache_key not in _validators_cache:
+        _validators_cache[cache_key] = AstrologicalValidator(mode=mode, lang=lang)
+    return _validators_cache[cache_key]
 
 
-def validate(formula: str, mode: str = "modern") -> bool:
+def validate(formula: str, mode: str = "modern", lang: str = "en") -> bool:
     """
     Быстрая валидация формулы
 
     Args:
         formula: Строка с формулой DSL
         mode: 'traditional' или 'modern'
+        lang: 'en' или 'ru'
 
     Returns:
         True если формула валидна
@@ -548,6 +561,6 @@ def validate(formula: str, mode: str = "modern") -> bool:
     """
     # ✅ РЕАЛИЗОВАНО (Feb 2026): Parser создан, используйте CLI команду 'validate'
     # Для полной интеграции см. main.py::validate_command()
-    validator = get_validator(mode)
+    validator = get_validator(mode, lang)
     # Full implementation in CLI: python main.py validate "formula" ...
     pass
