@@ -303,8 +303,6 @@ def format_table(data: dict[str, Any]) -> str:
     Includes planet positions grid and aspect matrix.
     """
     facts = data.get("facts", [])
-    chart_info = data.get("input_metadata", {})
-    place_info = chart_info.get("place", {})
 
     output = []
     output.append("\n" + "=" * 90)

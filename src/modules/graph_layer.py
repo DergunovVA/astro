@@ -467,7 +467,6 @@ class ChartGraph:
                 "sextile",
                 "conjunction",
             ]
-            challenging_aspects = ["square", "opposition"]
 
             harmonious = aspect_type.lower() in harmonious_aspects
 

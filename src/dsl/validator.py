@@ -561,6 +561,5 @@ def validate(formula: str, mode: str = "modern", lang: str = "en") -> bool:
     """
     # ✅ РЕАЛИЗОВАНО (Feb 2026): Parser создан, используйте CLI команду 'validate'
     # Для полной интеграции см. main.py::validate_command()
-    validator = get_validator(mode, lang)
     # Full implementation in CLI: python main.py validate "formula" ...
     pass
