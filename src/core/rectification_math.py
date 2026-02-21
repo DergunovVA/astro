@@ -4,7 +4,7 @@
 # Planned: v0.5+ (Predictive Techniques phase)
 # Complexity: HIGH - requires event correlation, aspect scoring
 #
-# TODO (v0.5):
+# 📋 PLANNED (v0.5+):
 # - Implement aspect-to-angle scoring algorithm
 # - Event time window analysis
 # - Candidate birth time suggestions
@@ -29,6 +29,6 @@ def rectify(events: List[Dict], facts: List[Dict]) -> List[Dict]:
     Raises:
         NotImplementedError: In future versions, will raise if called
     """
-    # TODO: score aspects to angles, return candidates
+    # 📋 v0.5: score aspects to angles, return candidates
     # Demo: return empty list
     return []

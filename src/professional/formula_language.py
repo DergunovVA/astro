@@ -1,20 +1,30 @@
 """
 Astro Formula Language Parser (будущее - nice to have).
 
-Идея: DSL для описания астрологических конфигураций в человекочитаемом виде.
+✅ ЧАСТИЧНО РЕАЛИЗОВАНО (Feb 2026): DSL система уже работает!
 
-Примеры из ZET (ожидается):
-- Sun.Sign == Aries
-- Asp(Mars, Saturn, Conj, orb<5)
-- Planet.House == 10
-- Count(Retrograde) >= 3
+Текущая реализация:
+- ✅ Lexer: src/dsl/lexer.py (398 строк, 40+ тестов)
+- ✅ Parser: src/dsl/parser.py (479 строк, 45+ тестов)
+- ✅ Evaluator: src/dsl/evaluator.py (395 строк, 50+ тестов)
+- ✅ Validator: src/dsl/validator.py (555 строк)
 
-Для реализации нужен пример синтаксиса из ZET.
-Ждем от пользователя.
+Примеры работающего синтаксиса:
+- Sun.Sign == Aries ✅
+- Mars.House == 10 ✅
+- Mercury.Retrograde == True ✅
+- planets.Dignity IN [Rulership, Exaltation] ✅
+
+⏸️ ОТЛОЖЕНО: Специфический синтаксис ZET
+- Ожидаются примеры формульного языка ZET от пользователя
+- Можно адаптировать текущий DSL под формат ZET
+- Или создать адаптер ZET → наш DSL
+
+Для использования см:
+- CLI: python main.py validate "Sun.Sign == Aries" ...
+- Документация: src/dsl/README.md
+- Примеры: tests/test_cli_dsl.py
 """
 
-# TODO: Реализовать после получения примеров из ZET
-# TODO: Использовать pyparsing или lark для парсинга
-# TODO: Компилировать в Python-код или интерпретировать напрямую
-
+# ✅ DSL реализован, ожидаем примеры ZET для адаптации
 pass

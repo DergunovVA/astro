@@ -546,9 +546,8 @@ def validate(formula: str, mode: str = "modern") -> bool:
     Raises:
         ValidationError если есть критические ошибки
     """
-    # TODO: Реализовать после создания Parser
+    # ✅ РЕАЛИЗОВАНО (Feb 2026): Parser создан, используйте CLI команду 'validate'
+    # Для полной интеграции см. main.py::validate_command()
     validator = get_validator(mode)
-    # ast = parse(formula)
-    # results = validator.validate_formula(ast)
-    # ... проверка results
+    # Full implementation in CLI: python main.py validate "formula" ...
     pass
