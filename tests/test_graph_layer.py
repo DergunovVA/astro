@@ -575,5 +575,327 @@ class TestDispositorEdgeCases:
         assert len(chain) <= 13  # Max 12 iterations + original planet
 
 
+class TestAspectRelationships:
+    """Test aspect relationship graph functionality (Task 4.1.3)"""
+
+    def test_add_aspect_edges_dict_format(self):
+        """Add aspects from dictionary format"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+                "Moon": {"Sign": "Aries", "Degree": 15.0},
+            },
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 0.5}
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        # Check aspect was added
+        aspects = graph.get_all_aspects()
+        assert len(aspects) == 1
+        assert aspects[0]["type"] == "trine"
+        assert aspects[0]["orb"] == 0.5
+        assert aspects[0]["harmonious"] is True
+        assert aspects[0]["strength"] == "very_strong"  # < 1.0 orb
+
+    def test_aspect_strength_calculation(self):
+        """Test aspect strength based on orb"""
+        chart_data = {
+            "planets": {"Sun": {"Sign": "Leo"}, "Moon": {"Sign": "Aries"}},
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 0.5},
+                {
+                    "planet1": "Sun",
+                    "planet2": "Mercury",
+                    "type": "conjunction",
+                    "orb": 2.0,
+                },
+                {
+                    "planet1": "Moon",
+                    "planet2": "Venus",
+                    "type": "square",
+                    "orb": 4.0,
+                },
+                {
+                    "planet1": "Moon",
+                    "planet2": "Mars",
+                    "type": "sextile",
+                    "orb": 6.0,
+                },
+            ],
+        }
+
+        # Add planets to graph
+        for planet in ["Mercury", "Venus", "Mars"]:
+            chart_data["planets"][planet] = {"Sign": "Taurus"}
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+        assert len(aspects) == 4
+
+        # Check strengths
+        strengths = {a["type"]: a["strength"] for a in aspects}
+        assert strengths["trine"] == "very_strong"  # < 1.0
+        assert strengths["conjunction"] == "strong"  # < 3.0
+        assert strengths["square"] == "moderate"  # < 5.0
+        assert strengths["sextile"] == "weak"  # >= 5.0
+
+    def test_harmonious_vs_challenging(self):
+        """Test classification of harmonious vs challenging aspects"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Aries"},
+                "Mars": {"Sign": "Capricorn"},
+                "Venus": {"Sign": "Libra"},
+            },
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 1.0},
+                {
+                    "planet1": "Sun",
+                    "planet2": "Mars",
+                    "type": "square",
+                    "orb": 2.0,
+                },
+                {
+                    "planet1": "Moon",
+                    "planet2": "Venus",
+                    "type": "sextile",
+                    "orb": 1.5,
+                },
+                {
+                    "planet1": "Mars",
+                    "planet2": "Venus",
+                    "type": "opposition",
+                    "orb": 3.0,
+                },
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+
+        # Harmonious: trine, sextile
+        harmonious = [a for a in aspects if a["harmonious"]]
+        assert len(harmonious) == 2
+        harmonious_types = {a["type"] for a in harmonious}
+        assert "trine" in harmonious_types
+        assert "sextile" in harmonious_types
+
+        # Challenging: square, opposition
+        challenging = [a for a in aspects if not a["harmonious"]]
+        assert len(challenging) == 2
+        challenging_types = {a["type"] for a in challenging}
+        assert "square" in challenging_types
+        assert "opposition" in challenging_types
+
+    def test_get_planet_aspects(self):
+        """Get all aspects for a specific planet"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Aries"},
+                "Mars": {"Sign": "Capricorn"},
+            },
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 1.0},
+                {"planet1": "Sun", "planet2": "Mars", "type": "square", "orb": 2.0},
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        # Sun has 2 aspects
+        sun_aspects = graph.get_planet_aspects("Sun")
+        assert len(sun_aspects) == 2
+        planets = {a["planet"] for a in sun_aspects}
+        assert "Moon" in planets
+        assert "Mars" in planets
+
+        # Moon has 1 aspect
+        moon_aspects = graph.get_planet_aspects("Moon")
+        assert len(moon_aspects) == 1
+        assert moon_aspects[0]["planet"] == "Sun"
+
+    def test_count_aspects_by_type(self):
+        """Count harmonious vs challenging aspects for planet"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Aries"},
+                "Mars": {"Sign": "Capricorn"},
+                "Venus": {"Sign": "Libra"},
+            },
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 1.0},
+                {"planet1": "Sun", "planet2": "Mars", "type": "square", "orb": 2.0},
+                {
+                    "planet1": "Sun",
+                    "planet2": "Venus",
+                    "type": "sextile",
+                    "orb": 1.5,
+                },
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        counts = graph.count_aspects_by_type("Sun")
+        assert counts["total"] == 3
+        assert counts["harmonious"] == 2  # trine, sextile
+        assert counts["challenging"] == 1  # square
+
+    def test_calculate_aspects_from_planets(self):
+        """Calculate aspects from planet positions if not provided"""
+        chart_data = {
+            "planets": {
+                "Sun": {"longitude": 120.0},  # 0° Leo
+                "Moon": {"longitude": 240.0},  # 0° Sagittarius - trine to Sun
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+        # Should calculate trine aspect (120 degrees)
+        assert len(aspects) >= 1
+        # At least one trine aspect should be found
+        trines = [a for a in aspects if a["type"] == "trine"]
+        assert len(trines) >= 1
+
+    def test_conjunction_is_harmonious(self):
+        """Conjunction classified as harmonious"""
+        chart_data = {
+            "planets": {"Sun": {"Sign": "Leo"}, "Mercury": {"Sign": "Leo"}},
+            "aspects": [
+                {
+                    "planet1": "Sun",
+                    "planet2": "Mercury",
+                    "type": "conjunction",
+                    "orb": 3.0,
+                }
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+        assert len(aspects) == 1
+        assert aspects[0]["harmonious"] is True
+
+    def test_empty_aspects(self):
+        """Handle chart with no aspects"""
+        chart_data = {"planets": {"Sun": {"Sign": "Leo"}}, "aspects": []}
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+        assert len(aspects) == 0
+
+    def test_aspect_category(self):
+        """Aspects retain major/minor category"""
+        chart_data = {
+            "planets": {"Sun": {"Sign": "Leo"}, "Moon": {"Sign": "Aries"}},
+            "aspects": [
+                {
+                    "planet1": "Sun",
+                    "planet2": "Moon",
+                    "type": "trine",
+                    "orb": 1.0,
+                    "category": "major",
+                }
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        aspects = graph.get_all_aspects()
+        assert aspects[0]["category"] == "major"
+
+
+class TestIntegratedGraphAnalysis:
+    """Test complete graph with all relationship types"""
+
+    def test_complete_graph_analysis(self):
+        """Graph with mutual receptions, dispositor chains, AND aspects"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0, "longitude": 135.0},
+                "Moon": {"Sign": "Aries", "Degree": 10.0, "longitude": 10.0},
+                "Venus": {"Sign": "Aries", "Degree": 5.0, "longitude": 5.0},
+                "Mars": {"Sign": "Taurus", "Degree": 20.0, "longitude": 50.0},
+            },
+            "aspects": [
+                {
+                    "planet1": "Sun",
+                    "planet2": "Moon",
+                    "type": "trine",
+                    "orb": 0.5,
+                },  # Harmonious
+                {
+                    "planet1": "Venus",
+                    "planet2": "Mars",
+                    "type": "sextile",
+                    "orb": 1.0,
+                },  # Harmonious
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+
+        # Add all relationship types
+        receptions = graph.find_all_receptions()  # Venus-Mars mutual reception
+        graph.add_aspect_edges()
+        analysis = graph.analyze_dispositor_tree()
+
+        # Check mutual receptions
+        assert len(receptions) == 1
+        assert ("Venus", "Mars") in receptions or ("Mars", "Venus") in receptions
+
+        # Check aspects
+        aspects = graph.get_all_aspects()
+        assert len(aspects) == 2
+
+        # Check dispositor analysis
+        assert "Sun" in analysis["final_dispositors"]  # Sun in Leo
+        assert len(analysis["loops"]) == 1  # Venus-Mars loop
+
+        # Graph should have multiple edge types
+        all_edges = list(graph.graph.edges(data=True))
+        edge_types = {e[2]["relation"] for e in all_edges}
+        assert "mutual_reception" in edge_types
+        assert "aspect" in edge_types
+
+    def test_graph_repr_with_aspects(self):
+        """Graph repr shows correct node/edge count"""
+        chart_data = {
+            "planets": {"Sun": {"Sign": "Leo"}, "Moon": {"Sign": "Aries"}},
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 1.0}
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+
+        repr_str = repr(graph)
+        assert "ChartGraph" in repr_str
+        assert "nodes=2" in repr_str
+        assert "edges=1" in repr_str
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

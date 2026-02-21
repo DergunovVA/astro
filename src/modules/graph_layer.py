@@ -347,12 +347,211 @@ class ChartGraph:
         return analysis
 
     # ============================================================
-    # ASPECT RELATIONSHIPS (To be implemented in Task 4.1.3)
+    # ASPECT RELATIONSHIPS
     # ============================================================
 
     def add_aspect_edges(self):
-        """Add aspect relationships as graph edges (TODO: Task 4.1.3)"""
-        raise NotImplementedError("Task 4.1.3: Aspect relationships")
+        """
+        Add aspect relationships as graph edges.
+
+        Reads aspects from chart data and adds them as edges with:
+        - relation='aspect'
+        - aspect_type (Conjunction, Trine, Square, etc.)
+        - orb (exact orb in degrees)
+        - strength (very_strong, strong, moderate, weak based on orb)
+        - harmonious (True for Trine/Sextile/Conjunction, False for Square/Opposition)
+
+        Example:
+            >>> graph = ChartGraph(chart_data)
+            >>> graph.add_aspect_edges()
+            >>> # Sun Trine Moon added as harmonious aspect
+        """
+        # Get aspects from chart data
+        # Supports two formats:
+        # 1. List of Fact objects with type="aspect"
+        # 2. Direct calculate_aspects() call if planets available
+
+        aspects = []
+
+        # Format 1: Pre-calculated aspects in chart_data
+        if "aspects" in self.chart:
+            aspects_data = self.chart["aspects"]
+
+            # Check if it's Fact objects or dict format
+            for aspect in aspects_data:
+                if hasattr(aspect, "type"):  # Fact object
+                    if aspect.type == "aspect":
+                        # Parse object "planet1-planet2"
+                        planets_str = aspect.object
+                        if "-" in planets_str:
+                            planet1, planet2 = planets_str.split("-")
+                            aspects.append(
+                                {
+                                    "planet1": planet1,
+                                    "planet2": planet2,
+                                    "type": aspect.value,
+                                    "orb": aspect.details.get("orb", 0),
+                                    "category": aspect.details.get("category", "major"),
+                                }
+                            )
+                elif isinstance(aspect, dict):  # Dict format
+                    aspects.append(aspect)
+
+        # Format 2: Calculate aspects from planets if not provided
+        elif "planets" in self.chart:
+            from src.core.core_geometry import calculate_aspects
+
+            # Aspect configuration (major aspects)
+            ASPECTS_CONFIG = {
+                "conjunction": 0,
+                "opposition": 180,
+                "trine": 120,
+                "square": 90,
+                "sextile": 60,
+            }
+
+            planets = self.chart["planets"]
+            aspects_tuples = calculate_aspects(planets, ASPECTS_CONFIG)
+
+            for p1, p2, asp_name, orb, category, motion in aspects_tuples:
+                aspects.append(
+                    {
+                        "planet1": p1,
+                        "planet2": p2,
+                        "type": asp_name,
+                        "orb": orb,
+                        "category": category,
+                    }
+                )
+
+        # Add aspect edges to graph
+        for aspect in aspects:
+            planet1 = aspect["planet1"]
+            planet2 = aspect["planet2"]
+            aspect_type = aspect["type"]
+            orb = aspect["orb"]
+
+            # Determine aspect strength based on orb
+            if orb < 1.0:
+                strength = "very_strong"
+            elif orb < 3.0:
+                strength = "strong"
+            elif orb < 5.0:
+                strength = "moderate"
+            else:
+                strength = "weak"
+
+            # Harmonious vs challenging aspects
+            harmonious_aspects = [
+                "trine",
+                "sextile",
+                "conjunction",
+            ]
+            challenging_aspects = ["square", "opposition"]
+
+            harmonious = aspect_type.lower() in harmonious_aspects
+
+            # Add undirected edge (aspect goes both ways)
+            self.graph.add_edge(
+                planet1,
+                planet2,
+                relation="aspect",
+                aspect_type=aspect_type,
+                orb=orb,
+                strength=strength,
+                harmonious=harmonious,
+                category=aspect.get("category", "major"),
+            )
+
+    def get_all_aspects(self) -> List[Dict]:
+        """
+        Get all aspect relationships from graph.
+
+        Returns:
+            List of aspect dictionaries with planet names, type, orb, strength
+        """
+        aspects = []
+        for u, v, data in self.graph.edges(data=True):
+            if data.get("relation") == "aspect":
+                aspects.append(
+                    {
+                        "planet1": u,
+                        "planet2": v,
+                        "type": data.get("aspect_type"),
+                        "orb": data.get("orb"),
+                        "strength": data.get("strength"),
+                        "harmonious": data.get("harmonious"),
+                        "category": data.get("category", "major"),
+                    }
+                )
+        return aspects
+
+    def get_planet_aspects(self, planet: str) -> List[Dict]:
+        """
+        Get all aspects for a specific planet.
+
+        Args:
+            planet: Planet name
+
+        Returns:
+            List of aspects involving this planet
+        """
+        aspects = []
+        if planet not in self.graph:
+            return aspects
+
+        # Check outgoing edges
+        for neighbor in self.graph.successors(planet):
+            edge_data = self.graph.get_edge_data(planet, neighbor)
+            if edge_data and edge_data.get("relation") == "aspect":
+                aspects.append(
+                    {
+                        "planet": neighbor,
+                        "type": edge_data.get("aspect_type"),
+                        "orb": edge_data.get("orb"),
+                        "strength": edge_data.get("strength"),
+                        "harmonious": edge_data.get("harmonious"),
+                    }
+                )
+
+        # Check incoming edges (since aspects are bidirectional conceptually)
+        for neighbor in self.graph.predecessors(planet):
+            edge_data = self.graph.get_edge_data(neighbor, planet)
+            if edge_data and edge_data.get("relation") == "aspect":
+                aspects.append(
+                    {
+                        "planet": neighbor,
+                        "type": edge_data.get("aspect_type"),
+                        "orb": edge_data.get("orb"),
+                        "strength": edge_data.get("strength"),
+                        "harmonious": edge_data.get("harmonious"),
+                    }
+                )
+
+        return aspects
+
+    def count_aspects_by_type(self, planet: str) -> Dict[str, int]:
+        """
+        Count aspects by type for a planet.
+
+        Args:
+            planet: Planet name
+
+        Returns:
+            Dict mapping aspect type to count
+            Example: {'harmonious': 3, 'challenging': 2}
+        """
+        aspects = self.get_planet_aspects(planet)
+
+        counts = {"harmonious": 0, "challenging": 0, "total": len(aspects)}
+
+        for aspect in aspects:
+            if aspect["harmonious"]:
+                counts["harmonious"] += 1
+            else:
+                counts["challenging"] += 1
+
+        return counts
 
     # ============================================================
     # VISUALIZATION (To be implemented in Task 4.1.4)
