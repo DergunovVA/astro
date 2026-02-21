@@ -1,0 +1,24 @@
+         3255001 function calls in 4.039 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    15000    0.045    0.000    4.039    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:381(tokenize)
+    15000    1.061    0.000    3.978    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:303(tokenize)
+    82000    0.900    0.000    1.791    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:276(read_identifier)
+   604000    0.627    0.000    0.823    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:160(advance)
+    81000    0.171    0.000    0.352    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:189(skip_whitespace)
+   493000    0.238    0.000    0.238    0.000 {method 'isalnum' of 'str' objects}
+   668000    0.214    0.000    0.214    0.000 {built-in method builtins.len}
+   408000    0.170    0.000    0.170    0.000 {method 'isspace' of 'str' objects}
+    19000    0.103    0.000    0.170    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:201(read_number)
+   203000    0.106    0.000    0.106    0.000 {method 'isdigit' of 'str' objects}
+   180000    0.105    0.000    0.105    0.000 {method 'append' of 'list' objects}
+    64000    0.065    0.000    0.083    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:174(peek)
+    82000    0.079    0.000    0.079    0.000 {method 'get' of 'dict' objects}
+   180000    0.071    0.000    0.071    0.000 <string>:2(__init__)
+   146000    0.068    0.000    0.068    0.000 {method 'isalpha' of 'str' objects}
+    15000    0.016    0.000    0.016    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:147(__init__)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

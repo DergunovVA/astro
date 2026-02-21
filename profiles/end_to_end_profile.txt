@@ -1,0 +1,28 @@
+         4899001 function calls (4772001 primitive calls) in 6.142 seconds
+
+   Ordered by: cumulative time
+   List reduced from 46 to 20 due to restriction <20>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    15000    0.050    0.000    3.533    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:381(tokenize)
+    15000    0.931    0.000    3.468    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:303(tokenize)
+    15000    0.082    0.000    2.127    0.000 C:\Users\dergu\astro\src\dsl\parser.py:149(parse)
+17000/15000    0.051    0.000    2.039    0.000 C:\Users\dergu\astro\src\dsl\parser.py:200(_parse_expression)
+20000/18000    0.078    0.000    1.987    0.000 C:\Users\dergu\astro\src\dsl\parser.py:218(_parse_term)
+29000/24000    0.102    0.000    1.908    0.000 C:\Users\dergu\astro\src\dsl\parser.py:236(_parse_factor)
+27000/24000    0.314    0.000    1.812    0.000 C:\Users\dergu\astro\src\dsl\parser.py:252(_parse_comparison)
+    82000    0.777    0.000    1.570    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:276(read_identifier)
+52000/46000    0.358    0.000    1.346    0.000 C:\Users\dergu\astro\src\dsl\parser.py:281(_parse_primary)
+   604000    0.550    0.000    0.694    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:160(advance)
+    15000    0.025    0.000    0.656    0.000 C:\Users\dergu\astro\src\dsl\evaluator.py:77(evaluate)
+122000/15000    0.250    0.000    0.631    0.000 C:\Users\dergu\astro\src\dsl\evaluator.py:92(_eval_node)
+    32000    0.337    0.000    0.536    0.000 C:\Users\dergu\astro\src\dsl\parser.py:424(_parse_identifier_or_property)
+    25000    0.082    0.000    0.498    0.000 C:\Users\dergu\astro\src\dsl\evaluator.py:162(_eval_comparison)
+10000/8000    0.036    0.000    0.437    0.000 C:\Users\dergu\astro\src\dsl\evaluator.py:125(_eval_binary_op)
+    81000    0.169    0.000    0.308    0.000 C:\Users\dergu\astro\src\dsl\lexer.py:189(skip_whitespace)
+   352000    0.174    0.000    0.274    0.000 C:\Users\dergu\AppData\Local\Programs\Python\Python313\Lib\enum.py:1308(__hash__)
+   848000    0.210    0.000    0.210    0.000 {built-in method builtins.len}
+   493000    0.204    0.000    0.204    0.000 {method 'isalnum' of 'str' objects}
+    23000    0.119    0.000    0.186    0.000 C:\Users\dergu\astro\src\dsl\evaluator.py:197(_eval_property)
+
+
