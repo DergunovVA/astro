@@ -124,7 +124,11 @@ class Evaluator:
 
     def _eval_binary_op(self, node: ASTNode) -> bool:
         """
-        Выполнить бинарный оператор (AND, OR)
+        Выполнить бинарный оператор (AND, OR) с lazy evaluation
+
+        Оптимизация - короткие замыкания:
+        - AND: если left == False, right не вычисляется
+        - OR: если left == True, right не вычисляется
 
         Args:
             node: Узел BINARY_OP
@@ -132,13 +136,26 @@ class Evaluator:
         Returns:
             Результат логической операции
         """
-        left = self._eval_node(node.left)
-        right = self._eval_node(node.right)
-
         if node.value == "AND" or node.value == "&&":
-            return bool(left) and bool(right)
+            # Short-circuit AND: evaluate left first
+            left = self._eval_node(node.left)
+            if not bool(left):
+                # Left is False, no need to evaluate right
+                return False
+            # Left is True, must evaluate right
+            right = self._eval_node(node.right)
+            return bool(right)
+
         elif node.value == "OR" or node.value == "||":
-            return bool(left) or bool(right)
+            # Short-circuit OR: evaluate left first
+            left = self._eval_node(node.left)
+            if bool(left):
+                # Left is True, no need to evaluate right
+                return True
+            # Left is False, must evaluate right
+            right = self._eval_node(node.right)
+            return bool(right)
+
         else:
             raise EvaluatorError(f"Неизвестный бинарный оператор: {node.value}")
 
