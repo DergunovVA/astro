@@ -1,0 +1,192 @@
+# Performance Thresholds and SLA Configuration
+# Based on Stage 2 Task 2.2 profiling results (2025-02-16)
+#
+# Threshold levels:
+# - target: Optimal performance goal
+# - warning: Performance degradation alert threshold
+# - critical: Maximum acceptable performance (failure threshold)
+#
+# All times in microseconds (μs), throughput in formulas/second (f/s)
+
+version: "1.0"
+last_updated: "2025-02-16"
+baseline_date: "2025-02-16"
+
+# Lexer Performance Thresholds
+lexer:
+  simple:
+    description: "Simple formulas: Sun.Sign, Moon.House"
+    current_avg: 13.0  # μs
+    target: 30         # μs (3x safety margin)
+    warning: 50        # μs
+    critical: 100      # μs
+    
+  medium:
+    description: "Medium formulas: AND, OR, IN operators"
+    current_avg: 32.5  # μs
+    target: 65         # μs (2x safety margin)
+    warning: 100       # μs
+    critical: 200      # μs
+    
+  complex:
+    description: "Complex formulas: nested expressions, aggregators"
+    current_avg: 57.6  # μs
+    target: 120        # μs (2x safety margin)
+    warning: 200       # μs
+    critical: 400      # μs
+
+# Parser Performance Thresholds
+parser:
+  simple:
+    description: "Simple AST construction"
+    current_avg: 46.2  # μs
+    target: 90         # μs (2x safety margin)
+    warning: 150       # μs
+    critical: 300      # μs
+    
+  medium:
+    description: "Medium complexity AST"
+    current_avg: 85.0  # μs
+    target: 170        # μs (2x safety margin)
+    warning: 250       # μs
+    critical: 500      # μs
+    
+  complex:
+    description: "Complex nested AST with aggregators"
+    current_avg: 155.9 # μs
+    target: 300        # μs (2x safety margin)
+    warning: 500       # μs
+    critical: 1000     # μs
+
+# Evaluator Performance Thresholds
+evaluator:
+  simple:
+    description: "Simple property evaluation"
+    current_avg: 56.0  # μs
+    target: 120        # μs (2x safety margin)
+    warning: 200       # μs
+    critical: 400      # μs
+    
+  medium:
+    description: "Medium formula with operators"
+    current_avg: 247.1 # μs
+    target: 400        # μs (1.6x safety margin)
+    warning: 600       # μs
+    critical: 1000     # μs
+    
+  complex:
+    description: "Complex evaluation with aggregators"
+    current_avg: 335.8 # μs
+    target: 600        # μs (1.8x safety margin)
+    warning: 1000      # μs
+    critical: 2000     # μs
+
+# End-to-End Pipeline Performance Thresholds
+end_to_end:
+  simple:
+    description: "Full pipeline: simple formula"
+    current_avg: 99.6  # μs
+    target: 180        # μs (1.8x safety margin)
+    warning: 300       # μs
+    critical: 600      # μs
+    
+  medium:
+    description: "Full pipeline: medium formula"
+    current_avg: 173.1 # μs
+    target: 350        # μs (2x safety margin)
+    warning: 500       # μs
+    critical: 1000     # μs
+    
+  complex:
+    description: "Full pipeline: complex formula"
+    current_avg: 678.8 # μs
+    target: 1200       # μs (1.8x safety margin)
+    warning: 2000      # μs
+    critical: 4000     # μs
+
+# Stress Test Thresholds
+stress:
+  different_formulas:
+    description: "10 different formulas in batch"
+    current_avg: 472.7 # μs
+    target: 1000       # μs (2x safety margin)
+    warning: 1500      # μs
+    critical: 3000     # μs
+    
+  multiple_evaluations:
+    description: "100 evaluations of same formula"
+    current_avg: 5696.1  # μs (5.7ms)
+    target: 10000        # μs (10ms)
+    warning: 15000       # μs (15ms)
+    critical: 30000      # μs (30ms)
+
+# Throughput Thresholds
+throughput:
+  formulas_per_second:
+    description: "End-to-end throughput"
+    current: 2238      # f/s
+    target: 1500       # f/s (minimum acceptable)
+    warning: 1000      # f/s (degradation warning)
+    critical: 500      # f/s (severe degradation)
+
+# Caching Optimization Metrics
+caching:
+  speedup_factor:
+    description: "Performance improvement with AST caching"
+    current: 12.3      # x (12.3x faster)
+    target: 10.0       # x (minimum expected benefit)
+    warning: 5.0       # x (cache inefficiency warning)
+    critical: 2.0      # x (cache failure threshold)
+    
+  cache_hit_rate:
+    description: "Expected cache hit rate in production"
+    target: 0.80       # 80% (good cache utilization)
+    warning: 0.50      # 50% (poor cache utilization)
+    critical: 0.20     # 20% (cache almost useless)
+
+# Memory Usage Thresholds (future implementation)
+memory:
+  lexer:
+    description: "Memory usage during tokenization"
+    target: 1048576    # bytes (1 MB)
+    warning: 5242880   # bytes (5 MB)
+    critical: 10485760 # bytes (10 MB)
+    
+  parser:
+    description: "Memory usage for AST construction"
+    target: 2097152    # bytes (2 MB)
+    warning: 10485760  # bytes (10 MB)
+    critical: 20971520 # bytes (20 MB)
+    
+  evaluator:
+    description: "Memory usage during evaluation"
+    target: 5242880    # bytes (5 MB)
+    warning: 20971520  # bytes (20 MB)
+    critical: 52428800 # bytes (50 MB)
+
+# Regression Detection Configuration
+regression:
+  detection_threshold: 1.20  # 20% slowdown triggers regression alert
+  comparison_method: "mean"  # Compare mean times
+  min_rounds: 100            # Minimum benchmark rounds for reliable comparison
+  
+# CI/CD Integration Settings
+ci_cd:
+  fail_on_critical: true     # Fail build if critical threshold exceeded
+  warn_on_warning: true      # Show warning if warning threshold exceeded
+  benchmark_on_pr: true      # Run benchmarks on pull requests
+  compare_to_baseline: true  # Always compare to saved baseline
+  save_new_baseline: false   # Don't auto-save (manual approval required)
+  
+# Reporting Configuration
+reporting:
+  precision: 2               # Decimal places for time values
+  show_outliers: true        # Include outlier statistics
+  generate_html: true        # Generate HTML benchmark report
+  generate_json: true        # Generate JSON for programmatic access
+  
+# Alert Configuration
+alerts:
+  email_on_critical: false   # Email notification (future)
+  slack_on_warning: false    # Slack notification (future)
+  create_issue_on_regression: false  # GitHub issue creation (future)
