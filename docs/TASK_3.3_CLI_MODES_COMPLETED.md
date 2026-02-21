@@ -7,12 +7,14 @@
 ## Objectives
 
 Add CLI output verbosity controls for enhanced user experience:
+
 1. `--verbose` flag for educational/detailed output
 2. `--quiet` flag for minimal output (automation-friendly)
 3. Integration with DSL formula evaluation
 4. Comprehensive test coverage
 
 **Use Cases:**
+
 - Verbose: Learning mode, debugging, educational purposes
 - Normal: Standard CLI usage (default)
 - Quiet: Automation scripts, piping output, minimal interruption
@@ -24,12 +26,14 @@ Add CLI output verbosity controls for enhanced user experience:
 **File:** [src/cli/output.py](src/cli/output.py) (260 lines)
 
 **Implementation:**
+
 - `OutputLevel` enum: QUIET (0), NORMAL (1), VERBOSE (2)
 - `CLIOutput` class with level-based message filtering
 - Global output instance management
 - Specialized formatting for DSL and validation results
 
 **Message Methods:**
+
 ```python
 from src.cli import CLIOutput, OutputLevel
 
@@ -49,6 +53,7 @@ out.bullet("Item", indent=1)       # VERBOSE only
 ```
 
 **DSL Result Formatting:**
+
 ```python
 # QUIET: Just True/False
 out.format_dsl_result(formula="Sun.Sign == Aries", result=True)
@@ -62,6 +67,7 @@ out.format_dsl_result(formula="Sun.Sign == Aries", result=True)
 ```
 
 **JSON Output:**
+
 ```python
 # QUIET: Compact JSON (no indentation)
 out.json_result({"key": "value"})
@@ -78,12 +84,14 @@ out.json_result({"key": "value"})
 **File:** [main.py](main.py) (updated)
 
 **Changes:**
+
 - Added `--verbose` and `--quiet` parameters to `natal` command
 - Integrated `CLIOutput` for all output operations
 - Replaced all `typer.echo()` calls with level-appropriate `out.*()` calls
 - Added verbose progress messages for each processing step
 
 **Command Signature:**
+
 ```python
 @app.command()
 def natal(
@@ -97,6 +105,7 @@ def natal(
 ```
 
 **Usage Examples:**
+
 ```bash
 # Quiet mode: Just the result
 python main.py natal 1982-01-08 12:00 "Tel Aviv" \
@@ -138,6 +147,7 @@ python main.py natal 1982-01-08 12:00 "Tel Aviv" \
 ```
 
 **Verbose Step Messages:**
+
 ```python
 # Step 1: Normalize input
 out.verbose("Step 1: Normalizing input...")
@@ -159,6 +169,7 @@ out.verbose(f"Step 4: Formatting output (format={format})...")
 ```
 
 **Error Handling:**
+
 ```python
 # Errors always visible (all levels)
 except ValueError as e:
@@ -174,9 +185,10 @@ except Exception as e:
 
 ### 3. Module Structure
 
-**File:** [src/cli/__init__.py](src/cli/__init__.py) (15 lines)
+**File:** [src/cli/**init**.py](src/cli/__init__.py) (15 lines)
 
 **Exports:**
+
 ```python
 from src.cli.output import (
     OutputLevel,
@@ -188,15 +200,16 @@ from src.cli.output import (
 ```
 
 **configure_output() Helper:**
+
 ```python
 def configure_output(verbose: bool = False, quiet: bool = False) -> CLIOutput:
     """
     Configure CLI output based on verbosity flags
-    
+
     Args:
         verbose: Enable verbose output
         quiet: Enable quiet output (takes precedence)
-        
+
     Returns:
         Configured CLIOutput instance
     """
@@ -206,7 +219,7 @@ def configure_output(verbose: bool = False, quiet: bool = False) -> CLIOutput:
         level = OutputLevel.VERBOSE
     else:
         level = OutputLevel.NORMAL
-    
+
     set_output_level(level)
     return get_output()
 ```
@@ -218,6 +231,7 @@ def configure_output(verbose: bool = False, quiet: bool = False) -> CLIOutput:
 **File:** [tests/test_cli_output.py](tests/test_cli_output.py) (470 lines, 35 tests)
 
 **Test Classes:**
+
 - `TestOutputLevel` (2 tests) - enum values and ordering
 - `TestCLIOutputBasics` (7 tests) - message filtering by level
 - `TestCLIOutputFormatting` (4 tests) - section, subsection, bullet
@@ -231,6 +245,7 @@ def configure_output(verbose: bool = False, quiet: bool = False) -> CLIOutput:
 **Result:** ✅ 35/35 passing in 5.40s
 
 **Key Tests:**
+
 ```python
 def test_verbose_only_in_verbose_mode(self, capsys):
     """Test verbose() only outputs in VERBOSE mode"""
@@ -260,6 +275,7 @@ def test_quiet_in_all_modes(self, capsys):
 **File:** [tests/test_cli_integration.py](tests/test_cli_integration.py) (230 lines, 12 tests)
 
 **Test Classes:**
+
 - `TestNatalCommandVerboseQuiet` (4 tests) - natal command with flags
 - `TestDSLCheckWithVerboseQuiet` (4 tests) - DSL formulas with flags
 - `TestErrorOutputWithVerboseQuiet` (2 tests) - error messages
@@ -319,6 +335,7 @@ bullet()       |   -   |   -    |   ✓
 ### 2. Smart Flag Handling
 
 **Precedence:**
+
 - `--quiet` takes precedence over `--verbose`
 - If both specified: QUIET mode activated
 - No flags: NORMAL mode (default)
@@ -326,6 +343,7 @@ bullet()       |   -   |   -    |   ✓
 ### 3. Educational Mode (Verbose)
 
 **Shows:**
+
 - Step-by-step processing (Step 1, 2, 3, 4)
 - UTC conversion details
 - Geographic coordinates
@@ -335,6 +353,7 @@ bullet()       |   -   |   -    |   ✓
 - Detailed DSL evaluation results
 
 **Use Cases:**
+
 - Learning astrology calculations
 - Debugging formulas
 - Understanding data transformations
@@ -343,11 +362,13 @@ bullet()       |   -   |   -    |   ✓
 ### 4. Automation Mode (Quiet)
 
 **Shows:**
+
 - Only final results
 - Error messages (stderr)
 - Minimal output for parsing
 
 **Use Cases:**
+
 - Shell scripts
 - Piping to other tools
 - Automated testing
@@ -357,20 +378,24 @@ bullet()       |   -   |   -    |   ✓
 ### 5. JSON Output Handling
 
 **QUIET mode:**
+
 ```json
-{"key":"value","number":42}
+{ "key": "value", "number": 42 }
 ```
+
 - Compact (no whitespace)
 - Single line
 - Easy to parse programmatically
 
 **NORMAL/VERBOSE mode:**
+
 ```json
 {
   "key": "value",
   "number": 42
 }
 ```
+
 - Pretty-printed (indent=2)
 - Human-readable
 - Multi-line
@@ -396,6 +421,7 @@ bullet()       |   -   |   -    |   ✓
 **Root Cause:** `calc_result` is a dict, not an object with attributes
 
 **Fix:**
+
 ```python
 # Before
 out.verbose(f"  Planets calculated: {len(calc_result.planets)}")
@@ -412,6 +438,7 @@ else:
 ## Files Changed
 
 ### New Files (3)
+
 1. `src/cli/__init__.py` (15 lines)
 2. `src/cli/output.py` (260 lines)
 3. `tests/test_cli_output.py` (470 lines)
@@ -420,6 +447,7 @@ else:
 **Total:** 975 lines added
 
 ### Modified Files (1)
+
 1. `main.py` (50 lines changed)
    - Added `verbose` and `quiet` parameters
    - Integrated `CLIOutput` throughout
@@ -429,12 +457,14 @@ else:
 ## Documentation
 
 ### Inline Documentation
+
 - Comprehensive docstrings for all classes and methods
 - Usage examples in CLIOutput class
 - Type hints for all parameters
 - Clear explanation of level-based filtering
 
 ### Test Documentation
+
 - Descriptive test names
 - Docstrings explaining what each test verifies
 - Examples of expected output
@@ -442,21 +472,25 @@ else:
 ## Benefits
 
 ### 1. User Experience
+
 - **Beginners:** Verbose mode helps understand calculations
 - **Experts:** Normal mode provides quick results
 - **Automation:** Quiet mode enables scripting
 
 ### 2. Debugging
+
 - Verbose mode shows internal processing steps
 - Error messages always visible
 - Stack traces available when needed
 
 ### 3. Integration
+
 - Quiet mode perfect for CI/CD
 - JSON output easy to parse
 - Exit codes indicate success/failure
 
 ### 4. Maintainability
+
 - Centralized output management
 - Consistent formatting across commands
 - Easy to extend with new message types
@@ -464,6 +498,7 @@ else:
 ## Future Enhancements
 
 ### Potential Additions (out of scope for Task 3.3)
+
 1. **Color support** - typer.style() for colored output
 2. **Progress bars** - For long-running operations
 3. **Log files** - Save verbose output to file
@@ -482,6 +517,7 @@ else:
 Task 3.3 complete in **2 hours** vs 4h estimate = **50% faster than planned**
 
 **CLI Modes Summary:**
+
 - **--quiet:** Minimal output (True/False, compact JSON)
 - **Normal:** Standard output (formula → result, pretty JSON)
 - **--verbose:** Educational output (steps, tables, details)

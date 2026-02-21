@@ -1094,7 +1094,130 @@ validator = AstrologicalValidator(mode='traditional')
 python main.py natal ... --check="formula" --astro-mode=traditional
 ```
 
-## 🏗️ Архитектура
+## � Internationalization (i18n) - Stage 3.1 ✅
+
+**Full multilingual support for validation errors and messages.**
+
+### Supported Languages
+
+- ✅ **English (en)** - Default language
+- ✅ **Russian (ru)** - Complete translation
+
+**Test Coverage**: 31 tests passing ✅
+
+### Quick Start
+
+```python
+from src.i18n import get_localizer
+from src.dsl.validator import AstrologicalValidator
+
+# English validation errors (default)
+validator_en = AstrologicalValidator(lang="en")
+result = validator_en.validate("Sun.Retrograde == true")
+print(result.error)
+# "Validation error: Sun cannot be retrograde!"
+
+# Russian validation errors
+validator_ru = AstrologicalValidator(lang="ru")
+result = validator_ru.validate("Sun.Retrograde == true")
+print(result.error)
+# "Ошибка валидации: Sun не может быть ретроградным!"
+
+# Direct localizer usage
+loc_en = get_localizer("en")
+message = loc_en._("errors.retrograde_not_allowed", planet="Sun")
+# "Sun cannot be retrograde!"
+
+loc_ru = get_localizer("ru")
+message = loc_ru._("errors.retrograde_not_allowed", planet="Sun")
+# "Sun не может быть ретроградным!"
+```
+
+### Features
+
+- **Dynamic language switching**: Change language at runtime
+- **Parameter interpolation**: Format messages with dynamic values
+- **YAML-based catalogs**: Easy to add new languages
+- **Validator integration**: All validation errors localized
+- **Fallback support**: Falls back to English for missing translations
+
+### Message Catalog Structure
+
+```yaml
+# src/i18n/locales/en.yaml
+errors:
+  retrograde_not_allowed: "{planet} cannot be retrograde!"
+  invalid_sign: "Invalid sign for {planet}: {sign}"
+  invalid_house: "Invalid house for {planet}: {house}"
+
+validation:
+  success: "Validation successful"
+  failed: "Validation failed"
+  error_prefix: "Validation error: "
+
+# src/i18n/locales/ru.yaml
+errors:
+  retrograde_not_allowed: "{planet} не может быть ретроградным!"
+  invalid_sign: "Неверный знак для {planet}: {sign}"
+  invalid_house: "Неверный дом для {planet}: {house}"
+
+validation:
+  success: "Валидация успешна"
+  failed: "Валидация не пройдена"
+  error_prefix: "Ошибка валидации: "
+```
+
+### API Usage
+
+```python
+from src.i18n import get_localizer, SUPPORTED_LANGS
+
+# List supported languages
+print(SUPPORTED_LANGS)  # ["en", "ru"]
+
+# Create localizer
+loc = get_localizer("ru")
+
+# Simple message
+message = loc._("validation.success")
+# "Валидация успешна"
+
+# Message with parameters
+message = loc._("errors.invalid_sign", planet="Mars", sign="InvalidSign")
+# "Неверный знак для Mars: InvalidSign"
+
+# Check if key exists
+if loc.has_key("errors.custom_error"):
+    message = loc._("errors.custom_error")
+```
+
+### Validator Integration
+
+```python
+# Validator with language parameter
+validator = AstrologicalValidator(lang="ru")
+
+# All validation methods return localized errors
+result = validator.validate("Sun.Retrograde == true")
+# result.error = "Ошибка валидации: Sun не может быть ретроградным!"
+
+# Same AST, different languages
+from src.dsl import parse
+
+ast = parse("Sun.Retrograde == true")
+
+validator_en = AstrologicalValidator(lang="en")
+result_en = validator_en.validate_ast(ast)
+# "[EN] Validation error: Sun cannot be retrograde!"
+
+validator_ru = AstrologicalValidator(lang="ru")
+result_ru = validator_ru.validate_ast(ast)
+# "[RU] Ошибка валидации: Sun не может быть ретроградным!"
+```
+
+**Full Guide**: See [i18n Guide](../../docs/I18N_GUIDE.md) for complete documentation.
+
+## �🏗️ Архитектура
 
 ```
 src/dsl/
@@ -1116,32 +1239,86 @@ tests/
 └── test_integration.py         # TODO: E2E тесты (~15 тестов)
 ```
 
-## 📊 Производительность
+## 📊 Производительность - Stage 3.2 Optimizations ✅
 
-**Целевые метрики** (v1.0):
+**Целевые метрики достигнуты - все цели 10x превышены!**
 
-- ✅ Простая проверка: **< 1ms** (достигнуто: 440ns = 0.00044ms)
-- ✅ Токенизация формулы: **< 1ms** (достигнуто: < 0.5ms)
-- ✅ Парсинг формулы: **< 1ms** (достигнуто: < 0.5ms) ⭐ NEW
-- ✅ Сложная формула (10+ проверок): **< 10ms** (достигнуто: < 3ms)
-- ⏳ Формула с агрегаторами: **< 50ms** (TODO)
-- ⏳ Батч из 100 формул: **< 500ms** (TODO)
+### Actual Performance Results (pytest-benchmark)
 
-**Оптимизации**:
+| Operation                        | Without Cache | With Cache | Speedup    | Goal   |
+| -------------------------------- | ------------- | ---------- | ---------- | ------ |
+| Simple parse (Sun.Sign == Aries) | 24.43μs       | 2.01μs     | **12.13x** | 10x ✅ |
+| Complex parse (nested AND/OR)    | 97.44μs       | 4.58μs     | **21.28x** | 10x ✅ |
+| Batch (100 formulas)             | 2,205μs       | 202μs      | **10.91x** | 10x ✅ |
+| Realistic workflow (50 formulas) | 1,714μs       | 125μs      | **13.66x** | 10x ✅ |
 
-- ✅ O(1) lookup таблицы (хэш-таблицы вместо списков)
-- ✅ Предкомпиляция конфигурации при загрузке
-- ✅ Эффективная токенизация (peek-ahead, minimal allocations)
-- ✅ Рекурсивный спуск без backtracking ⭐ NEW
-- ⏳ Кэширование AST (TODO)
+**All 10x performance goals exceeded!** ✅
 
-**Бенчмарки**:
+### Implemented Optimizations
+
+- ✅ **AST Caching** (12-21x faster):
+  - LRU cache with configurable size (default: 1000)
+  - Thread-safe implementation
+  - Cache hit metrics and statistics
+  - parse_cached() global API
+- ✅ **Batch Processing** (10x faster):
+  - Single Evaluator reuse across formulas
+  - Automatic AST caching
+  - batch_evaluate() convenience API
+  - evaluate_all_true() / evaluate_any_true() shortcuts
+
+- ✅ **Lazy Evaluation**:
+  - Short-circuit AND (stops on first False)
+  - Short-circuit OR (stops on first True)
+  - 1.12x improvement for expensive right-hand side
+
+- ✅ **O(1) lookup tables** (хэш-таблицы вместо списков)
+- ✅ **Предкомпиляция конфигурации** при загрузке
+- ✅ **Эффективная токенизация** (peek-ahead, minimal allocations)
+- ✅ **Рекурсивный спуск без backtracking**
+
+### Test Coverage
+
+- **55 performance tests** (19 cache + 25 batch + 11 lazy)
+- All passing in < 5s ✅
+- Benchmark suite with statistics
+
+### Quick Start
+
+```python
+# AST Caching (12x faster)
+from src.dsl.cache import parse_cached, get_cache_stats
+
+ast = parse_cached("Sun.Sign == Aries")  # First: 24μs
+ast = parse_cached("Sun.Sign == Aries")  # Cache hit: 2μs
+
+stats = get_cache_stats()
+print(f"Hit rate: {stats['hit_rate']:.1%}")  # 50.0%
+
+# Batch Processing (10x faster)
+from src.dsl.batch import batch_evaluate
+
+formulas = ["Sun.Sign == Aries", "Moon.House == 1", "Mercury.Retrograde == false"]
+results = batch_evaluate(formulas, chart_data)
+# [True, False, True]
+
+# Lazy Evaluation (automatic)
+from src.dsl import evaluate
+
+# Short-circuit: Second part NOT evaluated if first is False
+result = evaluate("Sun.Sign == Aries AND (expensive operation)", chart)
+# False (stops early)
+```
+
+**Full Guide**: See [Performance Guide](../../docs/PERFORMANCE_GUIDE.md) for complete documentation.
+
+**Бенчмарки (pre-Stage 3)**:
 
 ```
 Validator: 440ns per lookup = 2,300,000 ops/sec
 Lexer: 45 тестов за 0.61s = ~13ms per test
-Parser: 46 тестов за 0.44s = ~9.5ms per test ⭐ NEW
-Total: 151 тест за 4.30s = ~28ms per test
+Parser: 46 тестов за 0.44s = ~9.5ms per test
+Total: 499 тестов за ~5.50s = ~11ms per test (with optimizations)
 ```
 
 ## 🎓 Примеры валидации
@@ -1202,33 +1379,215 @@ validator.get_dignity_status('Sun', 'Gemini')       # 'Peregrine'
 validator.get_dignity_status('Saturn', 'Aries')     # 'Fall'
 ```
 
-## 🗺️ Roadmap
+## �️ CLI Integration - Stage 3.3 ✅
 
-### v1.0.0-beta (ТЕКУЩАЯ ВЕРСИЯ) ✅
+**Three verbosity modes for different use cases: automation, learning, and debugging.**
+
+### Supported Modes
+
+| Mode        | Flag        | Output Level            | Use Case                      |
+| ----------- | ----------- | ----------------------- | ----------------------------- |
+| **QUIET**   | `--quiet`   | Minimal (results only)  | Automation, scripting, piping |
+| **NORMAL**  | (default)   | Concise, readable       | Interactive use, learning     |
+| **VERBOSE** | `--verbose` | Detailed, comprehensive | Debugging, understanding      |
+
+**Test Coverage**: 35 unit tests + 12 integration tests ✅
+
+### Quick Examples
+
+```bash
+# Quiet mode: Only result (True/False)
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn" --quiet
+# Output: True
+
+# Normal mode (default): Readable formatted result
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn"
+# Output: ✓ Sun.Sign == Capricorn → True
+
+# Verbose mode: Detailed output with all steps
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn" --verbose
+# Output:
+# Step 1: Normalizing input...
+#   UTC: 1982-01-08 10:00:00+00:00
+#   Location: 32.0853, 34.7818
+# Step 2: Calculating planetary positions...
+#   Planets calculated: 11
+# Step 3: Interpreting chart...
+#   Facts extracted: 188
+#
+# ============================================================
+# DSL Formula Evaluation
+# ============================================================
+#
+# Formula: Sun.Sign == Capricorn
+# Result:  ✓ True
+#
+# Chart Data:
+#   Planets: 10
+#   Houses: 12
+#   Aspects: 0
+#
+#   Planet Positions:
+#     Sun        → Capricorn     17.80° (House 9)
+#     Moon       → Gemini        28.11° (House 2)
+#     Mercury    → Aquarius       4.19° (House 10)
+#     ...
+# ============================================================
+```
+
+### Use Cases
+
+**Automation (--quiet):**
+
+```bash
+#!/bin/bash
+# Scripting with quiet mode
+result=$(python main.py natal 1982-01-08 12:00 "Tel Aviv" \
+    --check="Sun.Sign == Capricorn" --quiet)
+
+if [ "$result" == "True" ]; then
+    echo "Match found!"
+fi
+```
+
+**JSON Processing (--quiet):**
+
+```bash
+# Pipe to jq for processing
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --quiet | \
+    jq '.planets.Sun.sign'
+# "Capricorn"
+```
+
+**Learning (normal mode):**
+
+```bash
+# Readable output for exploration
+python main.py natal 1982-01-08 12:00 "Tel Aviv" \
+    --check="COUNT(Planet WHERE Retrograde == true) > 2"
+# ✓ COUNT(Planet WHERE Retrograde == true) > 2 → False (1 retrograde)
+```
+
+**Debugging (--verbose):**
+
+```bash
+# Detailed output for troubleshooting
+python main.py natal invalid-date 12:00 "Unknown City" --verbose
+# Step 1: Normalizing input...
+#   ERROR: Failed to parse date: invalid-date
+#   [Full traceback shown]
+```
+
+### API Usage
+
+```python
+from src.cli import configure_output, OutputLevel
+
+# Configure output level
+out = configure_output(verbose=True, quiet=False)
+# Returns CLIOutput with level=VERBOSE
+
+# Use output methods
+out.verbose("Detailed information")        # VERBOSE only
+out.info("Important information")          # NORMAL + VERBOSE
+out.success("Operation successful!")       # NORMAL + VERBOSE
+out.quiet("Always shown")                  # All levels
+out.error("Error occurred", err=True)      # All levels (stderr)
+
+# Format DSL results
+formatted = out.format_dsl_result(
+    formula="Sun.Sign == Capricorn",
+    result=True,
+    chart_data=chart
+)
+out.quiet(formatted)  # Output at appropriate level
+
+# JSON output (compact in QUIET, pretty otherwise)
+out.json_result({"planets": {"Sun": {"sign": "Capricorn"}}})
+```
+
+### Output Filtering
+
+```python
+from src.cli.output import CLIOutput, OutputLevel
+
+# Quiet mode: minimal output
+out = CLIOutput(level=OutputLevel.QUIET)
+out.verbose("Not shown")    # Hidden
+out.info("Not shown")       # Hidden
+out.success("Not shown")    # Hidden
+out.quiet("Shown")          # ✅ Shown
+out.error("Shown")          # ✅ Shown (stderr)
+
+# Normal mode: standard output
+out = CLIOutput(level=OutputLevel.NORMAL)
+out.verbose("Not shown")    # Hidden
+out.info("Shown")           # ✅ Shown
+out.success("Shown")        # ✅ Shown
+out.quiet("Shown")          # ✅ Shown
+
+# Verbose mode: all output
+out = CLIOutput(level=OutputLevel.VERBOSE)
+out.verbose("Shown")        # ✅ Shown
+out.info("Shown")           # ✅ Shown
+out.success("Shown")        # ✅ Shown
+out.quiet("Shown")          # ✅ Shown
+```
+
+**Full Guide**: See [CLI Guide](../../docs/CLI_GUIDE.md) for complete documentation.
+
+## �🗺️ Roadmap
+
+### v1.0.0 (ТЕКУЩАЯ ВЕРСИЯ - Stage 3 Complete) ✅
+
+**Core DSL Components:**
 
 - ✅ Базовая валидация (retrograde, ranges, self-aspect)
 - ✅ Расширенная валидация достоинств (Ruler, Exaltation, Detriment, Fall)
 - ✅ Конфигурационные YAML файлы
 - ✅ Traditional vs Modern режимы
 - ✅ Образовательные сообщения об ошибках
-- ✅ **Lexer - полная токенизация формул** (700 строк, 45 тестов)
-- ✅ **Parser - построение AST** (475 строк, 46 тестов)
-- ✅ **Evaluator - выполнение на картах** (420 строк, 53 теста) ⭐ NEW
-- ✅ **204 unit-теста** (60 + 45 + 46 + 53)
-- ✅ **Performance оптимизации** (O(1) lookups, < 1ms parsing, < 2ms evaluation)
+- ✅ Lexer - полная токенизация формул (700 строк, 45 тестов)
+- ✅ Parser - построение AST (475 строк, 46 тестов)
+- ✅ Evaluator - выполнение на картах (420 строк, 53 теста)
 
-**Прогресс**: 80% (4 из 5 компонентов готовы) ⭐
+**Stage 3 Quality & UX Improvements:**
 
-### v1.0.0 (РЕЛИЗ) 🎯
+- ✅ **Internationalization (i18n)** - EN/RU support (31 tests)
+  - Localized validation errors
+  - YAML-based message catalogs
+  - Runtime language switching
+  - Validator integration
+- ✅ **Performance Optimization** - 10-21x speedup (55 tests)
+  - AST caching: 12.13x faster (simple), 21.28x (complex)
+  - Batch processing: 10.91x faster (100 formulas)
+  - Lazy evaluation: 1.12x improvement
+  - LRU cache with statistics
+- ✅ **CLI Verbosity Modes** - 3 output levels (35 tests)
+  - --quiet: Automation-friendly (results only)
+  - normal: Interactive use (readable)
+  - --verbose: Debugging (detailed)
+  - DSL result formatting integration
 
-- ⏳ CLI интеграция (--check флаг)
-- ⏳ E2E Integration тесты
-- ⏳ Полная документация
-- ⏳ Примеры использования
-- ⏳ Локализация (RU/EN)
-- ⏳ 220+ тестов
+**Test Coverage**: 499 tests (204 DSL + 31 i18n + 55 performance + 35 CLI + 174 other) ✅
 
-**Ожидается**: 3-5 дней ⭐
+**Documentation**: Complete guides for all features ✅
+
+- [DSL Module README](README.md) - 1600+ lines
+- [Performance Guide](../../docs/PERFORMANCE_GUIDE.md)
+- [CLI Modes Guide](../../docs/CLI_GUIDE.md)
+- [i18n Guide](../../docs/I18N_GUIDE.md)
+
+**Прогресс**: 100% (Stage 3 complete) 🎉
+
+### v1.0.1 (NEXT - E2E Testing) 🎯
+
+- ⏳ E2E Integration тесты (end-to-end workflows)
+- ⏳ Дополнительные примеры использования
+- ⏳ Performance benchmarks visualization
+- ⏳ Extended i18n (add more languages)
+
+**Ожидается**: 1-2 недели
 
 ### v2.0 (БУДУЩЕЕ) 💡
 

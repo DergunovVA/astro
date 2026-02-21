@@ -38,7 +38,96 @@ python -m pytest test_input_pipeline.py test_integration_commands.py -q
 python main.py natal 2000-01-15 14:30 Moscow --strict
 ```
 
-## Testing Protocol
+## 🔮 DSL Module - Astrology Query Language
+
+**NEW IN STAGE 3**: Domain Specific Language for astrological chart queries and validation.
+
+```python
+from src.dsl import evaluate, parse, validate
+
+# Quick evaluation
+result = evaluate("Sun.Sign == Aries AND Moon.House IN [1,4,7,10]", chart_data)
+# True/False
+
+# Validation with localized errors
+result = validate("Sun.Retrograde == true", lang="en")
+# ValidationResult(is_valid=False, error="Sun cannot be retrograde!")
+
+# AST parsing (with caching for performance)
+from src.dsl.cache import parse_cached
+ast = parse_cached("Sun.Sign == Leo")  # 12x faster on cache hit
+```
+
+### Key Features
+
+| Feature               | Status | Description                                          |
+| --------------------- | ------ | ---------------------------------------------------- |
+| **Logical Operators** | ✅     | AND, OR, NOT, IN, ==, !=, <, >, <=, >=               |
+| **Aggregators**       | ✅     | COUNT, AVG, MIN, MAX with WHERE filters              |
+| **Validation**        | ✅     | 35+ astrological rules (retrograde, aspects, etc.)   |
+| **i18n Support**      | ✅     | English/Russian error messages                       |
+| **Performance**       | ✅     | AST caching (12x), batch processing (10x), lazy eval |
+| **CLI Modes**         | ✅     | --verbose, --quiet, normal output                    |
+
+**Test Coverage**: 499 tests (204 DSL + 295 other) ✅
+
+### Quick Examples
+
+```bash
+# Check single condition (normal mode)
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn"
+# ✓ Sun.Sign == Capricorn → True
+
+# Automation-friendly output (quiet mode)
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn" --quiet
+# True
+
+# Detailed debugging (verbose mode)
+python main.py natal 1982-01-08 12:00 "Tel Aviv" --check="Sun.Sign == Capricorn" --verbose
+# Step 1: Normalizing input...
+# Step 2: Calculating planetary positions...
+# Step 3: Interpreting chart...
+# [Full chart data with planet table]
+
+# Complex queries
+python main.py natal 1982-01-08 12:00 "Tel Aviv" \
+  --check="COUNT(Planet WHERE Retrograde == true) > 2"
+# ✓ COUNT(Planet WHERE Retrograde == true) > 2 → False (1 retrograde)
+
+# Russian error messages
+from src.dsl.validator import AstrologicalValidator
+validator = AstrologicalValidator(lang="ru")
+result = validator.validate("Sun.Retrograde == true")
+# "Ошибка валидации: Sun не может быть ретроградным!"
+```
+
+### Performance Optimizations (Stage 3.2)
+
+```python
+from src.dsl.cache import parse_cached, get_cache_stats
+from src.dsl.batch import batch_evaluate
+
+# AST caching: 12.13x faster for simple formulas
+ast = parse_cached("Sun.Sign == Aries")  # First call: 24μs
+ast = parse_cached("Sun.Sign == Aries")  # Cache hit: 2μs
+
+# Batch processing: 10.91x faster for multiple formulas
+formulas = ["Sun.Sign == Aries", "Moon.House == 1", "Mercury.Retrograde == false"]
+results = batch_evaluate(formulas, chart_data)  # [True, False, True]
+
+# Check cache stats
+stats = get_cache_stats()
+print(f"Cache hit rate: {stats['hit_rate']:.1%}")  # 75.0%
+```
+
+### Documentation
+
+- **[DSL Module README](src/dsl/README.md)** - Complete DSL reference (syntax, operators, testing)
+- **[Performance Guide](docs/PERFORMANCE_GUIDE.md)** - Caching, batch processing, benchmarks
+- **[CLI Modes Guide](docs/CLI_GUIDE.md)** - --verbose, --quiet, normal output
+- **[i18n Guide](docs/I18N_GUIDE.md)** - Localization, language switching, custom catalogs
+
+### Testing Protocol
 
 **⚠️ CRITICAL**: Always run tests via `python -m pytest`, NOT `pytest` directly.
 
@@ -133,9 +222,25 @@ print(result['planets'])  # {'Sun': 26.15, 'Moon': 3.84, ...}
 
 ## Documentation
 
-- [INPUT_PIPELINE.md](INPUT_PIPELINE.md) - Complete API reference
-- [PRIVACY.md](PRIVACY.md) - Data handling & compliance
+### Core Documentation
+
+- [INPUT_PIPELINE.md](INPUT_PIPELINE.md) - Complete input pipeline API reference
+- [PRIVACY.md](PRIVACY.md) - Data handling & GDPR compliance
 - [LICENSE](LICENSE) - MIT License
+
+### DSL Module (Stage 3)
+
+- [DSL Module README](src/dsl/README.md) - Complete DSL reference (1280+ lines)
+- [Performance Guide](docs/PERFORMANCE_GUIDE.md) - Caching, batch processing, optimization
+- [CLI Modes Guide](docs/CLI_GUIDE.md) - --verbose, --quiet output modes
+- [i18n Guide](docs/I18N_GUIDE.md) - Localization and translation
+
+### Project Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - System design and component structure
+- [Implementation Status](docs/ASTROLOGY_IMPLEMENTATION_STATUS.md) - Feature completion tracker
+- [Completion Summary](docs/COMPLETION_SUMMARY.md) - Project milestones
+- [Red Team Audit](docs/RED_TEAM_FINAL_REPORT.md) - Security and quality audit
 
 ## Testing
 
@@ -152,6 +257,8 @@ pytest test_input_pipeline.py --cov=input_pipeline
 
 ## Performance
 
+### Input Pipeline
+
 | Operation            | Time       | Notes                      |
 | -------------------- | ---------- | -------------------------- |
 | parse_date_time      | ~1ms       | Regex-based                |
@@ -159,6 +266,17 @@ pytest test_input_pipeline.py --cov=input_pipeline
 | resolve_city (geopy) | ~500ms     | API call                   |
 | resolve_tz_name      | ~10ms      | Fast lookup                |
 | **Full pipeline**    | **~500ms** | First run; **~1ms** cached |
+
+### DSL Performance (Stage 3.2)
+
+| Operation                        | Without Cache | With Cache | Speedup       |
+| -------------------------------- | ------------- | ---------- | ------------- |
+| Simple parse (Sun.Sign == Aries) | 24.43μs       | 2.01μs     | **12.13x** ✅ |
+| Complex parse (nested AND/OR)    | 97.44μs       | 4.58μs     | **21.28x** ✅ |
+| Batch (100 formulas)             | 2,205μs       | 202μs      | **10.91x** ✅ |
+| Realistic workflow (50 formulas) | 1,714μs       | 125μs      | **13.66x** ✅ |
+
+**All 10x performance goals exceeded!** See [PERFORMANCE_GUIDE.md](docs/PERFORMANCE_GUIDE.md) for details.
 
 ## Data Safety
 

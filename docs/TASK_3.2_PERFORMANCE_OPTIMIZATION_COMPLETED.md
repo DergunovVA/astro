@@ -7,11 +7,13 @@
 ## Objectives
 
 Achieve 10x performance improvement in DSL formula evaluation through:
+
 1. AST caching (parse_cached)
 2. Batch processing (BatchEvaluator)
 3. Lazy evaluation (short-circuit AND/OR)
 
 **Target Performance:**
+
 - Simple formula: 10ms → 1ms (10x)
 - Complex formula: 50ms → 5ms (10x)
 - Batch 100 formulas: 1000ms → 100ms (10x)
@@ -23,12 +25,14 @@ Achieve 10x performance improvement in DSL formula evaluation through:
 **File:** [src/dsl/cache.py](src/dsl/cache.py) (200 lines)
 
 **Implementation:**
+
 - `ASTCache` class with LRU eviction using `OrderedDict`
 - O(1) cache lookup with automatic LRU update via `move_to_end()`
 - Default capacity: 1000 formulas
 - Statistics tracking: hits, misses, hit_rate
 
 **API:**
+
 ```python
 from src.dsl.cache import parse_cached, clear_cache, get_cache_stats
 
@@ -46,6 +50,7 @@ stats = get_cache_stats()
 ```
 
 **Performance:**
+
 - Cache hit: ~2.0 μs
 - Cache miss (parse): ~24.4 μs
 - **12.13x faster for simple formulas**
@@ -56,12 +61,14 @@ stats = get_cache_stats()
 **File:** [src/dsl/batch.py](src/dsl/batch.py) (229 lines)
 
 **Implementation:**
+
 - `BatchEvaluator` class - reuses single `Evaluator` instance
 - Integrates with AST cache for maximum performance
 - Statistics tracking: total_formulas, avg_time_ms
 - Helper functions: `batch_evaluate()`, `evaluate_all_true()`, `evaluate_any_true()`
 
 **API:**
+
 ```python
 from src.dsl.batch import BatchEvaluator
 
@@ -87,6 +94,7 @@ results = batch_evaluate(formulas, chart)
 ```
 
 **Performance:**
+
 - 100 formulas individually: 2,205.48 μs (2.2 ms)
 - 100 formulas batch with cache: 202.08 μs (0.2 ms)
 - **10.91x faster** ✅
@@ -96,11 +104,13 @@ results = batch_evaluate(formulas, chart)
 **File:** [src/dsl/evaluator.py](src/dsl/evaluator.py) (updated)
 
 **Implementation:**
+
 - Updated `_eval_binary_op` method to use short-circuit logic
 - **AND**: Evaluate left first, return `False` immediately if left is `False` (skip right)
 - **OR**: Evaluate left first, return `True` immediately if left is `True` (skip right)
 
 **Code:**
+
 ```python
 def _eval_binary_op(self, node):
     if node.op == 'AND':
@@ -109,7 +119,7 @@ def _eval_binary_op(self, node):
         if not left_result:
             return False
         return self._eval(node.right)
-    
+
     elif node.op == 'OR':
         # Short-circuit: if left is True, don't evaluate right
         left_result = self._eval(node.left)
@@ -119,6 +129,7 @@ def _eval_binary_op(self, node):
 ```
 
 **Performance:**
+
 - Eliminates unnecessary evaluations in complex boolean expressions
 - Benefits most when right side is expensive and left short-circuits
 - AND with expensive right (50 comparisons):
@@ -129,9 +140,11 @@ def _eval_binary_op(self, node):
 ## Test Coverage
 
 ### 1. Cache Tests
+
 **File:** [tests/test_cache.py](tests/test_cache.py) (290 lines, 19 tests)
 
 **Test Classes:**
+
 - `TestASTCache` (7 tests) - cache operations, eviction, LRU, stats
 - `TestParseCached` (4 tests) - cached parsing behavior
 - `TestCacheFunctions` (3 tests) - module-level functions
@@ -141,6 +154,7 @@ def _eval_binary_op(self, node):
 **Result:** ✅ 19/19 passing in 0.26s
 
 **Key Tests:**
+
 ```
 test_cache_eviction_lru                  PASSED
 test_parse_cached_returns_same_ast       PASSED
@@ -149,9 +163,11 @@ test_cache_size_limit                    PASSED
 ```
 
 ### 2. Batch Processing Tests
+
 **File:** [tests/test_batch.py](tests/test_batch.py) (350 lines, 25 tests)
 
 **Test Classes:**
+
 - `TestBatchEvaluator` (8 tests) - batch evaluation, stats
 - `TestBatchEvaluateFunction` (4 tests) - simple API
 - `TestEvaluateAllTrue` (4 tests) - all() helper
@@ -162,6 +178,7 @@ test_cache_size_limit                    PASSED
 **Result:** ✅ 25/25 passing in 0.25s
 
 **Key Tests:**
+
 ```
 test_batch_evaluate_simple_formulas      PASSED
 test_batch_with_cache                    PASSED
@@ -170,9 +187,11 @@ test_batch_evaluate_empty_list           PASSED (fixed division by zero)
 ```
 
 ### 3. Lazy Evaluation Tests
+
 **File:** [tests/test_lazy_evaluation.py](tests/test_lazy_evaluation.py) (260 lines, 11 tests)
 
 **Test Classes:**
+
 - `TestLazyEvaluationAND` (3 tests) - AND short-circuit
 - `TestLazyEvaluationOR` (3 tests) - OR short-circuit
 - `TestComplexLazyEvaluation` (3 tests) - nested formulas
@@ -181,6 +200,7 @@ test_batch_evaluate_empty_list           PASSED (fixed division by zero)
 **Result:** ✅ 11/11 passing in 0.37s
 
 **Key Tests:**
+
 ```
 test_and_short_circuit_on_false_left     PASSED (skips error)
 test_or_short_circuit_on_true_left       PASSED (skips error)
@@ -189,9 +209,11 @@ test_or_performance_with_expensive_right  PASSED (< 1ms)
 ```
 
 ### 4. Performance Benchmarks
+
 **File:** [tests/test_performance_optimization.py](tests/test_performance_optimization.py) (280 lines, 14 benchmarks)
 
 **Test Classes:**
+
 - `TestCachingPerformance` (5 benchmarks) - cache speedup
 - `TestBatchProcessingPerformance` (3 benchmarks) - batch speedup
 - `TestLazyEvaluationPerformance` (4 benchmarks) - lazy eval speedup
@@ -233,16 +255,17 @@ Realistic Workflow (50 formulas):
 
 ### Performance Goals - ALL EXCEEDED ✅
 
-| Goal                      | Target | Achieved | Status |
-|---------------------------|--------|----------|--------|
-| Simple formula speedup    | 10x    | **12.13x** | ✅ Exceeded |
-| Complex formula speedup   | 10x    | **21.28x** | ✅ Exceeded |
-| Batch 100 formulas        | 10x    | **10.91x** | ✅ Exceeded |
-| Realistic workflow (50)   | 10x    | **13.66x** | ✅ Exceeded |
+| Goal                    | Target | Achieved   | Status      |
+| ----------------------- | ------ | ---------- | ----------- |
+| Simple formula speedup  | 10x    | **12.13x** | ✅ Exceeded |
+| Complex formula speedup | 10x    | **21.28x** | ✅ Exceeded |
+| Batch 100 formulas      | 10x    | **10.91x** | ✅ Exceeded |
+| Realistic workflow (50) | 10x    | **13.66x** | ✅ Exceeded |
 
 ## Key Improvements
 
 ### 1. Memory Efficiency
+
 - **LRU Cache:** Automatic eviction of oldest entries when capacity reached
 - **OrderedDict:** O(1) operations for both access and update
 - **Single Evaluator:** Batch processing reuses one evaluator instance
@@ -251,17 +274,20 @@ Realistic Workflow (50 formulas):
 ### 2. Performance Characteristics
 
 **Cache Hit Rate:**
+
 - With repeated formulas: **90%+ hit rate**
 - Real-world scenario (50 formulas, 10 unique): **80% hit rate**
 - Only 5 unique formulas in 100: **95% hit rate**
 
 **Time Complexity:**
+
 - Cache lookup: **O(1)**
 - Cache insertion: **O(1)**
 - LRU update: **O(1)** (via `move_to_end()`)
 - Batch evaluation: **O(n)** where n = number of formulas
 
 **Space Complexity:**
+
 - **O(k)** where k = cache size (default 1000)
 - Each AST ~1-2 KB depending on formula complexity
 - Total memory: ~1-2 MB for 1000 cached formulas
@@ -269,6 +295,7 @@ Realistic Workflow (50 formulas):
 ### 3. API Simplicity
 
 **Before:**
+
 ```python
 # Manual parsing and evaluation
 for formula in formulas:
@@ -278,6 +305,7 @@ for formula in formulas:
 ```
 
 **After:**
+
 ```python
 # Automatic caching and batch processing
 from src.dsl.batch import batch_evaluate
@@ -288,6 +316,7 @@ results = batch_evaluate(formulas, chart)
 ## Integration Points
 
 ### 1. CLI Integration
+
 ```python
 # main.py validate command can use batch processing
 from src.dsl.batch import BatchEvaluator
@@ -301,6 +330,7 @@ print(f"Average: {stats['avg_time_ms']:.3f}ms per formula")
 ```
 
 ### 2. Validator Integration
+
 ```python
 # Validator can use cache for repeated validation
 from src.dsl.cache import parse_cached
@@ -313,6 +343,7 @@ class AstrologicalValidator:
 ```
 
 ### 3. Professional Module Integration
+
 ```python
 # Professional analysis can process many charts efficiently
 from src.dsl.batch import evaluate_all_true
@@ -340,16 +371,18 @@ for chart in charts:
 ## Bugs Fixed
 
 ### 1. Division by Zero in Batch Statistics
+
 **Issue:** `avg_time_ms = total_time_ms / total_formulas` when `formulas = []`
 
 **Location:** [src/dsl/batch.py](src/dsl/batch.py#L145)
 
 **Fix:**
+
 ```python
 # Before
 avg_time_ms = total_time_ms / total_formulas  # ZeroDivisionError!
 
-# After  
+# After
 if total_formulas > 0:
     avg_time_ms = total_time_ms / total_formulas
 else:
@@ -361,11 +394,13 @@ else:
 ## Documentation
 
 ### Module Documentation
+
 - [src/dsl/cache.py](src/dsl/cache.py) - comprehensive docstrings
 - [src/dsl/batch.py](src/dsl/batch.py) - usage examples in docstrings
 - [src/dsl/evaluator.py](src/dsl/evaluator.py) - lazy evaluation comments
 
 ### Test Documentation
+
 - [tests/test_cache.py](tests/test_cache.py) - cache behavior examples
 - [tests/test_batch.py](tests/test_batch.py) - batch processing examples
 - [tests/test_lazy_evaluation.py](tests/test_lazy_evaluation.py) - short-circuit examples
@@ -374,6 +409,7 @@ else:
 ## Files Changed
 
 ### New Files (5)
+
 1. `src/dsl/cache.py` (200 lines)
 2. `src/dsl/batch.py` (229 lines)
 3. `tests/test_cache.py` (290 lines)
@@ -384,6 +420,7 @@ else:
 **Total:** 1,609 lines added
 
 ### Modified Files (1)
+
 1. `src/dsl/evaluator.py` (35 lines changed for lazy evaluation)
 
 ## Test Results
@@ -405,14 +442,17 @@ $ pytest tests/ -k "cache or batch or lazy" -v
 ## Performance Comparison
 
 ### Stage 2 Baseline (from performance_thresholds.yaml)
+
 ```yaml
 tokenize_simple: 0.34ms (target: 5ms)
 parse_simple: 0.78ms (target: 10ms)
 evaluate_simple: 0.45ms (target: 50ms)
 ```
+
 Already 112x faster than targets!
 
 ### Task 3.2 Improvements
+
 ```yaml
 parse_cached_hit: 0.002ms (2μs) - 390x faster than baseline!
 batch_100_formulas: 0.2ms total - 10.91x faster than individual
@@ -424,21 +464,25 @@ realistic_workflow_50: 0.125ms total - 13.66x faster
 ## Lessons Learned
 
 ### 1. Cache Design
+
 - **OrderedDict** perfect for LRU implementation (built-in `move_to_end()`)
 - Default capacity of 1000 provides good balance of memory vs hit rate
 - Statistics tracking essential for performance monitoring
 
 ### 2. Batch Processing
+
 - Reusing single Evaluator instance provides significant speedup
 - Cache integration multiplies performance benefits
 - Statistics help users understand performance characteristics
 
 ### 3. Lazy Evaluation
+
 - Short-circuit logic simple to implement (just rearrange evaluation order)
 - Benefits vary greatly depending on formula structure
 - Most valuable in complex formulas with expensive right-side operations
 
 ### 4. Testing Strategy
+
 - Unit tests verify correctness (55 tests)
 - Benchmarks verify performance (14 benchmarks)
 - Edge cases caught early (division by zero)
@@ -447,17 +491,20 @@ realistic_workflow_50: 0.125ms total - 13.66x faster
 ## Next Steps
 
 ### Task 3.3: Verbose/Quiet CLI Modes (4 hours)
+
 - Add `--verbose` flag for educational output
 - Add `--quiet` flag for minimal output
 - Update `main.py validate` command
 - Tests for both modes
 
 ### Task 3.4: Documentation & Examples (4 hours)
+
 - Update DSL README with i18n and performance examples
 - Create user guide for CLI modes
 - Update API documentation
 
 ### Stage 3 Completion
+
 - Total time estimate: ~12 hours (vs 36h = 67% faster)
 - Current progress: 2/4 tasks complete (50%)
 
@@ -472,6 +519,7 @@ realistic_workflow_50: 0.125ms total - 13.66x faster
 Task 3.2 complete in **4 hours** vs 16h estimate = **75% faster than planned**
 
 Combined Stage 2 + Stage 3 performance improvements:
+
 - **Baseline already 112x faster than targets**
 - **Cache provides additional 10-21x speedup**
 - **Total effective speedup: ~1000-2000x faster than original goals** 🚀
