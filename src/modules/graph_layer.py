@@ -299,6 +299,8 @@ class ChartGraph:
         """
         Analyze complete dispositor tree for chart.
 
+        Also adds dispositor edges to graph for visualization.
+
         Returns:
             Dictionary with:
             - 'final_dispositors': List of planets that are final dispositors
@@ -328,6 +330,24 @@ class ChartGraph:
 
             if not chain:
                 continue
+
+            # Add dispositor edges to graph
+            for i in range(len(chain) - 1):
+                current = chain[i]
+                next_planet = chain[i + 1]
+
+                # Remove "(loop)" suffix if present
+                next_planet_clean = next_planet.replace(" (loop)", "")
+
+                # Add edge (unless it's a loop back to self or edge already exists)
+                if current != next_planet_clean:
+                    # Only add if no edge exists (don't overwrite mutual_reception, etc.)
+                    if not self.graph.has_edge(current, next_planet_clean):
+                        self.graph.add_edge(
+                            current,
+                            next_planet_clean,
+                            relation="dispositor",
+                        )
 
             final = chain[-1]
             if "(loop)" in final:
@@ -554,16 +574,172 @@ class ChartGraph:
         return counts
 
     # ============================================================
-    # VISUALIZATION (To be implemented in Task 4.1.4)
+    # VISUALIZATION
     # ============================================================
 
+    def _get_planet_color(self, planet: str) -> str:
+        """
+        Get traditional astrological color for planet.
+
+        Args:
+            planet: Planet name
+
+        Returns:
+            Hex color code
+        """
+        # Traditional astrological colors
+        PLANET_COLORS = {
+            "Sun": "#FFD700",  # Gold
+            "Moon": "#C0C0C0",  # Silver
+            "Mercury": "#87CEEB",  # Sky Blue
+            "Venus": "#98FB98",  # Pale Green
+            "Mars": "#FF6347",  # Tomato Red
+            "Jupiter": "#9370DB",  # Medium Purple
+            "Saturn": "#696969",  # Dim Gray
+            "Uranus": "#00CED1",  # Dark Turquoise
+            "Neptune": "#4682B4",  # Steel Blue
+            "Pluto": "#8B0000",  # Dark Red
+        }
+        return PLANET_COLORS.get(planet, "#FFFFFF")  # White as default
+
     def export_graphviz(self, filename: str):
-        """Export graph to Graphviz DOT format (TODO: Task 4.1.4)"""
-        raise NotImplementedError("Task 4.1.4: Graph visualization")
+        """
+        Export graph to Graphviz DOT format.
+
+        Creates a visualization file that can be rendered with Graphviz tools.
+        Nodes are colored by planet, edges by relationship type.
+
+        Args:
+            filename: Output filename (e.g., 'chart.dot')
+
+        Example:
+            >>> graph.export_graphviz('natal_chart.dot')
+            >>> # Render with: dot -Tpng natal_chart.dot -o natal_chart.png
+
+        Visual attributes:
+            - Nodes: Circle shape, filled with planet colors
+            - Green bold edges: Mutual receptions
+            - Blue edges: Harmonious aspects
+            - Red edges: Challenging aspects
+            - Gray edges: Dispositor chains
+        """
+        try:
+            from networkx.drawing.nx_agraph import write_dot
+        except ImportError:
+            raise ImportError(
+                "pygraphviz required for Graphviz export. "
+                "Install with: pip install pygraphviz"
+            )
+
+        # Create a copy to avoid modifying original graph
+        viz_graph = self.graph.copy()
+
+        # Add visual attributes to nodes
+        for node in viz_graph.nodes():
+            viz_graph.nodes[node]["shape"] = "circle"
+            viz_graph.nodes[node]["style"] = "filled"
+            viz_graph.nodes[node]["fillcolor"] = self._get_planet_color(node)
+            viz_graph.nodes[node]["fontcolor"] = "black"
+            viz_graph.nodes[node]["fontname"] = "Arial"
+
+        # Add visual attributes to edges
+        for u, v, data in viz_graph.edges(data=True):
+            relation = data.get("relation", "")
+
+            if relation == "mutual_reception":
+                data["color"] = "green"
+                data["style"] = "bold"
+                data["label"] = "mutual"
+                data["penwidth"] = "2.0"
+
+            elif relation == "aspect":
+                # Color by harmonious/challenging
+                is_harmonious = data.get("harmonious", True)
+                data["color"] = "blue" if is_harmonious else "red"
+                data["label"] = data.get("aspect_type", "aspect")
+                data["penwidth"] = "1.5"
+
+                # Style by strength
+                strength = data.get("strength", "moderate")
+                if strength == "very_strong":
+                    data["style"] = "bold"
+                elif strength == "weak":
+                    data["style"] = "dashed"
+
+            elif relation == "dispositor":
+                data["color"] = "gray"
+                data["label"] = "dispositor"
+                data["style"] = "solid"
+
+        # Write to DOT file
+        write_dot(viz_graph, filename)
 
     def export_json(self) -> Dict:
-        """Export graph as JSON for web visualization (TODO: Task 4.1.4)"""
-        raise NotImplementedError("Task 4.1.4: Graph visualization")
+        """
+        Export graph as JSON for web visualization.
+
+        Returns node-link format compatible with D3.js, Cytoscape.js, etc.
+
+        Returns:
+            Dict with 'nodes' and 'links' keys
+
+        Example:
+            >>> data = graph.export_json()
+            >>> import json
+            >>> with open('chart.json', 'w') as f:
+            ...     json.dump(data, f)
+
+        Format:
+            {
+                "nodes": [
+                    {"id": "Sun", "color": "#FFD700"},
+                    {"id": "Moon", "color": "#C0C0C0"},...
+                ],
+                "links": [
+                    {
+                        "source": "Sun",
+                        "target": "Moon",
+                        "relation": "aspect",
+                        "aspect_type": "trine",
+                        "harmonious": true,
+                        ...
+                    }
+                ]
+            }
+        """
+        from networkx.readwrite import json_graph
+
+        # Convert to node-link format
+        data = json_graph.node_link_data(self.graph)
+
+        # Add colors to nodes
+        for node in data["nodes"]:
+            node["color"] = self._get_planet_color(node["id"])
+
+        # NetworkX uses "edges" key, rename to "links" for D3.js compatibility
+        if "edges" in data:
+            data["links"] = data.pop("edges")
+        else:
+            data["links"] = []
+
+        # Add visual hints to links
+        for link in data["links"]:
+            relation = link.get("relation", "")
+
+            if relation == "mutual_reception":
+                link["color"] = "green"
+                link["width"] = 3
+
+            elif relation == "aspect":
+                is_harmonious = link.get("harmonious", True)
+                link["color"] = "blue" if is_harmonious else "red"
+                link["width"] = 2
+
+            elif relation == "dispositor":
+                link["color"] = "gray"
+                link["width"] = 1
+
+        return data
 
     # ============================================================
     # UTILITY METHODS

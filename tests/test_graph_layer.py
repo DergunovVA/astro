@@ -897,5 +897,305 @@ class TestIntegratedGraphAnalysis:
         assert "edges=1" in repr_str
 
 
+# ============================================================
+# TASK 4.1.4: GRAPH VISUALIZATION
+# ============================================================
+
+
+class TestGraphVisualization:
+    """Test graph export and visualization methods"""
+
+    def test_get_planet_color(self):
+        """Planet color mapping returns correct hex codes"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Cancer"},
+                "Mars": {"Sign": "Aries"},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+
+        # Check known colors
+        assert graph._get_planet_color("Sun") == "#FFD700"  # Gold
+        assert graph._get_planet_color("Moon") == "#C0C0C0"  # Silver
+        assert graph._get_planet_color("Mars") == "#FF6347"  # Tomato Red
+        assert graph._get_planet_color("Venus") == "#98FB98"  # Pale Green
+        assert graph._get_planet_color("Jupiter") == "#9370DB"  # Purple
+
+        # Unknown planet returns white
+        assert graph._get_planet_color("Unknown") == "#FFFFFF"
+
+    def test_export_json_basic(self):
+        """Export to JSON creates node-link format"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 15.0},
+                "Moon": {"Sign": "Cancer", "Degree": 10.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        data = graph.export_json()
+
+        # Check structure
+        assert "nodes" in data
+        assert "links" in data
+        assert isinstance(data["nodes"], list)
+        assert isinstance(data["links"], list)
+
+        # Check nodes
+        assert len(data["nodes"]) == 2
+        node_ids = {node["id"] for node in data["nodes"]}
+        assert "Sun" in node_ids
+        assert "Moon" in node_ids
+
+        # Check colors added
+        for node in data["nodes"]:
+            assert "color" in node
+            assert node["color"].startswith("#")
+
+    def test_export_json_with_mutual_reception(self):
+        """Export JSON with mutual reception edges"""
+        chart_data = {
+            "planets": {
+                "Venus": {"Sign": "Aries", "Degree": 15.0},
+                "Mars": {"Sign": "Taurus", "Degree": 20.0},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.find_all_receptions()
+        data = graph.export_json()
+
+        # Check mutual reception edges
+        assert len(data["links"]) == 2  # Bidirectional
+
+        for link in data["links"]:
+            assert link["relation"] == "mutual_reception"
+            assert link["color"] == "green"
+            assert link["width"] == 3
+
+    def test_export_json_with_aspects(self):
+        """Export JSON with aspect edges"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Aries"},
+                "Mars": {"Sign": "Capricorn"},
+            },
+            "aspects": [
+                {
+                    "planet1": "Sun",
+                    "planet2": "Moon",
+                    "type": "trine",
+                    "orb": 0.5,
+                },  # Harmonious
+                {
+                    "planet1": "Sun",
+                    "planet2": "Mars",
+                    "type": "square",
+                    "orb": 2.0,
+                },  # Challenging
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.add_aspect_edges()
+        data = graph.export_json()
+
+        # Check aspect edges
+        assert len(data["links"]) == 2
+
+        # Check harmonious aspect (blue)
+        trine_links = [l for l in data["links"] if l.get("aspect_type") == "trine"]
+        assert len(trine_links) == 1
+        assert trine_links[0]["color"] == "blue"
+        assert trine_links[0]["harmonious"] is True
+
+        # Check challenging aspect (red)
+        square_links = [l for l in data["links"] if l.get("aspect_type") == "square"]
+        assert len(square_links) == 1
+        assert square_links[0]["color"] == "red"
+        assert square_links[0]["harmonious"] is False
+
+    def test_export_json_with_dispositors(self):
+        """Export JSON with dispositor chain edges"""
+        chart_data = {
+            "planets": {
+                "Moon": {"Sign": "Gemini", "Degree": 10.0},
+                "Mercury": {"Sign": "Sagittarius", "Degree": 15.0},
+                "Jupiter": {"Sign": "Pisces", "Degree": 5.0},  # Final dispositor
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.analyze_dispositor_tree()
+        data = graph.export_json()
+
+        # Check dispositor edges
+        dispositor_links = [l for l in data["links"] if l["relation"] == "dispositor"]
+        assert len(dispositor_links) >= 2  # Moon->Mercury, Mercury->Jupiter
+
+        for link in dispositor_links:
+            assert link["color"] == "gray"
+            assert link["width"] == 1
+
+    def test_export_json_complete_graph(self):
+        """Export complete graph with all relationship types"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo", "Degree": 10.0, "longitude": 130.0},
+                "Moon": {
+                    "Sign": "Gemini",
+                    "Degree": 5.0,
+                    "longitude": 65.0,
+                },  # Moon -> Mercury
+                "Mercury": {
+                    "Sign": "Pisces",
+                    "Degree": 12.0,
+                    "longitude": 345.0,
+                },  # Mercury -> Neptune
+                "Neptune": {
+                    "Sign": "Pisces",
+                    "Degree": 18.0,
+                    "longitude": 351.0,
+                },  # Neptune in own sign
+                "Venus": {"Sign": "Aries", "Degree": 15.0, "longitude": 25.0},
+                "Mars": {"Sign": "Taurus", "Degree": 20.0, "longitude": 50.0},
+            },
+            "aspects": [
+                {"planet1": "Sun", "planet2": "Moon", "type": "trine", "orb": 1.0}
+            ],
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.find_all_receptions()  # Venus-Mars mutual reception
+        graph.add_aspect_edges()  # Sun-Moon aspect
+        graph.analyze_dispositor_tree()  # Moon->Mercury->Neptune chain
+
+        data = graph.export_json()
+
+        # Check all edge types present
+        edge_types = {link["relation"] for link in data["links"]}
+        assert "mutual_reception" in edge_types
+        assert "aspect" in edge_types
+        assert "dispositor" in edge_types
+
+        # Check colors
+        colors = {link["color"] for link in data["links"]}
+        assert "green" in colors  # Mutual reception
+        assert "blue" in colors or "red" in colors  # Aspects
+        assert "gray" in colors  # Dispositors
+
+    def test_export_graphviz_file_creation(self):
+        """Export to Graphviz creates DOT file"""
+        import tempfile
+        import os
+
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Cancer"},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+
+        # Create temp file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".dot", delete=False) as f:
+            temp_filename = f.name
+
+        try:
+            # Export might fail if pygraphviz not installed
+            try:
+                graph.export_graphviz(temp_filename)
+
+                # Check file exists and has content
+                assert os.path.exists(temp_filename)
+                assert os.path.getsize(temp_filename) > 0
+
+                # Check DOT format
+                with open(temp_filename, "r") as f:
+                    content = f.read()
+                    assert "digraph" in content or "strict digraph" in content
+                    assert "Sun" in content
+                    assert "Moon" in content
+
+            except ImportError as e:
+                # Skip test if pygraphviz not installed
+                pytest.skip(f"pygraphviz not installed: {e}")
+
+        finally:
+            # Cleanup
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+
+    def test_export_graphviz_with_attributes(self):
+        """Graphviz export adds visual attributes"""
+        import tempfile
+        import os
+
+        chart_data = {
+            "planets": {
+                "Venus": {"Sign": "Aries"},
+                "Mars": {"Sign": "Taurus"},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+        graph.find_all_receptions()
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".dot", delete=False) as f:
+            temp_filename = f.name
+
+        try:
+            try:
+                graph.export_graphviz(temp_filename)
+
+                with open(temp_filename, "r") as f:
+                    content = f.read()
+
+                    # Check node attributes
+                    assert "shape" in content or "fillcolor" in content
+
+                    # Check edge attributes (mutual reception = green)
+                    assert "green" in content or "color" in content
+
+            except ImportError:
+                pytest.skip("pygraphviz not installed")
+
+        finally:
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+
+    def test_export_does_not_modify_original_graph(self):
+        """Export operations don't modify the original graph"""
+        chart_data = {
+            "planets": {
+                "Sun": {"Sign": "Leo"},
+                "Moon": {"Sign": "Cancer"},
+            }
+        }
+
+        graph = ChartGraph(chart_data, mode="modern")
+
+        # Get original state
+        original_nodes = list(graph.graph.nodes(data=True))
+        original_node_count = graph.graph.number_of_nodes()
+
+        # Export JSON (should not modify)
+        data = graph.export_json()
+
+        # Check graph unchanged
+        assert graph.graph.number_of_nodes() == original_node_count
+
+        # Check node data unchanged (no color attribute added)
+        for node, attrs in graph.graph.nodes(data=True):
+            assert "color" not in attrs  # Color only in export, not original
+            assert "fillcolor" not in attrs
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
