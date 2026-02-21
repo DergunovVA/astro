@@ -62,9 +62,16 @@ def natal(
     validate: bool = False,  # Professional: validate formulas and calculations
     find_events: str = "",  # Professional: find events/patterns (e.g., "mars saturn", "grand trine", "stellium")
     check: str = "",  # DSL: check formula on chart (e.g., "Sun.Sign == Capricorn AND Moon.House IN [1,4,7,10]")
+    verbose: bool = False,  # Verbose output with detailed explanations
+    quiet: bool = False,  # Quiet mode: minimal output (only results and errors)
 ):
     try:
+        # Configure CLI output based on verbosity flags
+        from src.cli import configure_output
+
+        out = configure_output(verbose=verbose, quiet=quiet)
         # Step 1: Normalize input
+        out.verbose("Step 1: Normalizing input...")
         ni = normalize_input(
             date,
             time,
@@ -76,17 +83,28 @@ def natal(
             strict=strict,
         )
         ctx = InputContext.from_normalized(ni)
+        out.verbose(f"  UTC: {ctx.utc_dt}")
+        out.verbose(f"  Location: {ctx.lat:.4f}, {ctx.lon:.4f}")
 
         # Step 2: Calculate using normalized data directly
         # Use extended=True to include retrograde indicators and full planet data
+        out.verbose("Step 2: Calculating planetary positions...")
         calc_result = natal_calculation(
             ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system, extended=extended
         )
+        if isinstance(calc_result, dict):
+            out.verbose(f"  Planets calculated: {len(calc_result.get('planets', {}))}")
+        else:
+            out.verbose("  Calculation complete")
 
         # Step 3: Interpret
+        out.verbose("Step 3: Interpreting chart...")
         facts = facts_from_calculation(calc_result)
+        out.verbose(f"  Facts extracted: {len(facts)}")
         signals = signals_from_facts(facts)
+        out.verbose(f"  Signals generated: {len(signals)}")
         decisions = decisions_from_signals(signals)
+        out.verbose(f"  Decisions made: {len(decisions)}")
 
         # Step 4: CLI output
         result = {
@@ -135,7 +153,6 @@ def natal(
             from src.dsl import evaluate
             from src.dsl.chart_converter import (
                 convert_chart_for_evaluator,
-                format_dsl_result,
             )
             from src.dsl.lexer import LexerError
             from src.dsl.parser import ParserError
@@ -143,68 +160,82 @@ def natal(
 
             try:
                 # Конвертируем данные карты в формат для Evaluator
+                out.verbose("Converting chart data for DSL evaluator...")
                 chart_data = convert_chart_for_evaluator(calc_result)
 
                 # Выполняем DSL формулу
+                out.verbose(f"Evaluating formula: {check}")
                 dsl_result = evaluate(check, chart_data)
 
-                # Форматируем результат
-                formatted = format_dsl_result(
+                # Форматируем результат используя CLIOutput
+                formatted = out.format_dsl_result(
                     formula=check,
                     result=dsl_result,
                     chart_data=chart_data,
-                    verbose=True,
                 )
 
                 # Если check используется, выводим только результат DSL
-                typer.echo(formatted)
+                out.quiet(formatted)
                 return  # Завершаем выполнение, не выводим JSON
 
             except LexerError as e:
-                typer.echo(f"❌ Lexer Error: {e}", err=True)
+                out.error(f"❌ Lexer Error: {e}")
                 raise typer.Exit(code=2)
             except ParserError as e:
-                typer.echo(f"❌ Parser Error: {e}", err=True)
+                out.error(f"❌ Parser Error: {e}")
                 raise typer.Exit(code=2)
             except EvaluatorError as e:
-                typer.echo(f"❌ Evaluator Error: {e}", err=True)
+                out.error(f"❌ Evaluator Error: {e}")
                 raise typer.Exit(code=2)
             except Exception as e:
-                typer.echo(f"❌ Unexpected DSL Error: {e}", err=True)
-                import traceback
+                out.error(f"❌ Unexpected DSL Error: {e}")
+                if verbose:
+                    import traceback
 
-                traceback.print_exc()
+                    traceback.print_exc()
                 raise typer.Exit(code=1)
 
         # Output formatting based on format parameter
+        out.verbose(f"Step 4: Formatting output (format={format})...")
         if format == "json":
-            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+            out.json_result(result)
         elif format == "summary":
             from src.modules.output_formatter import format_summary
 
-            typer.echo(format_summary(result))
+            out.quiet(format_summary(result))
         elif format == "table":
             from src.modules.output_formatter import format_table
 
-            typer.echo(format_table(result))
+            out.quiet(format_table(result))
         elif format == "markdown":
             from src.modules.output_formatter import format_markdown
 
-            typer.echo(format_markdown(result))
+            out.quiet(format_markdown(result))
         else:
-            typer.echo(
-                f"Unknown format: {format}. Use: json, summary, table, markdown",
-                err=True,
-            )
+            out.error(f"Unknown format: {format}. Use: json, summary, table, markdown")
             raise typer.Exit(code=2)
     except ValueError as e:
-        typer.echo(f"Error: {e}", err=True)
+        # Configure output for error handling (in case not configured yet)
+        from src.cli import configure_output
+
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Error: {e}")
         raise typer.Exit(code=2)
     except Exception as e:
-        import traceback
+        from src.cli import configure_output
 
-        typer.echo(f"Unexpected error: {e}", err=True)
-        traceback.print_exc()
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Unexpected error: {e}")
+        if "verbose" in locals() and verbose:
+            import traceback
+
+            traceback.print_exc()
         raise typer.Exit(code=1)
 
 
