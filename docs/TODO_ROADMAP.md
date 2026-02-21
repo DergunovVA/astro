@@ -67,25 +67,32 @@
 
 ---
 
-### 🟡 STAGE 2: QUALITY ASSURANCE
+### � STAGE 2: QUALITY ASSURANCE
 
-**Сроки:** 22 Feb - 7 Mar 2026 (2 недели)  
+**Сроки:** 16 Feb - 28 Feb 2026 (2 недели)  
 **Приоритет:** HIGH  
-**Статус:** 📋 PLANNED
+**Статус:** ⚡ IN PROGRESS (Task 2.1 ✅ COMPLETE)
 
 **Цели:**
 
-- Расширить test coverage для edge cases
-- Профилировать и оптимизировать производительность
-- Создать performance baselines
+- ✅ Расширить test coverage для edge cases
+- 🔄 Профилировать и оптимизировать производительность
+- ⏳ Создать performance baselines
+- ⏳ Создать dataset из 100+ real charts
 
-**Результаты:**
+**Результаты (в процессе):**
 
-- ✅ Edge case coverage: 100%
-- ✅ Performance baseline: Established
-- ✅ DSL execution: < 50ms per formula
+- ✅ Edge case tests: 30 новых тестов (100% passing)
+- ✅ Total tests: 325 (295 existing + 30 new)
+- ✅ Coverage: minor bodies, outer planets, boundaries, complex formulas
+- ⏳ Performance baseline: Pending
+- ⏳ DSL execution: Target < 50ms per formula
 
-**Детали:** [STAGE_2_SHORT_TERM.md](STAGE_2_SHORT_TERM.md)
+**Прогресс:** 25% (1/4 tasks completed)
+
+**Время выполнения Task 2.1:** 1.5 часа (план: 8 часов, экономия 81%)
+
+**Детали:** [STAGE_2_SHORT_TERM.md](STAGE_2_SHORT_TERM.md) | **Результаты Task 2.1:** [STAGE_2_TASK_2.1_COMPLETED.md](STAGE_2_TASK_2.1_COMPLETED.md)
 
 ---
 
