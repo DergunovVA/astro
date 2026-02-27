@@ -72,6 +72,7 @@ class TestTriplicityRulers:
         leo = get_triplicity_rulers("Leo")
         sag = get_triplicity_rulers("Sagittarius")
 
+        assert aries is not None
         assert aries == leo == sag
         assert aries["element"] == "Fire"
 
@@ -131,12 +132,14 @@ class TestEgyptianTerms:
         """Test all 12 signs have exactly 5 terms."""
         for sign in EGYPTIAN_TERMS:
             terms = get_all_terms(sign)
+            assert terms is not None
             assert len(terms) == 5, f"{sign} should have 5 terms"
 
     def test_terms_cover_full_30_degrees(self):
         """Test terms cover entire 0-30 degree range."""
         for sign in EGYPTIAN_TERMS:
             terms = get_all_terms(sign)
+            assert terms is not None
             assert terms[0][0] == 0, f"{sign} first term should start at 0"
             assert terms[-1][1] == 30, f"{sign} last term should end at 30"
 
@@ -144,6 +147,7 @@ class TestEgyptianTerms:
         """Test terms have no gaps between boundaries."""
         for sign in EGYPTIAN_TERMS:
             terms = get_all_terms(sign)
+            assert terms is not None
             for i in range(len(terms) - 1):
                 assert (
                     terms[i][1] == terms[i + 1][0]
@@ -157,6 +161,7 @@ class TestEgyptianTerms:
     def test_pisces_terms_complete(self):
         """Test Pisces terms (last sign) are complete."""
         terms = get_all_terms("Pisces")
+        assert terms is not None
         assert len(terms) == 5
         assert terms[0] == (0, 8, "Venus")
         assert terms[1] == (8, 14, "Jupiter")
@@ -206,12 +211,14 @@ class TestDecans:
         """Test all 12 signs have exactly 3 decans."""
         for sign in DECANS:
             decans = get_all_decans(sign)
+            assert decans is not None
             assert len(decans) == 3, f"{sign} should have 3 decans"
 
     def test_decans_are_10_degrees_each(self):
         """Test each decan is exactly 10 degrees."""
         for sign in DECANS:
             decans = get_all_decans(sign)
+            assert decans is not None
             assert decans[0] == (0, 10, decans[0][2])
             assert decans[1] == (10, 20, decans[1][2])
             assert decans[2] == (20, 30, decans[2][2])
@@ -241,6 +248,7 @@ class TestDecans:
     def test_pisces_decans_complete_circle(self):
         """Test Pisces (last sign) decans complete the zodiac circle."""
         decans = get_all_decans("Pisces")
+        assert decans is not None
         assert len(decans) == 3
         assert decans[0] == (0, 10, "Saturn")
         assert decans[1] == (10, 20, "Jupiter")

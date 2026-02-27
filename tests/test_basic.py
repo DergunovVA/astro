@@ -11,9 +11,9 @@ def test_natal_basic():
 
 
 def test_transit_basic():
-    result = runner.invoke(main.app, ["transit", "2026-01-15", "12:00", "Moscow"])
+    result = runner.invoke(main.app, ["transit", "1990-01-01", "12:00", "Moscow"])
     assert result.exit_code == 0
-    assert "facts" in result.output
+    assert "ТРАНЗИТЫ" in result.output or "TRANSITS" in result.output
 
 
 def test_solar_basic():

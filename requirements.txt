@@ -7,5 +7,6 @@ tzdata
 timezonefinder
 dateparser
 rapidfuzz
+colorama
 pytest>=7.0
 pytest-benchmark>=4.0

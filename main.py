@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import sys
@@ -58,7 +59,8 @@ def natal(
     house_system: str = "Placidus",
     extended: bool = True,  # Changed default to True for applying/separating aspects
     psychological: bool = False,
-    format: str = "json",  # Output format: json, summary, table, markdown
+    format: str = "json",  # Output format: json, summary, table, markdown, compact, line
+    no_color: bool = False,  # Disable ANSI colors in output
     validate: bool = False,  # Professional: validate formulas and calculations
     find_events: str = "",  # Professional: find events/patterns (e.g., "mars saturn", "grand trine", "stellium")
     check: str = "",  # DSL: check formula on chart (e.g., "Sun.Sign == Capricorn AND Moon.House IN [1,4,7,10]")
@@ -206,13 +208,23 @@ def natal(
         elif format == "table":
             from src.modules.output_formatter import format_table
 
-            out.quiet(format_table(result))
+            out.quiet(format_table(result, use_colors=not no_color))
         elif format == "markdown":
             from src.modules.output_formatter import format_markdown
 
             out.quiet(format_markdown(result))
+        elif format == "compact":
+            from src.modules.output_formatter import format_compact
+
+            out.quiet(format_compact(result))
+        elif format == "line":
+            from src.modules.output_formatter import format_summary_line
+
+            out.quiet(format_summary_line(result))
         else:
-            out.error(f"Unknown format: {format}. Use: json, summary, table, markdown")
+            out.error(
+                f"Unknown format: {format}. Use: json, summary, table, markdown, compact, line"
+            )
             raise typer.Exit(code=2)
     except ValueError as e:
         # Configure output for error handling (in case not configured yet)
@@ -240,7 +252,7 @@ def natal(
 
 
 @app.command()
-def transit(
+def aspects(
     date: str,
     time: str,
     place: str,
@@ -249,38 +261,301 @@ def transit(
     lon: float | None = None,
     locale: str | None = None,
     strict: bool = False,
+    house_system: str = "Placidus",
+    aspect_type: str = "all",  # Filter: all, major, minor
+    max_orb: float = 10.0,  # Maximum orb to display
+    no_color: bool = False,  # Disable colors
+    verbose: bool = False,
+    quiet: bool = False,
 ):
+    """
+    Display aspects for a natal chart.
+    
+    Filters:
+    - aspect_type: all (default), major (conjunction/opposition/square/trine/sextile), minor
+    - max_orb: maximum orb in degrees (default: 10.0)
+    
+    Examples:
+        python main.py aspects 1982-01-08 09:40 Saratov
+        python main.py aspects 1982-01-08 09:40 Saratov --aspect-type major
+        python main.py aspects 1982-01-08 09:40 Saratov --max-orb 5
+    """
     try:
+        from src.cli import configure_output
+        out = configure_output(verbose=verbose, quiet=quiet)
+        
+        # Step 1: Normalize input
+        out.verbose("Step 1: Normalizing input...")
         ni = normalize_input(
-            date,
-            time,
-            place,
+            date, time, place,
+            tz_override=tz, lat_override=lat, lon_override=lon,
+            locale=locale, strict=strict,
+        )
+        ctx = InputContext.from_normalized(ni)
+        
+        # Step 2: Calculate chart
+        out.verbose("Step 2: Calculating planetary positions...")
+        calc_result = natal_calculation(
+            ctx.utc_dt, ctx.lat, ctx.lon,
+            house_method=house_system, extended=True
+        )
+        
+        # Step 3: Get facts
+        out.verbose("Step 3: Extracting aspects...")
+        facts = facts_from_calculation(calc_result)
+        
+        # Build result
+        result = {
+            "input_metadata": ctx.to_metadata_dict(),
+            "facts": [f.model_dump() for f in facts],
+        }
+        
+        # Format and display
+        from src.modules.output_formatter import format_aspects
+        out.quiet(format_aspects(
+            result,
+            aspect_type=aspect_type,
+            max_orb=max_orb,
+            use_colors=not no_color
+        ))
+        
+    except ValueError as e:
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Error: {e}")
+        raise typer.Exit(code=2)
+    except Exception as e:
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Unexpected error: {e}")
+        if "verbose" in locals() and verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def dignities(
+    date: str,
+    time: str,
+    place: str,
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+    house_system: str = "Placidus",
+    no_color: bool = False,  # Disable colors
+    verbose: bool = False,
+    quiet: bool = False,
+):
+    """
+    Display planetary dignities (essential + accidental).
+    
+    Shows:
+    - Essential dignities: domicile, exaltation, detriment, fall
+    - Accidental dignities: house position, motion/speed
+    - Total dignity score and strength level
+    
+    Examples:
+        python main.py dignities 1982-01-08 09:40 Saratov
+    """
+    try:
+        from src.cli import configure_output
+        out = configure_output(verbose=verbose, quiet=quiet)
+        
+        # Step 1: Normalize input
+        out.verbose("Step 1: Normalizing input...")
+        ni = normalize_input(
+            date, time, place,
+            tz_override=tz, lat_override=lat, lon_override=lon,
+            locale=locale, strict=strict,
+        )
+        ctx = InputContext.from_normalized(ni)
+        
+        # Step 2: Calculate chart
+        out.verbose("Step 2: Calculating planetary positions...")
+        calc_result = natal_calculation(
+            ctx.utc_dt, ctx.lat, ctx.lon,
+            house_method=house_system, extended=True
+        )
+        
+        # Step 3: Get facts
+        out.verbose("Step 3: Calculating dignities...")
+        facts = facts_from_calculation(calc_result)
+        
+        # Build result
+        result = {
+            "input_metadata": ctx.to_metadata_dict(),
+            "facts": [f.model_dump() for f in facts],
+        }
+        
+        # Format and display
+        from src.modules.output_formatter import format_dignities
+        out.quiet(format_dignities(
+            result,
+            use_colors=not no_color
+        ))
+        
+    except ValueError as e:
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Error: {e}")
+        raise typer.Exit(code=2)
+    except Exception as e:
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Unexpected error: {e}")
+        if "verbose" in locals() and verbose:
+            import traceback
+            traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def transit(
+    natal_date: str,
+    natal_time: str,
+    natal_place: str,
+    transit_date: str = typer.Option(None, help="Transit date (default: now)"),
+    transit_time: str = typer.Option(None, help="Transit time (default: now)"),
+    max_orb: float = typer.Option(3.0, help="Maximum orb for aspects"),
+    no_color: bool = typer.Option(False, help="Disable color output"),
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+    verbose: bool = False,
+    quiet: bool = False,
+):
+    """
+    Display current transits to natal chart.
+    
+    Examples:
+        python main.py transit 1982-01-08 09:40 Saratov
+        python main.py transit 1982-01-08 09:40 Saratov --max-orb 5
+        python main.py transit 1982-01-08 09:40 Saratov --transit-date 2026-03-01 --transit-time 12:00
+    """
+    from src.cli import configure_output
+    out = configure_output(verbose=verbose, quiet=quiet)
+    
+    try:
+        from datetime import datetime
+        from src.modules.output_formatter import format_transits
+        
+        # Normalize natal input
+        out.info(f"Calculating natal chart for {natal_date} {natal_time} {natal_place}...")
+        natal_ni = normalize_input(
+            natal_date,
+            natal_time,
+            natal_place,
             tz_override=tz,
             lat_override=lat,
             lon_override=lon,
             locale=locale,
             strict=strict,
         )
-        ctx = InputContext.from_normalized(ni)
-        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon)
-        facts = facts_from_calculation(calc_result)
-        signals = signals_from_facts(facts)
-        decisions = decisions_from_signals(signals)
-        result = {
-            "input_metadata": ctx.to_metadata_dict_minimal(),
-            "facts": [f.model_dump() for f in facts],
-            "signals": [s.model_dump() for s in signals],
-            "decisions": [d.model_dump() for d in decisions],
+        natal_ctx = InputContext.from_normalized(natal_ni)
+        
+        # Calculate natal chart
+        natal_calc = natal_calculation(
+            natal_ctx.utc_dt,
+            natal_ctx.lat,
+            natal_ctx.lon,
+            extended=False  # Just need longitudes for synastry
+        )
+        natal_planets = natal_calc.get("planets", {})
+        
+        # Normalize transit input (default to now)
+        if transit_date is None:
+            transit_date = datetime.now().strftime("%Y-%m-%d")
+        if transit_time is None:
+            transit_time = datetime.now().strftime("%H:%M")
+        
+        out.info(f"Calculating transits for {transit_date} {transit_time}...")
+        transit_ni = normalize_input(
+            transit_date,
+            transit_time,
+            natal_place,  # Use natal place for transits
+            tz_override=tz,
+            lat_override=lat,
+            lon_override=lon,
+            locale=locale,
+            strict=strict,
+        )
+        transit_ctx = InputContext.from_normalized(transit_ni)
+        
+        # Calculate transit chart
+        transit_calc = natal_calculation(
+            transit_ctx.utc_dt,
+            transit_ctx.lat,
+            transit_ctx.lon,
+            extended=False  # Just need longitudes for synastry
+        )
+        transit_planets = transit_calc.get("planets", {})
+        
+        # Calculate transit-to-natal aspects
+        out.info("Calculating transit aspects...")
+        transit_aspects = calculate_synastry_aspects(
+            transit_planets,
+            natal_planets,
+            include_minor=True,
+            min_orb=0.0
+        )
+        
+        # Prepare data for formatting (need full calc for metadata)
+        natal_data = {
+            **natal_calc,
+            "input_metadata": natal_ctx.to_metadata_dict()
         }
-        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+        
+        transit_data = {
+            **transit_calc,
+            "input_metadata": transit_ctx.to_metadata_dict()
+        }
+        
+        # Format and display
+        formatted = format_transits(
+            natal_data,
+            transit_data,
+            transit_aspects,
+            lang="ru",
+            max_orb=max_orb,
+            use_colors=not no_color
+        )
+        out.quiet(formatted)
+        
     except ValueError as e:
-        typer.echo(f"Error: {e}", err=True)
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Error: {e}")
         raise typer.Exit(code=2)
     except Exception as e:
-        import traceback
-
-        typer.echo(f"Unexpected error: {e}", err=True)
-        traceback.print_exc()
+        from src.cli import configure_output
+        out = configure_output(
+            verbose=verbose if "verbose" in locals() else False,
+            quiet=quiet if "quiet" in locals() else False,
+        )
+        out.error(f"Unexpected error: {e}")
+        if "verbose" in locals() and verbose:
+            import traceback
+            traceback.print_exc()
         raise typer.Exit(code=1)
 
 
@@ -672,6 +947,181 @@ def psychology(
             }
 
         typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def houses(
+    date: str,
+    time: str,
+    place: str,
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    house_system: str = "Placidus",
+    format: str = "table",  # table, json, degrees
+):
+    """
+    Вывести координаты всех 12 куспидов домов.
+
+    Форматы вывода:
+    - table: Таблица с домами и знаками
+    - json: JSON формат
+    - degrees: Только градусы (для копирования)
+
+    Примеры:
+    python main.py houses "8 Jan 1982" "10:30" "Rehovot, Israel"
+    python main.py houses "8 Jan 1982" "10:30" "Rehovot" --format degrees
+    python main.py houses "8 Jan 1982" "10:30" "31.8914" "34.8103" --lat 31.8914 --lon 34.8103
+    """
+    try:
+        from src.core.dignities import get_planet_sign, get_planet_degree_in_sign
+
+        # Normalize input
+        ni = normalize_input(
+            date,
+            time,
+            place,
+            tz_override=tz,
+            lat_override=lat,
+            lon_override=lon,
+        )
+        ctx = InputContext.from_normalized(ni)
+
+        # Calculate houses
+        calc_result = natal_calculation(
+            ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system
+        )
+
+        houses_data = calc_result.get("houses", [])
+
+        if format == "json":
+            result = {
+                "input": ctx.to_metadata_dict_minimal(),
+                "house_system": house_system,
+                "houses": [
+                    {
+                        "house": i + 1,
+                        "longitude": houses_data[i],
+                        "sign": get_planet_sign(houses_data[i]),
+                        "degree": get_planet_degree_in_sign(houses_data[i]),
+                    }
+                    for i in range(12)
+                ],
+            }
+            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+        elif format == "degrees":
+            typer.echo(f"\n{house_system} Houses:")
+            for i in range(12):
+                sign = get_planet_sign(houses_data[i])
+                deg = get_planet_degree_in_sign(houses_data[i])
+                typer.echo(f"House {i + 1:2d}: {deg:6.2f}° {sign}")
+
+        else:  # table
+            typer.echo(f"\n━━━ {house_system} Houses ━━━")
+            typer.echo(f"Date: {ctx.utc_dt.date()} {ctx.utc_dt.time()} UTC")
+            typer.echo(f"Location: {ctx.lat:.4f}, {ctx.lon:.4f}\n")
+            typer.echo("House │ Sign        │ Degree   │ Longitude")
+            typer.echo("──────┼─────────────┼──────────┼──────────")
+            for i in range(12):
+                sign = get_planet_sign(houses_data[i])
+                deg = get_planet_degree_in_sign(houses_data[i])
+                typer.echo(
+                    f"  {i + 1:2d}  │ {sign:11s} │ {deg:6.2f}°  │ {houses_data[i]:7.2f}°"
+                )
+            typer.echo()
+
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def arabic_parts(
+    date: str,
+    time: str,
+    place: str,
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    format: str = "table",  # table, json
+):
+    """
+    Вывести арабские точки (жребии): Part of Fortune, Part of Spirit и др.
+
+    Формулы:
+    - Part of Fortune (день): ASC + Moon - Sun
+    - Part of Fortune (ночь): ASC + Sun - Moon
+    - Part of Spirit: обратная формула
+
+    Примеры:
+    python main.py arabic-parts "8 Jan 1982" "10:30" "Rehovot, Israel"
+    python main.py arabic-parts "8 Jan 1982" "10:30" "Rehovot" --format json
+    """
+    try:
+        from src.core.dignities import get_planet_sign, get_planet_degree_in_sign
+
+        # Normalize input
+        ni = normalize_input(
+            date,
+            time,
+            place,
+            tz_override=tz,
+            lat_override=lat,
+            lon_override=lon,
+        )
+        ctx = InputContext.from_normalized(ni)
+
+        # Calculate with extended mode
+        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon, extended=True)
+
+        special_points = calc_result.get("special_points", {})
+
+        if format == "json":
+            result = {
+                "input": ctx.to_metadata_dict_minimal(),
+                "arabic_parts": {
+                    name: {
+                        "longitude": lon,
+                        "sign": get_planet_sign(lon),
+                        "degree": get_planet_degree_in_sign(lon),
+                    }
+                    for name, lon in special_points.items()
+                },
+            }
+            typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+        else:  # table
+            typer.echo("\n━━━ Arabic Parts (Жребии) ━━━")
+            typer.echo(f"Date: {ctx.utc_dt.date()} {ctx.utc_dt.time()} UTC")
+            typer.echo(f"Location: {ctx.lat:.4f}, {ctx.lon:.4f}\n")
+
+            if not special_points:
+                typer.echo("No arabic parts calculated.")
+            else:
+                typer.echo("Point             │ Sign        │ Degree   │ Longitude")
+                typer.echo("──────────────────┼─────────────┼──────────┼──────────")
+                for name, lon in special_points.items():
+                    sign = get_planet_sign(lon)
+                    deg = get_planet_degree_in_sign(lon)
+                    typer.echo(f"{name:17s} │ {sign:11s} │ {deg:6.2f}°  │ {lon:7.2f}°")
+            typer.echo()
 
     except ValueError as e:
         typer.echo(f"Error: {e}", err=True)

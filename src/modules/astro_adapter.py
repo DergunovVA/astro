@@ -1,8 +1,14 @@
 # Astro Adapter Layer: Swiss Ephemeris → Core (tuple unwrapping, normalization)
 import swisseph as swe
+import os
 from datetime import datetime
 from typing import Dict, Any, List
 from modules.house_systems import calc_houses
+
+# Set ephemeris path for fictitious bodies (Proserpina requires seorbel.txt)
+ephe_path = os.environ.get("SWEPH_PATH", r"C:\sweph\ephe")
+if os.path.exists(ephe_path):
+    swe.set_ephe_path(ephe_path)
 
 
 def calc_planets_raw(jd: float) -> Dict[str, float]:
@@ -59,6 +65,18 @@ def calc_planets_raw(jd: float) -> Dict[str, float]:
         # This is not critical, continue without it
         pass
 
+    # Proserpina - ⚸ Hypothetical trans-Plutonian planet
+    # Swiss Ephemeris ID 57 (requires seorbel.txt)
+    # Based on Valentin Abramov orbital elements
+    # NOTE: Different calculation methods exist - positions may vary between sources
+    # Swiss Ephemeris Proserpina may differ from Hamburg School Poseidon or other variants
+    try:
+        result = swe.calc_ut(jd, 57)  # Proserpina (Abramov version)
+        planets["Proserpina"] = float(result[0][0])
+    except Exception:
+        # Proserpina calculation failed (seorbel.txt not available)
+        pass
+
     return planets
 
 
@@ -98,6 +116,7 @@ def calc_planets_extended(jd: float) -> Dict[str, Dict[str, Any]]:
         # Special
         swe.MEAN_NODE,
         swe.CHIRON,
+        57,  # Proserpina (Swiss Ephemeris, requires seorbel.txt)
     ]
 
     for body_id in body_ids:
@@ -110,6 +129,8 @@ def calc_planets_extended(jd: float) -> Dict[str, Dict[str, Any]]:
             # Get planet name
             if body_id == swe.MEAN_NODE:
                 name = "North Node"
+            elif body_id == 57:
+                name = "Proserpina"
             else:
                 name = swe.get_planet_name(body_id)
 

@@ -12,7 +12,7 @@ Based on classical sources:
 - Dorotheus of Sidon
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 
 # ============================================================================
@@ -223,7 +223,7 @@ def get_term_ruler(sign: str, degree: float) -> Optional[str]:
     return None
 
 
-def get_all_terms(sign: str) -> Optional[List[Tuple[float, float, str]]]:
+def get_all_terms(sign: str) -> Optional[list]:
     """
     Get all term boundaries for a sign.
 
@@ -345,7 +345,7 @@ def get_decan_ruler(sign: str, degree: float) -> Optional[str]:
     return None
 
 
-def get_all_decans(sign: str) -> Optional[List[Tuple[float, float, str]]]:
+def get_all_decans(sign: str) -> Optional[list]:
     """
     Get all decan boundaries for a sign.
 
@@ -372,7 +372,7 @@ def get_all_decans(sign: str) -> Optional[List[Tuple[float, float, str]]]:
 
 def calculate_minor_dignities(
     planet: str, sign: str, degree: float, is_day_chart: bool
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Calculate all minor dignities for a planet at a specific position.
 

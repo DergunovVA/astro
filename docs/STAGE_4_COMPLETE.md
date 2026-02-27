@@ -12,6 +12,7 @@
 Successfully implemented four major advanced astrological modules spanning graph theory, horary astrology, sidereal calculations, and minor dignities. This represents a complete traditional astrology toolkit with modern software engineering practices.
 
 **Key Achievements:**
+
 - ✅ 1,050+ lines of production code
 - ✅ 1,200+ lines of comprehensive tests
 - ✅ 156 automated tests (154 passing, 2 skipped)
@@ -30,21 +31,19 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Lines:** ~450 (code + tests)
 
 **Features Implemented:**
+
 - **Mutual Receptions:** Bidirectional planetary rulerships
   - Sign-based receptions (by domicile)
   - Exaltation receptions (by exaltation)
   - Chain detection (A→B→C→A cycles)
-  
 - **Dispositor Chains:** Planetary dignity hierarchies
   - Full chain tracing (planet → ruler → ruler...)
   - Final dispositor identification
   - Cycle detection (mutual reception handling)
-  
 - **Aspect Relationship Graphs:** Planet connection networks
   - Directed/undirected edge support
   - Strength classification (strong/moderate/weak)
   - Harmonious vs challenging aspect categorization
-  
 - **Visualization Export:** GraphML/DOT formats
   - NetworkX integration
   - Optional Graphviz rendering
@@ -62,25 +61,23 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Lines:** ~640 (code + tests)
 
 **Features Implemented:**
+
 - **Yes/No Question Analysis:**
   - Significator identification (querent/quesited)
   - Applying vs separating aspects
   - Dignity-based strength assessment
   - Reception analysis (positive/negative)
   - Final judgment algorithm
-  
 - **Timing Predictions:**
   - Degree-based timing calculations
   - Sign-based timing (cardinal/fixed/mutable)
   - House-based timing estimation
   - Unit determination (days/weeks/months/years)
-  
 - **Lost Object Analysis:**
   - 2nd house ruler tracking (lost objects)
   - Locational hints by sign/element
   - Recovery probability assessment
   - Guardian planet identification
-  
 - **Traditional Techniques:**
   - Planetary hours integration
   - Consideration before judgment checks
@@ -91,6 +88,7 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Tests:** `tests/test_horary.py` (520 lines)
 
 **Classical Sources:**
+
 - William Lilly's "Christian Astrology" (1647)
 - John Frawley's "The Real Astrology" (2000)
 - Traditional horary rules (medieval/Renaissance)
@@ -104,6 +102,7 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Lines:** ~580 (code + tests)
 
 **Features Implemented:**
+
 - **Ayanamsa Calculations:** (6 systems)
   - Lahiri (official Indian government)
   - Raman (B.V. Raman)
@@ -111,19 +110,16 @@ Successfully implemented four major advanced astrological modules spanning graph
   - Fagan-Bradley (Western sidereal)
   - Djwhal Khul (esoteric)
   - Yukteshwar (Sri Yukteshwar)
-  
 - **Tropical ↔ Sidereal Conversions:**
   - Position conversion (degrees)
   - Sign conversion (zodiac systems)
   - Bidirectional transformation
   - Precision handling (0.01° accuracy)
-  
 - **27 Nakshatras:** (Vedic lunar mansions)
   - Nakshatra identification by degree
   - Pada (quarter) calculation (1-4)
   - Ruling planet assignment
   - Angular coverage (13°20' each)
-  
 - **Vimshottari Dasa Periods:** (120-year planetary cycle)
   - Birth nakshatra → starting dasa
   - Remaining dasa calculation
@@ -145,26 +141,24 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Lines:** ~1,050 (code + tests)
 
 **Features Implemented:**
+
 - **Triplicities (Elemental Rulers):**
   - Day rulers (+3 points)
   - Night rulers (+3 points)
   - Participating rulers (+1 point)
   - 4 elements × 3 rulers each
   - Sect-based (day/night chart) selection
-  
 - **Egyptian Terms (Ptolemaic Bounds):**
   - 60 total terms (12 signs × 5 terms)
   - Variable degree boundaries
   - Planetary rulership (+2 points)
   - No gaps, continuous coverage (0-30°)
-  
 - **Faces/Decans (Chaldean Order):**
   - 36 total decans (12 signs × 3 decans)
   - 10° divisions (exactly uniform)
   - Chaldean sequence (7 traditional planets)
   - Cyclical pattern across zodiac
   - Decan rulership (+1 point)
-  
 - **Integrated Scoring System:**
   - Automatic calculation for any position
   - Combined dignity assessment
@@ -175,6 +169,7 @@ Successfully implemented four major advanced astrological modules spanning graph
 **Tests:** `tests/test_minor_dignities.py` (570 lines)
 
 **Classical Sources:**
+
 - Ptolemy's "Tetrabiblos" (Egyptian Terms)
 - William Lilly's "Christian Astrology" (scoring system)
 - Dorotheus of Sidon (Chaldean decans)
@@ -200,29 +195,32 @@ plugins: anyio-4.8.0, asyncio-0.26.0, benchmark-5.2.3, cov-6.1.1
 
 ### Test Distribution by Task
 
-| Task | Test File | Tests | Status | Coverage |
-|------|-----------|-------|--------|----------|
-| 4.1 | `test_graph_layer.py` | 51 | 49 ✅ 2 ⏭️ | Graph theory, dispositors, aspects |
-| 4.2 | `test_horary.py` | 22 | 22 ✅ | Yes/no, timing, lost objects |
-| 4.3 | `test_sidereal.py` | 40 | 40 ✅ | Ayanamsa, nakshatras, dasas |
-| 4.4 | `test_minor_dignities.py` | 43 | 43 ✅ | Triplicities, terms, decans |
-| **Total** | **4 test suites** | **156** | **154 ✅ 2 ⏭️** | **98.7% pass rate** |
+| Task      | Test File                 | Tests   | Status          | Coverage                           |
+| --------- | ------------------------- | ------- | --------------- | ---------------------------------- |
+| 4.1       | `test_graph_layer.py`     | 51      | 49 ✅ 2 ⏭️      | Graph theory, dispositors, aspects |
+| 4.2       | `test_horary.py`          | 22      | 22 ✅           | Yes/no, timing, lost objects       |
+| 4.3       | `test_sidereal.py`        | 40      | 40 ✅           | Ayanamsa, nakshatras, dasas        |
+| 4.4       | `test_minor_dignities.py` | 43      | 43 ✅           | Triplicities, terms, decans        |
+| **Total** | **4 test suites**         | **156** | **154 ✅ 2 ⏭️** | **98.7% pass rate**                |
 
 ### Test Categories Covered
 
 **Unit Tests:**
+
 - Individual function validation
 - Edge case handling
 - Boundary condition testing
 - Invalid input rejection
 
 **Integration Tests:**
+
 - Cross-module compatibility
 - Data structure integrity
 - End-to-end workflows
 - Performance benchmarks
 
 **Data Integrity Tests:**
+
 - Complete zodiac coverage
 - No gaps in degree ranges
 - Consistent planetary assignments
@@ -261,6 +259,7 @@ All checks passed!
 ```
 
 **Critical Issues Fixed:**
+
 - ✅ Removed 4 unused variables
 - ✅ Zero F841 (unused variable) errors
 - ⚠️ 44 E501 (line too long) warnings (non-critical, style only)
@@ -268,6 +267,7 @@ All checks passed!
 ### Code Organization
 
 **Module Structure:**
+
 ```
 src/
 ├── calc/
@@ -280,6 +280,7 @@ src/
 ```
 
 **Test Structure:**
+
 ```
 tests/
 ├── test_graph_layer.py       (815 lines) - 51 tests
@@ -326,13 +327,13 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 
 ## Performance Characteristics
 
-| Task | Module Size | Test Time | Complexity |
-|------|-------------|-----------|------------|
-| 4.1 Graph Layer | 786 lines | 1.2s | O(n²) for aspect graph |
-| 4.2 Horary | 641 lines | 0.5s | O(n) for aspect search |
-| 4.3 Sidereal | 390 lines | 0.2s | O(1) Swiss Ephemeris |
-| 4.4 Minor Dignities | 480 lines | 1.3s | O(1) table lookups |
-| **Total** | **2,297 lines** | **4.1s** | **Optimized** |
+| Task                | Module Size     | Test Time | Complexity             |
+| ------------------- | --------------- | --------- | ---------------------- |
+| 4.1 Graph Layer     | 786 lines       | 1.2s      | O(n²) for aspect graph |
+| 4.2 Horary          | 641 lines       | 0.5s      | O(n) for aspect search |
+| 4.3 Sidereal        | 390 lines       | 0.2s      | O(1) Swiss Ephemeris   |
+| 4.4 Minor Dignities | 480 lines       | 1.3s      | O(1) table lookups     |
+| **Total**           | **2,297 lines** | **4.1s**  | **Optimized**          |
 
 **Memory Usage:** Minimal (static tables, no heavy allocations)  
 **Thread Safety:** Read-only operations, fully thread-safe
@@ -376,6 +377,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 ## Production Readiness Checklist
 
 ### Code Quality
+
 - ✅ Type hints (Python 3.13+)
 - ✅ Docstrings (Google style)
 - ✅ Linting (Ruff, zero critical errors)
@@ -383,6 +385,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 - ✅ Input validation
 
 ### Testing
+
 - ✅ 156 automated tests
 - ✅ Unit test coverage
 - ✅ Integration test coverage
@@ -390,6 +393,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 - ✅ Data integrity tests
 
 ### Documentation
+
 - ✅ API documentation (docstrings)
 - ✅ Usage examples
 - ✅ Completion reports
@@ -397,6 +401,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 - ✅ Technical specifications
 
 ### Version Control
+
 - ✅ All commits atomic
 - ✅ Descriptive commit messages
 - ✅ Clean git history
@@ -404,6 +409,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 - ✅ Pushed to main branch
 
 ### Performance
+
 - ✅ Fast execution (<5s for 156 tests)
 - ✅ Minimal memory footprint
 - ✅ Thread-safe operations
@@ -446,6 +452,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 ### Potential Extensions (Post-Stage 4)
 
 **Stage 5 Ideas:**
+
 1. **Arabic Parts:** Calculated points (Part of Fortune, etc.)
 2. **Fixed Stars:** Conjunction analysis with major stars
 3. **Antiscia/Contra-antiscia:** Mirror points across solstices
@@ -453,6 +460,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 5. **Solar/Lunar Returns:** Annual/monthly chart analysis
 
 **Integration Enhancements:**
+
 1. **DSL Support:** Add minor dignity functions to formula language
 2. **CLI Commands:** `python main.py horary "Will I get the job?"`
 3. **JSON API:** RESTful endpoints for all Stage 4 features
@@ -460,6 +468,7 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 5. **Database:** Cache calculations for historical lookups
 
 **Alternative Systems:**
+
 1. **Tropical vs Sidereal Toggle:** User-selectable zodiac system
 2. **Multiple House Systems:** Placidus, Whole Sign, Equal, etc.
 3. **Traditional vs Modern Rulers:** User preference setting
@@ -490,17 +499,20 @@ All Stage 4 modules integrate seamlessly with existing codebase:
 ## Acknowledgments
 
 **Development:**
+
 - **GitHub Copilot:** AI-assisted implementation
 - **Python Community:** pytest, networkx, pydantic libraries
 - **Swiss Ephemeris:** Astrodienst's astronomical library
 
 **Classical Astrology:**
+
 - William Lilly Foundation
 - Project Hindsight (Robert Schmidt translations)
 - Traditional Astrology Yahoo Group archives
 - Vedic Astrology tutorials (YouTube, courses)
 
 **Modern Astrology Software:**
+
 - Astrodienst (astro.com) - validation reference
 - Morinus - open-source traditional astrology
 - JHora - Vedic astrology reference
