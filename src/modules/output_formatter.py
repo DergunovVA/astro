@@ -72,7 +72,7 @@ def format_summary(data: dict[str, Any], lang: str = "ru") -> str:
         output.append(
             f"☉  СОЛНЦЕ в знаке {sun_sign.get('value', '?')} ({house_num} дом)"
         )
-        sun_dig_value = sun_dignity.get('value', '?') if sun_dignity else '?'
+        sun_dig_value = sun_dignity.get("value", "?") if sun_dignity else "?"
         output.append(f"   Сила: {sun_dig_value} {strength}")
         output.append(f"   {_sun_interpretation(sun_sign.get('value', ''), lang)}")
         output.append("")
@@ -85,7 +85,7 @@ def format_summary(data: dict[str, Any], lang: str = "ru") -> str:
         output.append(
             f"☽  ЛУНА в знаке {moon_sign.get('value', '?')} ({house_num} дом)"
         )
-        moon_dig_value = moon_dignity.get('value', '?') if moon_dignity else '?'
+        moon_dig_value = moon_dignity.get("value", "?") if moon_dignity else "?"
         output.append(f"   Сила: {moon_dig_value} {strength}")
         output.append(f"   {_moon_interpretation(moon_sign.get('value', ''), lang)}")
         output.append("")
@@ -570,16 +570,17 @@ def _colorize(text: str, color: str, use_colors: bool = True) -> str:
 def _visible_len(text: str) -> int:
     """Get visible length of string (excluding ANSI escape codes)."""
     import re
+
     # Remove ANSI escape sequences
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-    return len(ansi_escape.sub('', text))
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return len(ansi_escape.sub("", text))
 
 
 def _ljust_visible(text: str, width: int) -> str:
     """Left-justify text considering only visible characters (excluding ANSI codes)."""
     visible_length = _visible_len(text)
     padding = width - visible_length
-    return text + ' ' * padding if padding > 0 else text
+    return text + " " * padding if padding > 0 else text
 
 
 def _sign_symbol(sign: str) -> str:
@@ -601,7 +602,9 @@ def _sign_symbol(sign: str) -> str:
     return symbols.get(sign, sign[:3])
 
 
-def format_table(data: dict[str, Any], lang: str = "ru", use_colors: bool = True) -> str:
+def format_table(
+    data: dict[str, Any], lang: str = "ru", use_colors: bool = True
+) -> str:
     """
     Beautiful table format with Unicode box-drawing characters.
 
@@ -663,7 +666,7 @@ def format_table(data: dict[str, Any], lang: str = "ru", use_colors: bool = True
         # Sign symbol and abbreviation
         sign_sym = _sign_symbol(sign)
         sign_abbr = sign[:3]
-        
+
         # Apply color to planet symbol
         planet_color = _planet_color(planet_name)
         colored_symbol = _colorize(symbol, planet_color, use_colors)
@@ -782,6 +785,7 @@ def format_aspects(
     lang: str = "ru",
     aspect_type: str = "all",
     max_orb: float = 10.0,
+    planet_filter: list[str] | None = None,
     use_colors: bool = True,
 ) -> str:
     """
@@ -792,6 +796,7 @@ def format_aspects(
         lang: Language code (ru or en)
         aspect_type: Filter by type - 'major', 'minor', or 'all'
         max_orb: Maximum orb to display
+        planet_filter: List of planet names to filter by (e.g., ['Moon', 'Saturn'])
         use_colors: Enable ANSI terminal colors
 
     Returns:
@@ -803,14 +808,25 @@ def format_aspects(
     aspects = [
         f
         for f in facts
-        if f["type"] == "aspect"
-        and f.get("details", {}).get("orb", 0) <= max_orb
+        if f["type"] == "aspect" and f.get("details", {}).get("orb", 0) <= max_orb
     ]
 
     if aspect_type != "all":
         aspects = [
             a for a in aspects if a.get("details", {}).get("category") == aspect_type
         ]
+
+    # Filter by planets if specified
+    if planet_filter:
+        filtered_aspects = []
+        for asp in aspects:
+            planets_str = asp.get("object", "")
+            # Split by common separators (dash, space, etc.)
+            planets_in_aspect = planets_str.replace("-", " ").split()
+            # Check if any of the filtered planets are in this aspect
+            if any(planet in planets_in_aspect for planet in planet_filter):
+                filtered_aspects.append(asp)
+        aspects = filtered_aspects
 
     # Sort by orb (tightest first)
     aspects.sort(key=lambda a: a.get("details", {}).get("orb", 999))
@@ -839,8 +855,12 @@ def format_aspects(
     # Header
     if lang == "ru":
         title = f"✨ АСПЕКТЫ ({len(aspects)})"
+        if planet_filter:
+            title += f" [Фильтр: {', '.join(planet_filter)}]"
     else:
         title = f"✨ ASPECTS ({len(aspects)})"
+        if planet_filter:
+            title += f" [Filter: {', '.join(planet_filter)}]"
 
     output.append("=" * 70)
     output.append(title.center(70))
@@ -967,16 +987,45 @@ def format_dignities(
 
     # Get planet order
     planets_order = [
-        "Sun", "Moon", "Mercury", "Venus", "Mars",
-        "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"
+        "Sun",
+        "Moon",
+        "Mercury",
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+        "Pluto",
     ]
 
     # Collect dignity data
     rows = []
     for planet in planets_order:
-        essential = next((f for f in facts if f["object"] == planet and f["type"] == "essential_dignity"), None)
-        accidental = next((f for f in facts if f["object"] == planet and f["type"] == "accidental_dignity"), None)
-        total = next((f for f in facts if f["object"] == planet and f["type"] == "total_dignity"), None)
+        essential = next(
+            (
+                f
+                for f in facts
+                if f["object"] == planet and f["type"] == "essential_dignity"
+            ),
+            None,
+        )
+        accidental = next(
+            (
+                f
+                for f in facts
+                if f["object"] == planet and f["type"] == "accidental_dignity"
+            ),
+            None,
+        )
+        total = next(
+            (
+                f
+                for f in facts
+                if f["object"] == planet and f["type"] == "total_dignity"
+            ),
+            None,
+        )
 
         if not total:
             continue
@@ -984,22 +1033,22 @@ def format_dignities(
         ess_score = essential.get("details", {}).get("score", 0) if essential else 0
         acc_score = accidental.get("details", {}).get("score", 0) if accidental else 0
         total_score = total.get("details", {}).get("total_score", 0)
-        
+
         # Essential dignity details
         ess_details = essential.get("details", {}) if essential else {}
         domicile = "✓" if ess_details.get("domicile") else ""
         exaltation = "✓" if ess_details.get("exaltation") else ""
         detriment = "✓" if ess_details.get("detriment") else ""
         fall = "✓" if ess_details.get("fall") else ""
-        
+
         # Accidental dignity details
         acc_details = accidental.get("details", {}) if accidental else {}
         house_str = acc_details.get("house_strength", 0)
         motion_str = acc_details.get("motion_strength", 0)
-        
+
         # Total strength label
         strength = total.get("value", "Neutral")
-        
+
         # Colorize strength
         if use_colors:
             if "Very Strong" in strength:
@@ -1009,19 +1058,21 @@ def format_dignities(
             elif "Weak" in strength or "Very Weak" in strength:
                 strength = _colorize(strength, Fore.RED, use_colors)
 
-        rows.append({
-            "planet": planet,
-            "essential": f"{ess_score:+d}",
-            "domicile": domicile,
-            "exaltation": exaltation,
-            "detriment": detriment,
-            "fall": fall,
-            "accidental": f"{acc_score:+d}",
-            "house": f"{house_str:+d}",
-            "motion": f"{motion_str:+d}",
-            "total": f"{total_score:+d}",
-            "strength": strength,
-        })
+        rows.append(
+            {
+                "planet": planet,
+                "essential": f"{ess_score:+d}",
+                "domicile": domicile,
+                "exaltation": exaltation,
+                "detriment": detriment,
+                "fall": fall,
+                "accidental": f"{acc_score:+d}",
+                "house": f"{house_str:+d}",
+                "motion": f"{motion_str:+d}",
+                "total": f"{total_score:+d}",
+                "strength": strength,
+            }
+        )
 
     # Build output
     output = []
@@ -1098,8 +1149,19 @@ def format_dignities(
 
     # Header row
     header_row = "│"
-    for key in ["planet", "essential", "domicile", "exaltation", "detriment", "fall",
-                "accidental", "house", "motion", "total", "strength"]:
+    for key in [
+        "planet",
+        "essential",
+        "domicile",
+        "exaltation",
+        "detriment",
+        "fall",
+        "accidental",
+        "house",
+        "motion",
+        "total",
+        "strength",
+    ]:
         header_row += _ljust_visible(headers[key], col_widths[key]) + "│"
     output.append(header_row)
 
@@ -1120,8 +1182,19 @@ def format_dignities(
     # Data rows
     for row in rows:
         data_row = "│"
-        for key in ["planet", "essential", "domicile", "exaltation", "detriment", "fall",
-                    "accidental", "house", "motion", "total", "strength"]:
+        for key in [
+            "planet",
+            "essential",
+            "domicile",
+            "exaltation",
+            "detriment",
+            "fall",
+            "accidental",
+            "house",
+            "motion",
+            "total",
+            "strength",
+        ]:
             data_row += _ljust_visible(row[key], col_widths[key]) + "│"
         output.append(data_row)
 
@@ -1143,12 +1216,20 @@ def format_dignities(
     output.append("")
     if lang == "ru":
         output.append("Легенда:")
-        output.append("  Эссенциальные: Влад. = владение, Экз. = экзальтация, Изгн. = изгнание, Пад. = падение")
-        output.append("  Акцидентальные: Дом = позиция в доме, Движ. = скорость движения")
+        output.append(
+            "  Эссенциальные: Влад. = владение, Экз. = экзальтация, Изгн. = изгнание, Пад. = падение"
+        )
+        output.append(
+            "  Акцидентальные: Дом = позиция в доме, Движ. = скорость движения"
+        )
     else:
         output.append("Legend:")
-        output.append("  Essential: Dom. = domicile (rulership), Exlt. = exaltation, Detr. = detriment, Fall = fall")
-        output.append("  Accidental: House = house position strength, Motion = motion/speed strength")
+        output.append(
+            "  Essential: Dom. = domicile (rulership), Exlt. = exaltation, Detr. = detriment, Fall = fall"
+        )
+        output.append(
+            "  Accidental: House = house position strength, Motion = motion/speed strength"
+        )
 
     # Chart info
     chart_info = data.get("input_metadata", {})
@@ -1350,4 +1431,3 @@ def format_transits(
     )
 
     return "\n".join(output)
-

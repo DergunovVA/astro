@@ -259,18 +259,38 @@ def calculate_essential_dignity(
     return dignity_info
 
 
-def get_dispositor(planet_sign: str) -> str:
+def get_dispositor(planet_sign: str, traditional: bool = False) -> str:
     """
     Get the dispositor (ruler) of a sign.
-    Returns modern ruler by default.
+    Returns modern ruler by default, or traditional ruler if specified.
 
     Args:
         planet_sign: Sign name (e.g., "Aries", "Scorpio")
+        traditional: If True, use only traditional rulerships (no modern planets)
 
     Returns:
         Dispositor planet name (e.g., "Mars", "Pluto")
     """
-    # Build reverse lookup: sign -> ruler
+    # Traditional rulers only (pre-Uranus/Neptune/Pluto discovery)
+    TRADITIONAL_RULERS = {
+        "Aries": "Mars",
+        "Taurus": "Venus",
+        "Gemini": "Mercury",
+        "Cancer": "Moon",
+        "Leo": "Sun",
+        "Virgo": "Mercury",
+        "Libra": "Venus",
+        "Scorpio": "Mars",
+        "Sagittarius": "Jupiter",
+        "Capricorn": "Saturn",
+        "Aquarius": "Saturn",
+        "Pisces": "Jupiter",
+    }
+
+    if traditional:
+        return TRADITIONAL_RULERS.get(planet_sign, "Unknown")
+
+    # Build reverse lookup: sign -> ruler (modern, prefer later entries)
     sign_rulers = {}
 
     for planet, signs in DOMICILE.items():
