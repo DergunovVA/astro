@@ -1,0 +1,2830 @@
+{
+  "input_metadata": {
+    "confidence": 0.8,
+    "timezone": "Asia/Jerusalem",
+    "local_datetime": "2026-02-28T00:16:00+02:00",
+    "utc_datetime": "2026-02-27T22:16:00+00:00",
+    "coordinates": {
+      "lat": 31.8952532,
+      "lon": 34.8105616
+    },
+    "place": {
+      "name": "Rehovot",
+      "country": "IL"
+    },
+    "warnings": []
+  },
+  "facts": [
+    {
+      "id": "Sun_position",
+      "type": "planet_in_sign",
+      "object": "Sun",
+      "value": "Pisces",
+      "details": {
+        "longitude": 339.32950000565927,
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_position",
+      "type": "planet_in_sign",
+      "object": "Moon",
+      "value": "Cancer",
+      "details": {
+        "longitude": 114.16017556557871,
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_position",
+      "type": "planet_in_sign",
+      "object": "Mercury",
+      "value": "Pisces",
+      "details": {
+        "longitude": 352.3457614632589,
+        "house": 12,
+        "retrograde": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_position",
+      "type": "planet_in_sign",
+      "object": "Venus",
+      "value": "Pisces",
+      "details": {
+        "longitude": 351.87755935319814,
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_position",
+      "type": "planet_in_sign",
+      "object": "Mars",
+      "value": "Aquarius",
+      "details": {
+        "longitude": 327.89888465817603,
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_position",
+      "type": "planet_in_sign",
+      "object": "Jupiter",
+      "value": "Cancer",
+      "details": {
+        "longitude": 105.29296805351524,
+        "house": 8,
+        "retrograde": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_position",
+      "type": "planet_in_sign",
+      "object": "Saturn",
+      "value": "Aries",
+      "details": {
+        "longitude": 1.5965619498300998,
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_position",
+      "type": "planet_in_sign",
+      "object": "Uranus",
+      "value": "Taurus",
+      "details": {
+        "longitude": 57.70962556472344,
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_position",
+      "type": "planet_in_sign",
+      "object": "Neptune",
+      "value": "Aries",
+      "details": {
+        "longitude": 1.0054930294637168,
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_position",
+      "type": "planet_in_sign",
+      "object": "Pluto",
+      "value": "Aquarius",
+      "details": {
+        "longitude": 304.5042021557204,
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_position",
+      "type": "planet_in_sign",
+      "object": "North Node",
+      "value": "Pisces",
+      "details": {
+        "longitude": 339.1037366558742,
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_position",
+      "type": "planet_in_sign",
+      "object": "Proserpina",
+      "value": "Scorpio",
+      "details": {
+        "longitude": 235.83314482296623,
+        "house": 12,
+        "retrograde": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Sun",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Sun",
+      "value": "Neutral",
+      "details": {
+        "score": 2,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 0,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_total_dignity",
+      "type": "total_dignity",
+      "object": "Sun",
+      "value": "Neutral",
+      "details": {
+        "total_score": 2,
+        "essential_score": 0,
+        "accidental_score": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Moon",
+      "value": "Very Strong",
+      "details": {
+        "score": 6,
+        "domicile": true,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": "participatory"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Moon",
+      "value": "Strong",
+      "details": {
+        "score": 6,
+        "house_strength": 2,
+        "motion_strength": 4,
+        "speed_strength": 0,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_total_dignity",
+      "type": "total_dignity",
+      "object": "Moon",
+      "value": "Very Strong",
+      "details": {
+        "total_score": 12,
+        "essential_score": 6,
+        "accidental_score": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Mercury",
+      "value": "Very Weak",
+      "details": {
+        "score": -5,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": true,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Mercury",
+      "value": "Very Weak",
+      "details": {
+        "score": -9,
+        "house_strength": -2,
+        "motion_strength": -5,
+        "speed_strength": -2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_total_dignity",
+      "type": "total_dignity",
+      "object": "Mercury",
+      "value": "Extremely Debilitated",
+      "details": {
+        "total_score": -14,
+        "essential_score": -5,
+        "accidental_score": -9
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Venus",
+      "value": "Strong",
+      "details": {
+        "score": 3,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": "day"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Venus",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_total_dignity",
+      "type": "total_dignity",
+      "object": "Venus",
+      "value": "Strong",
+      "details": {
+        "total_score": 7,
+        "essential_score": 3,
+        "accidental_score": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Mars",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Mars",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_total_dignity",
+      "type": "total_dignity",
+      "object": "Mars",
+      "value": "Strong",
+      "details": {
+        "total_score": 4,
+        "essential_score": 0,
+        "accidental_score": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Jupiter",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "domicile": false,
+        "exaltation": true,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Jupiter",
+      "value": "Weak",
+      "details": {
+        "score": -5,
+        "house_strength": 2,
+        "motion_strength": -5,
+        "speed_strength": -2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_total_dignity",
+      "type": "total_dignity",
+      "object": "Jupiter",
+      "value": "Neutral",
+      "details": {
+        "total_score": -1,
+        "essential_score": 4,
+        "accidental_score": -5
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Saturn",
+      "value": "Neutral",
+      "details": {
+        "score": 1,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": "participatory"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Saturn",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_total_dignity",
+      "type": "total_dignity",
+      "object": "Saturn",
+      "value": "Strong",
+      "details": {
+        "total_score": 5,
+        "essential_score": 1,
+        "accidental_score": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Uranus",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Uranus",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_total_dignity",
+      "type": "total_dignity",
+      "object": "Uranus",
+      "value": "Strong",
+      "details": {
+        "total_score": 4,
+        "essential_score": 0,
+        "accidental_score": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Neptune",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Neptune",
+      "value": "Strong",
+      "details": {
+        "score": 4,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_total_dignity",
+      "type": "total_dignity",
+      "object": "Neptune",
+      "value": "Strong",
+      "details": {
+        "total_score": 4,
+        "essential_score": 0,
+        "accidental_score": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Pluto",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Pluto",
+      "value": "Very Strong",
+      "details": {
+        "score": 8,
+        "house_strength": 2,
+        "motion_strength": 4,
+        "speed_strength": 2,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_total_dignity",
+      "type": "total_dignity",
+      "object": "Pluto",
+      "value": "Very Strong",
+      "details": {
+        "total_score": 8,
+        "essential_score": 0,
+        "accidental_score": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_essential_dignity",
+      "type": "essential_dignity",
+      "object": "North Node",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "North Node",
+      "value": "Neutral",
+      "details": {
+        "score": 2,
+        "house_strength": -2,
+        "motion_strength": 4,
+        "speed_strength": 0,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_total_dignity",
+      "type": "total_dignity",
+      "object": "North Node",
+      "value": "Neutral",
+      "details": {
+        "total_score": 2,
+        "essential_score": 0,
+        "accidental_score": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_essential_dignity",
+      "type": "essential_dignity",
+      "object": "Proserpina",
+      "value": "Neutral",
+      "details": {
+        "score": 0,
+        "domicile": false,
+        "exaltation": false,
+        "detriment": false,
+        "fall": false,
+        "triplicity": null
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_accidental_dignity",
+      "type": "accidental_dignity",
+      "object": "Proserpina",
+      "value": "Very Weak",
+      "details": {
+        "score": -7,
+        "house_strength": -2,
+        "motion_strength": -5,
+        "speed_strength": 0,
+        "oriental_occidental": 0
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_total_dignity",
+      "type": "total_dignity",
+      "object": "Proserpina",
+      "value": "Weak",
+      "details": {
+        "total_score": -7,
+        "essential_score": 0,
+        "accidental_score": -7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_dispositor_chain",
+      "type": "dispositor",
+      "object": "Sun",
+      "value": "Neptune",
+      "details": {
+        "chain": [
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Neptune (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_dispositor_chain",
+      "type": "dispositor",
+      "object": "Mercury",
+      "value": "Neptune",
+      "details": {
+        "chain": [
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Neptune (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_dispositor_chain",
+      "type": "dispositor",
+      "object": "Venus",
+      "value": "Neptune",
+      "details": {
+        "chain": [
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Venus (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_dispositor_chain",
+      "type": "dispositor",
+      "object": "Mars",
+      "value": "Uranus",
+      "details": {
+        "chain": [
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Mars",
+          "Mars (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_dispositor_chain",
+      "type": "dispositor",
+      "object": "Jupiter",
+      "value": "Moon",
+      "details": {
+        "chain": [
+          "Moon"
+        ],
+        "has_cycle": false
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_dispositor_chain",
+      "type": "dispositor",
+      "object": "Saturn",
+      "value": "Mars",
+      "details": {
+        "chain": [
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Mars",
+          "Mars (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_dispositor_chain",
+      "type": "dispositor",
+      "object": "Uranus",
+      "value": "Venus",
+      "details": {
+        "chain": [
+          "Venus",
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Uranus (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_dispositor_chain",
+      "type": "dispositor",
+      "object": "Neptune",
+      "value": "Mars",
+      "details": {
+        "chain": [
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Neptune (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_dispositor_chain",
+      "type": "dispositor",
+      "object": "Pluto",
+      "value": "Uranus",
+      "details": {
+        "chain": [
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Uranus (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_dispositor_chain",
+      "type": "dispositor",
+      "object": "North Node",
+      "value": "Neptune",
+      "details": {
+        "chain": [
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Neptune (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_dispositor_chain",
+      "type": "dispositor",
+      "object": "Proserpina",
+      "value": "Pluto",
+      "details": {
+        "chain": [
+          "Pluto",
+          "Uranus",
+          "Venus",
+          "Neptune",
+          "Mars",
+          "Uranus",
+          "Uranus (cycle)"
+        ],
+        "has_cycle": true
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_1_cusp",
+      "type": "house_cusp",
+      "object": "House 1",
+      "value": "244.66",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_2_cusp",
+      "type": "house_cusp",
+      "object": "House 2",
+      "value": "275.69",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_3_cusp",
+      "type": "house_cusp",
+      "object": "House 3",
+      "value": "310.31",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_4_cusp",
+      "type": "house_cusp",
+      "object": "House 4",
+      "value": "345.41",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_5_cusp",
+      "type": "house_cusp",
+      "object": "House 5",
+      "value": "16.51",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_6_cusp",
+      "type": "house_cusp",
+      "object": "House 6",
+      "value": "42.37",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_7_cusp",
+      "type": "house_cusp",
+      "object": "House 7",
+      "value": "64.66",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_8_cusp",
+      "type": "house_cusp",
+      "object": "House 8",
+      "value": "95.69",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_9_cusp",
+      "type": "house_cusp",
+      "object": "House 9",
+      "value": "130.31",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_10_cusp",
+      "type": "house_cusp",
+      "object": "House 10",
+      "value": "165.41",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_11_cusp",
+      "type": "house_cusp",
+      "object": "House 11",
+      "value": "196.51",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "house_12_cusp",
+      "type": "house_cusp",
+      "object": "House 12",
+      "value": "222.37",
+      "details": {},
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_Moon_sesquiquadrate",
+      "type": "aspect",
+      "object": "Sun-Moon",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 0.17,
+        "category": "minor",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_Jupiter_trine",
+      "type": "aspect",
+      "object": "Sun-Jupiter",
+      "value": "trine",
+      "details": {
+        "orb": 5.96,
+        "category": "major",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_North Node_conjunction",
+      "type": "aspect",
+      "object": "Sun-North Node",
+      "value": "conjunction",
+      "details": {
+        "orb": 0.23,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Mercury_trine",
+      "type": "aspect",
+      "object": "Moon-Mercury",
+      "value": "trine",
+      "details": {
+        "orb": 1.81,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Venus_trine",
+      "type": "aspect",
+      "object": "Moon-Venus",
+      "value": "trine",
+      "details": {
+        "orb": 2.28,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Mars_quincunx",
+      "type": "aspect",
+      "object": "Moon-Mars",
+      "value": "quincunx",
+      "details": {
+        "orb": 3.74,
+        "category": "minor",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Mars_biquintile",
+      "type": "aspect",
+      "object": "Moon-Mars",
+      "value": "biquintile",
+      "details": {
+        "orb": 2.26,
+        "category": "minor",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Jupiter_conjunction",
+      "type": "aspect",
+      "object": "Moon-Jupiter",
+      "value": "conjunction",
+      "details": {
+        "orb": 8.87,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Saturn_trine",
+      "type": "aspect",
+      "object": "Moon-Saturn",
+      "value": "trine",
+      "details": {
+        "orb": 7.44,
+        "category": "major",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Uranus_sextile",
+      "type": "aspect",
+      "object": "Moon-Uranus",
+      "value": "sextile",
+      "details": {
+        "orb": 3.55,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_North Node_sesquiquadrate",
+      "type": "aspect",
+      "object": "Moon-North Node",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 0.06,
+        "category": "minor",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Proserpina_trine",
+      "type": "aspect",
+      "object": "Moon-Proserpina",
+      "value": "trine",
+      "details": {
+        "orb": 1.67,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_Venus_conjunction",
+      "type": "aspect",
+      "object": "Mercury-Venus",
+      "value": "conjunction",
+      "details": {
+        "orb": 0.47,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_Pluto_semisquare",
+      "type": "aspect",
+      "object": "Mercury-Pluto",
+      "value": "semisquare",
+      "details": {
+        "orb": 2.84,
+        "category": "minor",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_Proserpina_trine",
+      "type": "aspect",
+      "object": "Mercury-Proserpina",
+      "value": "trine",
+      "details": {
+        "orb": 3.49,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_Jupiter_trine",
+      "type": "aspect",
+      "object": "Venus-Jupiter",
+      "value": "trine",
+      "details": {
+        "orb": 6.58,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_Pluto_semisquare",
+      "type": "aspect",
+      "object": "Venus-Pluto",
+      "value": "semisquare",
+      "details": {
+        "orb": 2.37,
+        "category": "minor",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_Proserpina_trine",
+      "type": "aspect",
+      "object": "Venus-Proserpina",
+      "value": "trine",
+      "details": {
+        "orb": 3.96,
+        "category": "major",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Jupiter_sesquiquadrate",
+      "type": "aspect",
+      "object": "Mars-Jupiter",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 2.39,
+        "category": "minor",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Saturn_semisextile",
+      "type": "aspect",
+      "object": "Mars-Saturn",
+      "value": "semisextile",
+      "details": {
+        "orb": 3.7,
+        "category": "minor",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Uranus_square",
+      "type": "aspect",
+      "object": "Mars-Uranus",
+      "value": "square",
+      "details": {
+        "orb": 0.19,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Proserpina_square",
+      "type": "aspect",
+      "object": "Mars-Proserpina",
+      "value": "square",
+      "details": {
+        "orb": 2.07,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_Uranus_semisquare",
+      "type": "aspect",
+      "object": "Jupiter-Uranus",
+      "value": "semisquare",
+      "details": {
+        "orb": 2.58,
+        "category": "minor",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Uranus_sextile",
+      "type": "aspect",
+      "object": "Saturn-Uranus",
+      "value": "sextile",
+      "details": {
+        "orb": 3.89,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Neptune_conjunction",
+      "type": "aspect",
+      "object": "Saturn-Neptune",
+      "value": "conjunction",
+      "details": {
+        "orb": 0.59,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Pluto_sextile",
+      "type": "aspect",
+      "object": "Saturn-Pluto",
+      "value": "sextile",
+      "details": {
+        "orb": 2.91,
+        "category": "major",
+        "motion": "applying"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Proserpina_trine",
+      "type": "aspect",
+      "object": "Saturn-Proserpina",
+      "value": "trine",
+      "details": {
+        "orb": 5.76,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_Neptune_sextile",
+      "type": "aspect",
+      "object": "Uranus-Neptune",
+      "value": "sextile",
+      "details": {
+        "orb": 3.3,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_Proserpina_opposition",
+      "type": "aspect",
+      "object": "Uranus-Proserpina",
+      "value": "opposition",
+      "details": {
+        "orb": 1.88,
+        "category": "major",
+        "motion": "separating"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_Pluto_sextile",
+      "type": "aspect",
+      "object": "Neptune-Pluto",
+      "value": "sextile",
+      "details": {
+        "orb": 3.5,
+        "category": "major",
+        "motion": "stationary"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_Ascendant_square",
+      "type": "aspect_to_angle",
+      "object": "Sun-Ascendant",
+      "value": "square",
+      "details": {
+        "orb": 4.67,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_Midheaven_opposition",
+      "type": "aspect_to_angle",
+      "object": "Sun-Midheaven",
+      "value": "opposition",
+      "details": {
+        "orb": 6.08,
+        "category": "major",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_Descendant_square",
+      "type": "aspect_to_angle",
+      "object": "Sun-Descendant",
+      "value": "square",
+      "details": {
+        "orb": 4.67,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_IC_conjunction",
+      "type": "aspect_to_angle",
+      "object": "Sun-IC",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.08,
+        "category": "major",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Ascendant_sesquiquadrate",
+      "type": "aspect_to_angle",
+      "object": "Moon-Ascendant",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 4.5,
+        "category": "minor",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Midheaven_sextile",
+      "type": "aspect_to_angle",
+      "object": "Moon-Midheaven",
+      "value": "sextile",
+      "details": {
+        "orb": 8.75,
+        "category": "major",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Midheaven_septile",
+      "type": "aspect_to_angle",
+      "object": "Moon-Midheaven",
+      "value": "septile",
+      "details": {
+        "orb": 0.18,
+        "category": "minor",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Descendant_semisquare",
+      "type": "aspect_to_angle",
+      "object": "Moon-Descendant",
+      "value": "semisquare",
+      "details": {
+        "orb": 4.5,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_Descendant_septile",
+      "type": "aspect_to_angle",
+      "object": "Moon-Descendant",
+      "value": "septile",
+      "details": {
+        "orb": 1.93,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_IC_trine",
+      "type": "aspect_to_angle",
+      "object": "Moon-IC",
+      "value": "trine",
+      "details": {
+        "orb": 8.75,
+        "category": "major",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_Midheaven_opposition",
+      "type": "aspect_to_angle",
+      "object": "Mercury-Midheaven",
+      "value": "opposition",
+      "details": {
+        "orb": 6.93,
+        "category": "major",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_Descendant_quintile",
+      "type": "aspect_to_angle",
+      "object": "Mercury-Descendant",
+      "value": "quintile",
+      "details": {
+        "orb": 0.31,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_IC_conjunction",
+      "type": "aspect_to_angle",
+      "object": "Mercury-IC",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.93,
+        "category": "major",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_Midheaven_opposition",
+      "type": "aspect_to_angle",
+      "object": "Venus-Midheaven",
+      "value": "opposition",
+      "details": {
+        "orb": 6.47,
+        "category": "major",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_Descendant_quintile",
+      "type": "aspect_to_angle",
+      "object": "Venus-Descendant",
+      "value": "quintile",
+      "details": {
+        "orb": 0.78,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_IC_conjunction",
+      "type": "aspect_to_angle",
+      "object": "Venus-IC",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.47,
+        "category": "major",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Ascendant_square",
+      "type": "aspect_to_angle",
+      "object": "Mars-Ascendant",
+      "value": "square",
+      "details": {
+        "orb": 6.76,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_Descendant_square",
+      "type": "aspect_to_angle",
+      "object": "Mars-Descendant",
+      "value": "square",
+      "details": {
+        "orb": 6.76,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_Ascendant_sesquiquadrate",
+      "type": "aspect_to_angle",
+      "object": "Jupiter-Ascendant",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 4.37,
+        "category": "minor",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_Midheaven_sextile",
+      "type": "aspect_to_angle",
+      "object": "Jupiter-Midheaven",
+      "value": "sextile",
+      "details": {
+        "orb": 0.12,
+        "category": "major",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_Descendant_semisquare",
+      "type": "aspect_to_angle",
+      "object": "Jupiter-Descendant",
+      "value": "semisquare",
+      "details": {
+        "orb": 4.37,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_Descendant_novile",
+      "type": "aspect_to_angle",
+      "object": "Jupiter-Descendant",
+      "value": "novile",
+      "details": {
+        "orb": 0.63,
+        "category": "minor",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_IC_trine",
+      "type": "aspect_to_angle",
+      "object": "Jupiter-IC",
+      "value": "trine",
+      "details": {
+        "orb": 0.12,
+        "category": "major",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Ascendant_trine",
+      "type": "aspect_to_angle",
+      "object": "Saturn-Ascendant",
+      "value": "trine",
+      "details": {
+        "orb": 3.06,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_Descendant_sextile",
+      "type": "aspect_to_angle",
+      "object": "Saturn-Descendant",
+      "value": "sextile",
+      "details": {
+        "orb": 3.06,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_IC_quintile",
+      "type": "aspect_to_angle",
+      "object": "Uranus-IC",
+      "value": "quintile",
+      "details": {
+        "orb": 0.3,
+        "category": "minor",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_Ascendant_trine",
+      "type": "aspect_to_angle",
+      "object": "Neptune-Ascendant",
+      "value": "trine",
+      "details": {
+        "orb": 3.65,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_Descendant_sextile",
+      "type": "aspect_to_angle",
+      "object": "Neptune-Descendant",
+      "value": "sextile",
+      "details": {
+        "orb": 3.65,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_Ascendant_sextile",
+      "type": "aspect_to_angle",
+      "object": "Pluto-Ascendant",
+      "value": "sextile",
+      "details": {
+        "orb": 0.15,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_Descendant_trine",
+      "type": "aspect_to_angle",
+      "object": "Pluto-Descendant",
+      "value": "trine",
+      "details": {
+        "orb": 0.15,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_IC_novile",
+      "type": "aspect_to_angle",
+      "object": "Pluto-IC",
+      "value": "novile",
+      "details": {
+        "orb": 0.91,
+        "category": "minor",
+        "angle": "IC"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_Ascendant_square",
+      "type": "aspect_to_angle",
+      "object": "North Node-Ascendant",
+      "value": "square",
+      "details": {
+        "orb": 4.45,
+        "category": "major",
+        "angle": "Ascendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_Descendant_square",
+      "type": "aspect_to_angle",
+      "object": "North Node-Descendant",
+      "value": "square",
+      "details": {
+        "orb": 4.45,
+        "category": "major",
+        "angle": "Descendant"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_Midheaven_quintile",
+      "type": "aspect_to_angle",
+      "object": "Proserpina-Midheaven",
+      "value": "quintile",
+      "details": {
+        "orb": 1.58,
+        "category": "minor",
+        "angle": "Midheaven"
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house1_square",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House1",
+      "value": "square",
+      "details": {
+        "orb": 4.67,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house2_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House2",
+      "value": "sextile",
+      "details": {
+        "orb": 3.64,
+        "category": "major",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house3_semisextile",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House3",
+      "value": "semisextile",
+      "details": {
+        "orb": 0.98,
+        "category": "minor",
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house4_conjunction",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House4",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.08,
+        "category": "major",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house6_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House6",
+      "value": "sextile",
+      "details": {
+        "orb": 3.04,
+        "category": "major",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house7_square",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House7",
+      "value": "square",
+      "details": {
+        "orb": 4.67,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house8_trine",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House8",
+      "value": "trine",
+      "details": {
+        "orb": 3.64,
+        "category": "major",
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house9_quincunx",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House9",
+      "value": "quincunx",
+      "details": {
+        "orb": 0.98,
+        "category": "minor",
+        "house": 9
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house10_opposition",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House10",
+      "value": "opposition",
+      "details": {
+        "orb": 6.08,
+        "category": "major",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house11_biquintile",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House11",
+      "value": "biquintile",
+      "details": {
+        "orb": 1.18,
+        "category": "minor",
+        "house": 11
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Sun_house12_trine",
+      "type": "aspect_to_cusp",
+      "object": "Sun-House12",
+      "value": "trine",
+      "details": {
+        "orb": 3.04,
+        "category": "major",
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house1_sesquiquadrate",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House1",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 4.5,
+        "category": "minor",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house4_trine",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House4",
+      "value": "trine",
+      "details": {
+        "orb": 8.75,
+        "category": "major",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house6_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House6",
+      "value": "quintile",
+      "details": {
+        "orb": 0.21,
+        "category": "minor",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house7_semisquare",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House7",
+      "value": "semisquare",
+      "details": {
+        "orb": 4.5,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house7_septile",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House7",
+      "value": "septile",
+      "details": {
+        "orb": 1.93,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house10_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House10",
+      "value": "sextile",
+      "details": {
+        "orb": 8.75,
+        "category": "major",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Moon_house10_septile",
+      "type": "aspect_to_cusp",
+      "object": "Moon-House10",
+      "value": "septile",
+      "details": {
+        "orb": 0.18,
+        "category": "minor",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_house4_conjunction",
+      "type": "aspect_to_cusp",
+      "object": "Mercury-House4",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.93,
+        "category": "major",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_house6_septile",
+      "type": "aspect_to_cusp",
+      "object": "Mercury-House6",
+      "value": "septile",
+      "details": {
+        "orb": 1.41,
+        "category": "minor",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_house7_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Mercury-House7",
+      "value": "quintile",
+      "details": {
+        "orb": 0.31,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mercury_house10_opposition",
+      "type": "aspect_to_cusp",
+      "object": "Mercury-House10",
+      "value": "opposition",
+      "details": {
+        "orb": 6.93,
+        "category": "major",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_house3_novile",
+      "type": "aspect_to_cusp",
+      "object": "Venus-House3",
+      "value": "novile",
+      "details": {
+        "orb": 1.56,
+        "category": "minor",
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_house4_conjunction",
+      "type": "aspect_to_cusp",
+      "object": "Venus-House4",
+      "value": "conjunction",
+      "details": {
+        "orb": 6.47,
+        "category": "major",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_house6_septile",
+      "type": "aspect_to_cusp",
+      "object": "Venus-House6",
+      "value": "septile",
+      "details": {
+        "orb": 0.94,
+        "category": "minor",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_house7_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Venus-House7",
+      "value": "quintile",
+      "details": {
+        "orb": 0.78,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Venus_house10_opposition",
+      "type": "aspect_to_cusp",
+      "object": "Venus-House10",
+      "value": "opposition",
+      "details": {
+        "orb": 6.47,
+        "category": "major",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_house1_square",
+      "type": "aspect_to_cusp",
+      "object": "Mars-House1",
+      "value": "square",
+      "details": {
+        "orb": 6.76,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_house2_septile",
+      "type": "aspect_to_cusp",
+      "object": "Mars-House2",
+      "value": "septile",
+      "details": {
+        "orb": 0.78,
+        "category": "minor",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Mars_house7_square",
+      "type": "aspect_to_cusp",
+      "object": "Mars-House7",
+      "value": "square",
+      "details": {
+        "orb": 6.76,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house1_sesquiquadrate",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House1",
+      "value": "sesquiquadrate",
+      "details": {
+        "orb": 4.37,
+        "category": "minor",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house4_trine",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House4",
+      "value": "trine",
+      "details": {
+        "orb": 0.12,
+        "category": "major",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house5_square",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House5",
+      "value": "square",
+      "details": {
+        "orb": 1.22,
+        "category": "major",
+        "house": 5
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house6_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House6",
+      "value": "sextile",
+      "details": {
+        "orb": 2.93,
+        "category": "major",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house7_semisquare",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House7",
+      "value": "semisquare",
+      "details": {
+        "orb": 4.37,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house7_novile",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House7",
+      "value": "novile",
+      "details": {
+        "orb": 0.63,
+        "category": "minor",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house10_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House10",
+      "value": "sextile",
+      "details": {
+        "orb": 0.12,
+        "category": "major",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house11_square",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House11",
+      "value": "square",
+      "details": {
+        "orb": 1.22,
+        "category": "major",
+        "house": 11
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Jupiter_house12_trine",
+      "type": "aspect_to_cusp",
+      "object": "Jupiter-House12",
+      "value": "trine",
+      "details": {
+        "orb": 2.93,
+        "category": "major",
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house1_trine",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House1",
+      "value": "trine",
+      "details": {
+        "orb": 3.06,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house2_square",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House2",
+      "value": "square",
+      "details": {
+        "orb": 4.09,
+        "category": "major",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house3_septile",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House3",
+      "value": "septile",
+      "details": {
+        "orb": 0.15,
+        "category": "minor",
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house6_novile",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House6",
+      "value": "novile",
+      "details": {
+        "orb": 0.77,
+        "category": "minor",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house7_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House7",
+      "value": "sextile",
+      "details": {
+        "orb": 3.06,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Saturn_house8_square",
+      "type": "aspect_to_cusp",
+      "object": "Saturn-House8",
+      "value": "square",
+      "details": {
+        "orb": 4.09,
+        "category": "major",
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_house4_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Uranus-House4",
+      "value": "quintile",
+      "details": {
+        "orb": 0.3,
+        "category": "minor",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_house5_novile",
+      "type": "aspect_to_cusp",
+      "object": "Uranus-House5",
+      "value": "novile",
+      "details": {
+        "orb": 1.2,
+        "category": "minor",
+        "house": 5
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Uranus_house9_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Uranus-House9",
+      "value": "quintile",
+      "details": {
+        "orb": 0.6,
+        "category": "minor",
+        "house": 9
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_house1_trine",
+      "type": "aspect_to_cusp",
+      "object": "Neptune-House1",
+      "value": "trine",
+      "details": {
+        "orb": 3.65,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_house3_septile",
+      "type": "aspect_to_cusp",
+      "object": "Neptune-House3",
+      "value": "septile",
+      "details": {
+        "orb": 0.74,
+        "category": "minor",
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_house6_novile",
+      "type": "aspect_to_cusp",
+      "object": "Neptune-House6",
+      "value": "novile",
+      "details": {
+        "orb": 1.36,
+        "category": "minor",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Neptune_house7_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Neptune-House7",
+      "value": "sextile",
+      "details": {
+        "orb": 3.65,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house1_sextile",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House1",
+      "value": "sextile",
+      "details": {
+        "orb": 0.15,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house2_semisextile",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House2",
+      "value": "semisextile",
+      "details": {
+        "orb": 1.19,
+        "category": "minor",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house4_novile",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House4",
+      "value": "novile",
+      "details": {
+        "orb": 0.91,
+        "category": "minor",
+        "house": 4
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house5_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House5",
+      "value": "quintile",
+      "details": {
+        "orb": 0.01,
+        "category": "minor",
+        "house": 5
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house7_trine",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House7",
+      "value": "trine",
+      "details": {
+        "orb": 0.15,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Pluto_house8_quincunx",
+      "type": "aspect_to_cusp",
+      "object": "Pluto-House8",
+      "value": "quincunx",
+      "details": {
+        "orb": 1.19,
+        "category": "minor",
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house1_square",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House1",
+      "value": "square",
+      "details": {
+        "orb": 4.45,
+        "category": "major",
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house2_sextile",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House2",
+      "value": "sextile",
+      "details": {
+        "orb": 3.41,
+        "category": "major",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house3_semisextile",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House3",
+      "value": "semisextile",
+      "details": {
+        "orb": 1.21,
+        "category": "minor",
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house6_sextile",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House6",
+      "value": "sextile",
+      "details": {
+        "orb": 3.26,
+        "category": "major",
+        "house": 6
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house7_square",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House7",
+      "value": "square",
+      "details": {
+        "orb": 4.45,
+        "category": "major",
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house8_trine",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House8",
+      "value": "trine",
+      "details": {
+        "orb": 3.41,
+        "category": "major",
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house9_quincunx",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House9",
+      "value": "quincunx",
+      "details": {
+        "orb": 1.21,
+        "category": "minor",
+        "house": 9
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house11_biquintile",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House11",
+      "value": "biquintile",
+      "details": {
+        "orb": 1.41,
+        "category": "minor",
+        "house": 11
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "North Node_house12_trine",
+      "type": "aspect_to_cusp",
+      "object": "North Node-House12",
+      "value": "trine",
+      "details": {
+        "orb": 3.26,
+        "category": "major",
+        "house": 12
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_house2_novile",
+      "type": "aspect_to_cusp",
+      "object": "Proserpina-House2",
+      "value": "novile",
+      "details": {
+        "orb": 0.14,
+        "category": "minor",
+        "house": 2
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_house10_quintile",
+      "type": "aspect_to_cusp",
+      "object": "Proserpina-House10",
+      "value": "quintile",
+      "details": {
+        "orb": 1.58,
+        "category": "minor",
+        "house": 10
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Proserpina_house11_novile",
+      "type": "aspect_to_cusp",
+      "object": "Proserpina-House11",
+      "value": "novile",
+      "details": {
+        "orb": 0.68,
+        "category": "minor",
+        "house": 11
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Lilith_position",
+      "type": "special_point",
+      "object": "Lilith",
+      "value": "Sagittarius",
+      "details": {
+        "longitude": 260.35,
+        "house": 1
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Vertex_position",
+      "type": "special_point",
+      "object": "Vertex",
+      "value": "Gemini",
+      "details": {
+        "longitude": 71.04,
+        "house": 7
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "East Point_position",
+      "type": "special_point",
+      "object": "East Point",
+      "value": "Pisces",
+      "details": {
+        "longitude": 334.66,
+        "house": 3
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Part of Fortune_position",
+      "type": "special_point",
+      "object": "Part of Fortune",
+      "value": "Cancer",
+      "details": {
+        "longitude": 109.83,
+        "house": 8
+      },
+      "source": null,
+      "timestamp": null
+    },
+    {
+      "id": "Part of Spirit_position",
+      "type": "special_point",
+      "object": "Part of Spirit",
+      "value": "Aries",
+      "details": {
+        "longitude": 19.49,
+        "house": 5
+      },
+      "source": null,
+      "timestamp": null
+    }
+  ],
+  "signals": [
+    {
+      "id": "chart_intensity",
+      "intensity": "high",
+      "domain": "general",
+      "period": "natal",
+      "sources": [
+        "Sun_position",
+        "Moon_position",
+        "Mercury_position"
+      ],
+      "weight": null
+    }
+  ],
+  "decisions": [
+    {
+      "id": "general_assessment",
+      "summary": "Chart is formed, ready for interpretation",
+      "signals": [
+        "chart_intensity"
+      ],
+      "recommendation": null,
+      "fatal": false
+    }
+  ]
+}
