@@ -1009,13 +1009,17 @@ class TestGraphVisualization:
         assert len(data["links"]) == 2
 
         # Check harmonious aspect (blue)
-        trine_links = [l for l in data["links"] if l.get("aspect_type") == "trine"]
+        trine_links = [
+            lnk for lnk in data["links"] if lnk.get("aspect_type") == "trine"
+        ]
         assert len(trine_links) == 1
         assert trine_links[0]["color"] == "blue"
         assert trine_links[0]["harmonious"] is True
 
         # Check challenging aspect (red)
-        square_links = [l for l in data["links"] if l.get("aspect_type") == "square"]
+        square_links = [
+            lnk for lnk in data["links"] if lnk.get("aspect_type") == "square"
+        ]
         assert len(square_links) == 1
         assert square_links[0]["color"] == "red"
         assert square_links[0]["harmonious"] is False
@@ -1035,7 +1039,9 @@ class TestGraphVisualization:
         data = graph.export_json()
 
         # Check dispositor edges
-        dispositor_links = [l for l in data["links"] if l["relation"] == "dispositor"]
+        dispositor_links = [
+            lnk for lnk in data["links"] if lnk["relation"] == "dispositor"
+        ]
         assert len(dispositor_links) >= 2  # Moon->Mercury, Mercury->Jupiter
 
         for link in dispositor_links:
@@ -1182,11 +1188,11 @@ class TestGraphVisualization:
         graph = ChartGraph(chart_data, mode="modern")
 
         # Get original state
-        original_nodes = list(graph.graph.nodes(data=True))
+        list(graph.graph.nodes(data=True))
         original_node_count = graph.graph.number_of_nodes()
 
         # Export JSON (should not modify)
-        data = graph.export_json()
+        graph.export_json()
 
         # Check graph unchanged
         assert graph.graph.number_of_nodes() == original_node_count

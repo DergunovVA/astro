@@ -17,10 +17,10 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "src"))
 sys.path.insert(0, str(project_root))
 
-from modules.astro_adapter import natal_calculation
-from modules.interpretation_layer import facts_from_calculation
-from modules.psychological_layer import get_psychological_analysis
-from input_pipeline import normalize_input, InputContext
+from modules.astro_adapter import natal_calculation  # noqa: E402
+from modules.interpretation_layer import facts_from_calculation  # noqa: E402
+from modules.psychological_layer import get_psychological_analysis  # noqa: E402
+from input_pipeline import normalize_input, InputContext  # noqa: E402
 
 
 def load_test_profiles():
@@ -176,7 +176,7 @@ def analyze_matching(result, expected_traits):
 
     chart = result["chart"]
     demons = result["demons"]
-    proofs = result["proofs"]
+    result["proofs"]
     aspects = result["key_aspects"]
 
     # Check for common patterns

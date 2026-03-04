@@ -11,6 +11,9 @@ Techniques implemented:
 - Mutual receptions (domicile, traditional rulers)
 - Translation of light (3rd planet connects two significators)
 - Collection of light (both significators apply to 3rd planet)
+- Prohibition (3rd planet intercepts applying aspect)
+- Refrenation (planet turns retrograde before perfecting aspect)
+- Reception quality (friendly/hostile/neutral reception between planets)
 """
 
 from typing import Dict, Optional, Any, List
@@ -18,6 +21,7 @@ from typing import Dict, Optional, Any, List
 from src.core.dignities import (
     get_planet_sign,
     get_dispositor,
+    calculate_essential_dignity,
 )
 from src.core.aspects_math import MAJOR_ASPECTS
 
@@ -434,3 +438,431 @@ def find_mutual_receptions(planets: Dict[str, Dict[str, Any]]) -> List[Dict[str,
             # We'll skip this for now or implement if needed
 
     return mutual_receptions
+
+
+# ============================================================
+# PROHIBITION (Запрещение) — William Lilly CA Book II p.297-302
+# ============================================================
+
+
+def check_prohibition(
+    planet1: str,
+    planet1_lon: float,
+    planet1_speed: float,
+    planet2: str,
+    planet2_lon: float,
+    planet2_speed: float,
+    aspect_angle: float,
+    all_planets: Dict[str, Dict[str, Any]],
+    orb: float = 8.0,
+) -> Dict[str, Any]:
+    """
+    Check if an applying aspect between two significators is prohibited
+    by a third planet that intercepts before perfection.
+
+    Traditional rule (Lilly): When planet A applies to B, but planet C
+    first aspects A or B before A-B perfects — the matter is PROHIBITED.
+
+    Args:
+        planet1: Significator 1 name (faster planet)
+        planet1_lon: Longitude of planet1 (degrees)
+        planet1_speed: Daily speed of planet1
+        planet2: Significator 2 name
+        planet2_lon: Longitude of planet2
+        planet2_speed: Daily speed of planet2
+        aspect_angle: Target aspect (0, 60, 90, 120, 180)
+        all_planets: Dict of all planets {name: {longitude, Speed, ...}}
+        orb: Max orb for intercepting aspect (default 8°)
+
+    Returns:
+        {
+            'is_prohibited': bool,
+            'prohibitor': str | None,
+            'prohibitor_aspect': str | None,
+            'prohibitor_target': str | None,  # 'planet1' or 'planet2' name
+            'time_to_prohibition': float | None,  # days
+            'time_to_perfection': float | None,   # days
+            'explanation': str
+        }
+    """
+    result: Dict[str, Any] = {
+        "is_prohibited": False,
+        "prohibitor": None,
+        "prohibitor_aspect": None,
+        "prohibitor_target": None,
+        "time_to_prohibition": None,
+        "time_to_perfection": None,
+        "explanation": "No prohibition detected",
+    }
+
+    # Main aspect must be applying
+    main_perf = time_to_perfection(
+        planet1_lon,
+        planet1_speed,
+        planet2_lon,
+        planet2_speed,
+        aspect_angle,
+    )
+
+    if not main_perf["is_applying"]:
+        result["explanation"] = "Main aspect is separating (not applying)"
+        return result
+
+    time_to_main = main_perf["days"]
+    result["time_to_perfection"] = time_to_main
+
+    # Check every other planet for earlier interception
+    for other_name, other_data in all_planets.items():
+        if other_name == planet1 or other_name == planet2:
+            continue
+
+        if "longitude" not in other_data or "Speed" not in other_data:
+            continue
+
+        other_lon = float(other_data["longitude"])
+        other_speed = float(other_data.get("Speed", 0.0))
+
+        for aspect_name, aspect_config in MAJOR_ASPECTS.items():
+            check_angle = aspect_config["angle"]
+
+            # Check aspect to planet1
+            perf1 = time_to_perfection(
+                other_lon,
+                other_speed,
+                planet1_lon,
+                planet1_speed,
+                check_angle,
+            )
+            if (
+                perf1["is_applying"]
+                and perf1["days"] < time_to_main
+                and abs(perf1["current_distance"]) <= orb
+            ):
+                result["is_prohibited"] = True
+                result["prohibitor"] = other_name
+                result["prohibitor_aspect"] = aspect_name
+                result["prohibitor_target"] = planet1
+                result["time_to_prohibition"] = perf1["days"]
+                result["explanation"] = (
+                    f"{other_name} will {aspect_name} {planet1} in "
+                    f"{perf1['days']:.2f} days, BEFORE {planet1} "
+                    f"perfects {aspect_angle}\u00b0 with {planet2} "
+                    f"(in {time_to_main:.2f} days). Matter is PROHIBITED."
+                )
+                return result
+
+            # Check aspect to planet2
+            perf2 = time_to_perfection(
+                other_lon,
+                other_speed,
+                planet2_lon,
+                planet2_speed,
+                check_angle,
+            )
+            if (
+                perf2["is_applying"]
+                and perf2["days"] < time_to_main
+                and abs(perf2["current_distance"]) <= orb
+            ):
+                result["is_prohibited"] = True
+                result["prohibitor"] = other_name
+                result["prohibitor_aspect"] = aspect_name
+                result["prohibitor_target"] = planet2
+                result["time_to_prohibition"] = perf2["days"]
+                result["explanation"] = (
+                    f"{other_name} will {aspect_name} {planet2} in "
+                    f"{perf2['days']:.2f} days, BEFORE {planet1} "
+                    f"perfects aspect with {planet2} "
+                    f"(in {time_to_main:.2f} days). Matter is PROHIBITED."
+                )
+                return result
+
+    result["explanation"] = "No planet intercepts the applying aspect"
+    return result
+
+
+# ============================================================
+# REFRENATION (Отказ) — William Lilly CA Book II p.302-305
+# ============================================================
+
+
+def check_refrenation(
+    planet_name: str,
+    planet_lon: float,
+    planet_speed: float,
+    target_lon: float,
+    target_speed: float,
+    aspect_angle: float,
+    ephemeris_jd_start: float,
+    ephemeris_func: Any,
+) -> Dict[str, Any]:
+    """
+    Check if an applying planet will turn retrograde before perfecting its aspect.
+
+    Refrenation (refranation): a planet "changes its mind" by stationing
+    retrograde before reaching exact aspect. Traditional interpretation:
+    the matter will NOT happen, or the person will back out.
+
+    Args:
+        planet_name: Name of the applying planet (e.g., 'Venus')
+        planet_lon: Current longitude (degrees)
+        planet_speed: Current daily speed (positive = direct)
+        target_lon: Longitude of target planet
+        target_speed: Daily speed of target planet
+        aspect_angle: Target aspect (0, 60, 90, 120, 180)
+        ephemeris_jd_start: Julian Day for current date
+        ephemeris_func: Callable(jd, planet_id) → sequence
+                        where [0]=longitude, [3]=speed (e.g., swisseph.calc_ut)
+
+    Returns:
+        {
+            'will_refrenate': bool,
+            'is_currently_retrograde': bool,
+            'station_jd': float | None,
+            'station_longitude': float | None,
+            'days_to_station': float | None,
+            'days_to_perfection': float | None,
+            'explanation': str
+        }
+    """
+    result: Dict[str, Any] = {
+        "will_refrenate": False,
+        "is_currently_retrograde": planet_speed < 0,
+        "station_jd": None,
+        "station_longitude": None,
+        "days_to_station": None,
+        "days_to_perfection": None,
+        "explanation": "",
+    }
+
+    # Already retrograde — no refrenation possible
+    if planet_speed < 0:
+        result["explanation"] = f"{planet_name} is already retrograde"
+        return result
+
+    # Calculate time to perfection
+    perfection = time_to_perfection(
+        planet_lon,
+        planet_speed,
+        target_lon,
+        target_speed,
+        aspect_angle,
+    )
+
+    if not perfection["is_applying"]:
+        result["explanation"] = "Aspect is separating (not applying)"
+        return result
+
+    days_to_perfect = perfection["days"]
+    result["days_to_perfection"] = days_to_perfect
+
+    # Swiss Ephemeris planet IDs (classic planets only)
+    _PLANET_IDS = {
+        "Sun": 0,
+        "Moon": 1,
+        "Mercury": 2,
+        "Venus": 3,
+        "Mars": 4,
+        "Jupiter": 5,
+        "Saturn": 6,
+        "Uranus": 7,
+        "Neptune": 8,
+        "Pluto": 9,
+    }
+
+    if planet_name not in _PLANET_IDS:
+        result["explanation"] = f"Unknown planet for refrenation check: {planet_name}"
+        return result
+
+    planet_id = _PLANET_IDS[planet_name]
+
+    # Sun and Moon never retrograde
+    if planet_name in ("Sun", "Moon"):
+        result["explanation"] = f"{planet_name} never goes retrograde"
+        return result
+
+    # Scan ephemeris day by day for Direct→Retrograde station
+    max_days = min(int(days_to_perfect) + 10, 90)
+    prev_speed = planet_speed
+
+    for day_offset in range(1, max_days + 1):
+        jd = ephemeris_jd_start + day_offset
+        try:
+            calc_result = ephemeris_func(jd, planet_id)
+            # Handle both flat tuple and nested tuple from swisseph
+            if hasattr(calc_result[0], "__iter__"):
+                new_lon = float(calc_result[0][0])
+                new_speed = float(calc_result[0][3])
+            else:
+                new_lon = float(calc_result[0])
+                new_speed = float(calc_result[3])
+        except Exception as exc:  # noqa: BLE001
+            result["explanation"] = f"Ephemeris error on JD {jd}: {exc}"
+            return result
+
+        # Direct → Retrograde station detected
+        if prev_speed > 0 and new_speed <= 0:
+            result["station_jd"] = jd
+            result["station_longitude"] = round(new_lon, 4)
+            result["days_to_station"] = day_offset
+            result["will_refrenate"] = day_offset < days_to_perfect
+
+            if result["will_refrenate"]:
+                result["explanation"] = (
+                    f"{planet_name} stations RETROGRADE in {day_offset} days "
+                    f"@ {new_lon:.2f}\u00b0, BEFORE perfecting {aspect_angle}\u00b0 aspect "
+                    f"(needed {days_to_perfect:.2f} days). Matter is REFRENATED."
+                )
+            else:
+                result["explanation"] = (
+                    f"{planet_name} stations retrograde in {day_offset} days "
+                    f"@ {new_lon:.2f}\u00b0, but AFTER perfection "
+                    f"({days_to_perfect:.2f} days). No refrenation."
+                )
+            return result
+
+        prev_speed = new_speed
+
+    result["explanation"] = (
+        f"{planet_name} will not station retrograde within "
+        f"{max_days} days (perfection in {days_to_perfect:.2f} days)"
+    )
+    return result
+
+
+# ============================================================
+# RECEPTION QUALITY (Качество рецепции) — Lilly CA Book II p.112-118
+# ============================================================
+
+
+def analyze_reception_quality(
+    planet1: str,
+    planet1_lon: float,
+    planet2: str,
+    planet2_lon: float,
+    traditional: bool = True,
+) -> Dict[str, Any]:
+    """
+    Analyze quality of reception between two planets.
+
+    Reception = planet occupies sign ruled by another planet.
+    Quality depends on how dignified the received planet is in that sign.
+
+    Args:
+        planet1: First planet name
+        planet1_lon: Longitude of first planet
+        planet2: Second planet name
+        planet2_lon: Longitude of second planet
+        traditional: Use traditional rulerships (Saturn→Aquarius, Mars→Scorpio)
+
+    Returns:
+        {
+            'planet1_receives_planet2': {
+                'has_reception': bool,
+                'type': 'domicile' | None,
+                'quality': 'friendly' | 'hostile' | 'neutral',
+                'score': int,
+                'interpretation': str
+            },
+            'planet2_receives_planet1': { ... same ... },
+            'is_mutual': bool,
+            'overall_quality': 'friendly' | 'hostile' | 'mixed' | 'neutral'
+        }
+    """
+
+    def _reception_entry(
+        has_rec: bool,
+        rec_type: Optional[str],
+        quality: str,
+        score: int,
+        interpretation: str,
+    ) -> Dict[str, Any]:
+        return {
+            "has_reception": has_rec,
+            "type": rec_type,
+            "quality": quality,
+            "score": score,
+            "interpretation": interpretation,
+        }
+
+    def _assess(
+        receiver: str,
+        received_planet: str,
+        received_lon: float,
+        sign_of_receiver: str,
+    ) -> Dict[str, Any]:
+        """Assess the quality of `receiver` receiving `received_planet`."""
+        dignity = calculate_essential_dignity(received_planet, received_lon)
+        score = dignity.get("score", 0)
+        level = dignity.get("dignity_level", "Neutral")
+
+        # Use dignity_level so that compound scores (domicile+triplicity etc.)
+        # are evaluated correctly even when raw score is non-intuitive.
+        if level in ("Very Strong", "Strong"):
+            quality = "friendly"
+            interpretation = (
+                f"{receiver} receives {received_planet} in {sign_of_receiver} "
+                f"(friendly \u2014 {received_planet} {level.lower()} here, score +{score})"
+            )
+        elif level in ("Very Weak", "Weak"):
+            quality = "hostile"
+            interpretation = (
+                f"{receiver} receives {received_planet} in {sign_of_receiver} "
+                f"(hostile \u2014 {received_planet} {level.lower()} here, score {score})"
+            )
+        else:
+            quality = "neutral"
+            interpretation = (
+                f"{receiver} receives {received_planet} in {sign_of_receiver} "
+                f"(neutral, score {score})"
+            )
+
+        return _reception_entry(True, "domicile", quality, score, interpretation)
+
+    _empty = _reception_entry(False, None, "neutral", 0, "")
+
+    p1_sign = get_planet_sign(planet1_lon)
+    p2_sign = get_planet_sign(planet2_lon)
+
+    p1_ruler = get_dispositor(p1_sign, traditional=traditional)
+    p2_ruler = get_dispositor(p2_sign, traditional=traditional)
+
+    # planet2 receives planet1 (planet1 is in planet2's sign)
+    p2_receives_p1 = (
+        _assess(planet2, planet1, planet1_lon, p1_sign)
+        if p1_ruler == planet2
+        else _empty.copy()
+    )
+
+    # planet1 receives planet2 (planet2 is in planet1's sign)
+    p1_receives_p2 = (
+        _assess(planet1, planet2, planet2_lon, p2_sign)
+        if p2_ruler == planet1
+        else _empty.copy()
+    )
+
+    is_mutual = p1_receives_p2["has_reception"] and p2_receives_p1["has_reception"]
+
+    # Overall quality: collect all active reception qualities
+    active_qualities = set()
+    for side in (p1_receives_p2, p2_receives_p1):
+        if side["has_reception"]:
+            active_qualities.add(side["quality"])
+
+    if not active_qualities:
+        overall = "neutral"
+    elif active_qualities == {"friendly"}:
+        overall = "friendly"
+    elif active_qualities == {"hostile"}:
+        overall = "hostile"
+    elif "hostile" in active_qualities:
+        overall = "mixed"  # hostile + neutral, or hostile + friendly
+    else:
+        overall = "neutral"  # only neutral receptions present
+
+    return {
+        "planet1_receives_planet2": p1_receives_p2,
+        "planet2_receives_planet1": p2_receives_p1,
+        "is_mutual": is_mutual,
+        "overall_quality": overall,
+    }
