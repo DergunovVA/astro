@@ -1763,7 +1763,8 @@ def calculate_lord_of_hour(
     day_ruler = _DAY_RULERS[weekday % 7]
     day_ruler_idx = _CHALDEAN_ORDER.index(day_ruler)
 
-    is_day = sunrise_jd <= question_jd <= sunset_jd
+    # Sunset itself is the first night hour, not the last day hour.
+    is_day = sunrise_jd <= question_jd < sunset_jd
 
     if is_day:
         period_start = sunrise_jd
@@ -1785,7 +1786,11 @@ def calculate_lord_of_hour(
     # Which planetary hour are we in? (0-based within period)
     elapsed = question_jd - period_start
     if hour_len_jd > 0:
-        hour_index_0 = int(elapsed / hour_len_jd)
+        # Add tiny epsilon (≈8.6ms) to absorb floating-point cancellation error
+        # that arises from subtracting large JD values.  The ULP at JD≈2451545
+        # is ~4.7e-10; after dividing by hour_len, error scales to ~1e-8.
+        # 1e-7 JD is astronomically negligible for horary purposes.
+        hour_index_0 = int(elapsed / hour_len_jd + 1e-7)
     else:
         hour_index_0 = 0
     hour_index_0 = max(0, min(11, hour_index_0))  # clamp to 0–11
