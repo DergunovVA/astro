@@ -17,6 +17,9 @@ Techniques implemented:
 - Combust / Cazimi / Under Beams (planet proximity to Sun)
 - Part of Fortune (Arabic lot: ASC ± Moon ∓ Sun)
 - Frustration (planet changes sign before perfecting aspect)
+- Antiscia / Contra-antiscia (mirror aspects around Cancer/Capricorn axis)
+- Besieging (planet enclosed between Mars and Saturn)
+- Via Combusta (Moon in 15° Libra – 15° Scorpio)
 """
 
 from typing import Dict, Optional, Any, List
@@ -1214,5 +1217,324 @@ def check_frustration(
         "days_to_sign_change": days_to_sign_change,
         "planet1_sign_now": sign_now,
         "planet1_sign_after_change": sign_after,
+        "explanation": explanation,
+    }
+
+
+# ============================================================
+# ANTISCIA & CONTRA-ANTISCIA
+# ============================================================
+
+# Default orb for antiscia connections (traditional horary: 1°)
+_ANTISCIA_DEFAULT_ORB = 1.0
+
+
+def calculate_antiscia(longitude: float) -> Dict[str, Any]:
+    """
+    Calculate the antiscion and contra-antiscion of a point.
+
+    Antiscia are mirror points reflected around the Cancer/Capricorn
+    (summer/winter solstice) axis.  Points that are antiscia of each
+    other share the same solar declination and act like a hidden
+    conjunction in horary judgment.
+
+    Formula (reflection around the 90°–270° axis):
+        antiscion       = (180° − longitude) mod 360
+        contra-antiscion = (360° − longitude) mod 360   [= antiscion + 180°]
+
+    Traditional sign pairs (approximate):
+        Aries ↔ Virgo   Taurus ↔ Leo    Gemini ↔ Cancer
+        Libra ↔ Pisces  Scorpio ↔ Aquarius  Sagittarius ↔ Capricorn
+
+    Args:
+        longitude: Ecliptic longitude (degrees, 0–360).
+
+    Returns:
+        {
+            'antiscion':            float,  # antiscion longitude 0–360
+            'contra_antiscion':     float,  # contra-antiscion longitude 0–360
+            'sign_antiscion':       str,    # zodiac sign of antiscion
+            'sign_contra_antiscion': str,   # zodiac sign of contra-antiscion
+        }
+    """
+    lon = longitude % 360.0
+    antiscion = (180.0 - lon) % 360.0
+    contra = (360.0 - lon) % 360.0
+
+    return {
+        "antiscion": round(antiscion, 4),
+        "contra_antiscion": round(contra, 4),
+        "sign_antiscion": get_planet_sign(antiscion),
+        "sign_contra_antiscion": get_planet_sign(contra),
+    }
+
+
+def find_antiscia_aspects(
+    planet1_lon: float,
+    planet2_lon: float,
+    orb: float = _ANTISCIA_DEFAULT_ORB,
+) -> Dict[str, Any]:
+    """
+    Check whether two planets are connected via antiscia.
+
+    Two planets are connected if planet2's longitude falls within *orb*
+    degrees of either planet1's antiscion or planet1's contra-antiscion.
+
+    Args:
+        planet1_lon: Longitude of the first planet (degrees).
+        planet2_lon: Longitude of the second planet (degrees).
+        orb:         Maximum allowed separation (degrees). Default 1°.
+
+    Returns:
+        {
+            'has_antiscia':     bool,
+            'type':             'antiscion' | 'contra-antiscion' | None,
+            'orb':              float | None,   # actual separation
+            'antiscion_lon':    float,   # planet1's antiscion point
+            'contra_lon':       float,   # planet1's contra-antiscion point
+            'explanation':      str,
+        }
+    """
+    p1_points = calculate_antiscia(planet1_lon)
+    p2 = planet2_lon % 360.0
+
+    def _arc(a: float, b: float) -> float:
+        """Shortest unsigned arc between a and b (0–180)."""
+        diff = abs(a - b) % 360.0
+        return diff if diff <= 180.0 else 360.0 - diff
+
+    orb_antiscion = _arc(p1_points["antiscion"], p2)
+    orb_contra = _arc(p1_points["contra_antiscion"], p2)
+
+    best_type: Optional[str] = None
+    best_orb: Optional[float] = None
+
+    if orb_antiscion <= orb and (best_orb is None or orb_antiscion < best_orb):
+        best_type = "antiscion"
+        best_orb = round(orb_antiscion, 4)
+    if orb_contra <= orb and (best_orb is None or orb_contra < best_orb):
+        best_type = "contra-antiscion"
+        best_orb = round(orb_contra, 4)
+
+    has = best_type is not None
+
+    if has:
+        explanation = (
+            f"Planet1 ({planet1_lon:.2f}°) and Planet2 ({planet2_lon:.2f}°) "
+            f"are connected via {best_type} (orb={best_orb:.2f}°)."
+        )
+    else:
+        explanation = (
+            f"No antiscia connection between {planet1_lon:.2f}° and "
+            f"{planet2_lon:.2f}° within orb {orb}°."
+        )
+
+    return {
+        "has_antiscia": has,
+        "type": best_type,
+        "orb": best_orb,
+        "antiscion_lon": p1_points["antiscion"],
+        "contra_lon": p1_points["contra_antiscion"],
+        "explanation": explanation,
+    }
+
+
+# ============================================================
+# BESIEGING
+# ============================================================
+
+# Traditional malefics that create besieging
+_BESIEGING_MALEFICS = {"Mars", "Saturn"}
+
+
+def check_besieging(
+    planet_name: str,
+    planet_lon: float,
+    all_planets: Dict[str, Dict[str, Any]],
+    orb: float = 8.0,
+) -> Dict[str, Any]:
+    """
+    Check whether a planet is besieged between Mars and Saturn.
+
+    Besieging (William Lilly CA Book II): a planet is enclosed between
+    the two great malefics (Mars and Saturn) in the zodiac — one is
+    *ahead* and the other *behind* the planet by direct motion, within a
+    reasonable orb.  Being besieged is a strong accidental debility.
+
+    Detection rules:
+    - Find both malefics in *all_planets* (skip if either is absent or
+      is the planet under test).
+    - Express the signed arc from planet_lon to each malefic: positive =
+      malefic ahead (later in zodiac), negative = malefic behind.
+    - The planet is besieged when one malefic is ahead (+) AND the other
+      is behind (−), both within *orb* degrees.
+
+    Args:
+        planet_name:  Name of the planet to test.
+        planet_lon:   Ecliptic longitude of the planet (degrees).
+        all_planets:  Dict mapping planet name → {'lon': float, ...}.
+        orb:          Maximum distance (degrees) to each malefic.
+                      Default 8° (Lilly's standard major-aspect orb).
+
+    Returns:
+        {
+            'is_besieged':    bool,
+            'malefic_ahead':  str | None,   # name of malefic ahead
+            'malefic_behind': str | None,   # name of malefic behind
+            'arc_ahead':      float | None, # degrees planet is ahead of trailing malefic
+            'arc_behind':     float | None, # degrees planet is behind leading malefic
+            'explanation':    str,
+        }
+    """
+    malefic_data: Dict[str, float] = {}
+    for name in _BESIEGING_MALEFICS:
+        if name == planet_name:
+            continue
+        entry = all_planets.get(name)
+        if entry is None:
+            continue
+        lon = entry.get("lon", entry.get("longitude"))
+        if lon is not None:
+            malefic_data[name] = float(lon) % 360.0
+
+    if len(malefic_data) < 2:
+        return {
+            "is_besieged": False,
+            "malefic_ahead": None,
+            "malefic_behind": None,
+            "arc_ahead": None,
+            "arc_behind": None,
+            "explanation": "Less than two distinct malefics available — besieging cannot occur.",
+        }
+
+    p_lon = planet_lon % 360.0
+
+    def _signed_arc(from_lon: float, to_lon: float) -> float:
+        """Signed shortest arc: positive = to_lon ahead of from_lon."""
+        raw = (to_lon - from_lon) % 360.0
+        return raw if raw <= 180.0 else raw - 360.0
+
+    arcs = {name: _signed_arc(p_lon, lon) for name, lon in malefic_data.items()}
+    names = list(arcs)
+
+    m1_name, m2_name = names[0], names[1]
+    arc1, arc2 = arcs[m1_name], arcs[m2_name]
+
+    # One must be ahead (+) and the other behind (−) within orb
+    if arc1 > 0 and arc2 < 0:
+        ahead_name, behind_name = m1_name, m2_name
+        arc_ahead, arc_behind = arc1, abs(arc2)
+    elif arc2 > 0 and arc1 < 0:
+        ahead_name, behind_name = m2_name, m1_name
+        arc_ahead, arc_behind = arc2, abs(arc1)
+    else:
+        return {
+            "is_besieged": False,
+            "malefic_ahead": None,
+            "malefic_behind": None,
+            "arc_ahead": None,
+            "arc_behind": None,
+            "explanation": (
+                f"{planet_name} is not enclosed: both malefics are on the same side "
+                f"({m1_name}={arc1:+.2f}°, {m2_name}={arc2:+.2f}°)."
+            ),
+        }
+
+    if arc_ahead > orb or arc_behind > orb:
+        return {
+            "is_besieged": False,
+            "malefic_ahead": ahead_name,
+            "malefic_behind": behind_name,
+            "arc_ahead": round(arc_ahead, 4),
+            "arc_behind": round(arc_behind, 4),
+            "explanation": (
+                f"{planet_name} is flanked by malefics but outside orb {orb}°: "
+                f"{behind_name} {arc_behind:.2f}° behind, "
+                f"{ahead_name} {arc_ahead:.2f}° ahead."
+            ),
+        }
+
+    return {
+        "is_besieged": True,
+        "malefic_ahead": ahead_name,
+        "malefic_behind": behind_name,
+        "arc_ahead": round(arc_ahead, 4),
+        "arc_behind": round(arc_behind, 4),
+        "explanation": (
+            f"{planet_name} is BESIEGED: {behind_name} {arc_behind:.2f}° behind, "
+            f"{ahead_name} {arc_ahead:.2f}° ahead. Strong accidental debility."
+        ),
+    }
+
+
+# ============================================================
+# VIA COMBUSTA
+# ============================================================
+
+# Via Combusta: 15° Libra to 15° Scorpio
+# 15° Libra = 180° + 15° = 195°
+# 15° Scorpio = 210° + 15° = 225°
+_VIA_COMBUSTA_START = 195.0  # 15° Libra
+_VIA_COMBUSTA_END = 225.0  # 15° Scorpio
+
+
+def is_via_combusta(moon_lon: float) -> Dict[str, Any]:
+    """
+    Check whether the Moon is in the Via Combusta (Burned Way).
+
+    The Via Combusta spans 15° Libra to 15° Scorpio (195°–225°).
+    According to medieval tradition (Al-Biruni, Bonatti), the Moon in
+    this zone is greatly weakened and the chart is generally unfavourable
+    for judgment.
+
+    Exceptions noted by some authors:
+    - Moon conjunct Spica (≈203.7°, 23° Libra) or Arcturus (≈203.9°)
+      mitigates the via combusta.
+
+    Args:
+        moon_lon: Moon's ecliptic longitude (degrees, 0–360).
+
+    Returns:
+        {
+            'is_via_combusta': bool,
+            'moon_longitude':  float,
+            'moon_sign':       str,
+            'zone_start':      float,   # 195.0
+            'zone_end':        float,   # 225.0
+            'degrees_into_zone': float | None,  # None if not in zone
+            'explanation':     str,
+        }
+    """
+    lon = moon_lon % 360.0
+    in_zone = _VIA_COMBUSTA_START <= lon <= _VIA_COMBUSTA_END
+    sign = get_planet_sign(lon)
+
+    degrees_into = round(lon - _VIA_COMBUSTA_START, 4) if in_zone else None
+
+    if in_zone:
+        explanation = (
+            f"Moon at {lon:.2f}° ({sign}) is in Via Combusta "
+            f"(15° Libra – 15° Scorpio, 195°–225°). "
+            f"{degrees_into:.2f}° into the zone. Moon greatly weakened."
+        )
+    else:
+        if lon < _VIA_COMBUSTA_START:
+            dist = round(_VIA_COMBUSTA_START - lon, 4)
+            explanation = (
+                f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° before Via Combusta."
+            )
+        else:
+            dist = round(lon - _VIA_COMBUSTA_END, 4)
+            explanation = (
+                f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° past Via Combusta."
+            )
+
+    return {
+        "is_via_combusta": in_zone,
+        "moon_longitude": round(lon, 4),
+        "moon_sign": sign,
+        "zone_start": _VIA_COMBUSTA_START,
+        "zone_end": _VIA_COMBUSTA_END,
+        "degrees_into_zone": degrees_into,
         "explanation": explanation,
     }
