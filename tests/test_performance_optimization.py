@@ -47,7 +47,7 @@ class TestCachingPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(parse_without_cache)
-        assert result == True
+        assert result
 
     def test_simple_parse_with_cache_miss(self, benchmark, sample_chart):
         """Parse with cache (first call - cache miss)"""
@@ -60,7 +60,7 @@ class TestCachingPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(parse_with_cache_miss)
-        assert result == True
+        assert result
 
     def test_simple_parse_with_cache_hit(self, benchmark, sample_chart):
         """Parse with cache (subsequent calls - cache hit)"""
@@ -76,7 +76,7 @@ class TestCachingPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(parse_with_cache_hit)
-        assert result == True
+        assert result
 
     def test_complex_parse_without_cache(self, benchmark, sample_chart):
         """Baseline: Parse complex formula without cache"""
@@ -91,7 +91,7 @@ class TestCachingPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(parse_complex_without_cache)
-        assert result == True
+        assert result
 
     def test_complex_parse_with_cache_hit(self, benchmark, sample_chart):
         """Parse complex formula with cache hit"""
@@ -110,7 +110,7 @@ class TestCachingPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(parse_with_cache)
-        assert result == True
+        assert result
 
 
 class TestBatchProcessingPerformance:
@@ -185,7 +185,6 @@ class TestLazyEvaluationPerformance:
 
         # Create expensive formula (50 comparisons on right side)
         expensive_conditions = " OR ".join([f"Sun.House == {i}" for i in range(2, 52)])
-        formula = f"Sun.Sign == Leo AND ({expensive_conditions})"
 
         def evaluate_without_shortcircuit():
             # Manually evaluate both sides (simulating no lazy eval)
@@ -198,7 +197,7 @@ class TestLazyEvaluationPerformance:
             return left_result and right_result
 
         result = benchmark(evaluate_without_shortcircuit)
-        assert result == False
+        assert not result
 
     def test_and_with_expensive_right_lazy(self, benchmark, sample_chart):
         """With lazy evaluation: AND short-circuits, skips expensive right"""
@@ -213,7 +212,7 @@ class TestLazyEvaluationPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(evaluate_with_shortcircuit)
-        assert result == False
+        assert not result
 
     def test_or_with_expensive_right_no_lazy(self, benchmark, sample_chart):
         """Baseline: OR with expensive right side (would evaluate all)"""
@@ -221,7 +220,6 @@ class TestLazyEvaluationPerformance:
         expensive_conditions = " AND ".join(
             [f"Moon.House == {i}" for i in range(3, 53)]
         )
-        formula = f"Sun.Sign == Aries OR ({expensive_conditions})"
 
         def evaluate_without_shortcircuit():
             ast_left = parse("Sun.Sign == Aries")
@@ -233,7 +231,7 @@ class TestLazyEvaluationPerformance:
             return left_result or right_result
 
         result = benchmark(evaluate_without_shortcircuit)
-        assert result == True
+        assert result
 
     def test_or_with_expensive_right_lazy(self, benchmark, sample_chart):
         """With lazy evaluation: OR short-circuits, skips expensive right"""
@@ -249,7 +247,7 @@ class TestLazyEvaluationPerformance:
             return evaluator.evaluate(ast)
 
         result = benchmark(evaluate_with_shortcircuit)
-        assert result == True
+        assert result
 
 
 class TestCombinedOptimizations:

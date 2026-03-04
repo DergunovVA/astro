@@ -98,14 +98,14 @@ class TestBatchEvaluator:
         results = evaluator.evaluate_batch(formulas, use_cache=False)
 
         assert results == [True, True]
-        assert evaluator.get_stats()["cache_enabled"] == False
+        assert not evaluator.get_stats()["cache_enabled"]
 
     def test_evaluate_single(self):
         """Test single formula evaluation"""
         evaluator = BatchEvaluator(SAMPLE_CHART)
         result = evaluator.evaluate_single("Sun.Sign == Aries")
 
-        assert result == True
+        assert result
 
     def test_get_stats(self):
         """Test statistics tracking"""
@@ -118,7 +118,7 @@ class TestBatchEvaluator:
         assert stats["total_formulas"] == 2
         assert stats["total_time_ms"] > 0
         assert stats["avg_time_ms"] > 0
-        assert stats["cache_enabled"] == True
+        assert stats["cache_enabled"]
 
     def test_reset_stats(self):
         """Test resetting statistics"""
@@ -182,26 +182,26 @@ class TestEvaluateAllTrue:
         formulas = ["Sun.Sign == Aries", "Moon.Sign == Taurus", "Mars.Sign == Leo"]
 
         result = evaluate_all_true(formulas, SAMPLE_CHART)
-        assert result == True
+        assert result
 
     def test_not_all_true(self):
         """Test when not all formulas are true"""
         formulas = ["Sun.Sign == Aries", "Moon.Sign == Leo"]  # Second is False
 
         result = evaluate_all_true(formulas, SAMPLE_CHART)
-        assert result == False
+        assert not result
 
     def test_all_false(self):
         """Test when all formulas are false"""
         formulas = ["Sun.Sign == Leo", "Moon.Sign == Aries"]
 
         result = evaluate_all_true(formulas, SAMPLE_CHART)
-        assert result == False
+        assert not result
 
     def test_empty_list(self):
         """Test with empty list (vacuously true)"""
         result = evaluate_all_true([], SAMPLE_CHART)
-        assert result == True  # all([]) == True in Python
+        assert result  # all([]) == True in Python
 
 
 class TestEvaluateAnyTrue:
@@ -216,26 +216,26 @@ class TestEvaluateAnyTrue:
         formulas = ["Sun.Sign == Leo", "Moon.Sign == Taurus"]  # Second is True
 
         result = evaluate_any_true(formulas, SAMPLE_CHART)
-        assert result == True
+        assert result
 
     def test_all_true(self):
         """Test when all formulas are true"""
         formulas = ["Sun.Sign == Aries", "Moon.Sign == Taurus"]
 
         result = evaluate_any_true(formulas, SAMPLE_CHART)
-        assert result == True
+        assert result
 
     def test_none_true(self):
         """Test when no formulas are true"""
         formulas = ["Sun.Sign == Leo", "Moon.Sign == Aries"]
 
         result = evaluate_any_true(formulas, SAMPLE_CHART)
-        assert result == False
+        assert not result
 
     def test_empty_list(self):
         """Test with empty list"""
         result = evaluate_any_true([], SAMPLE_CHART)
-        assert result == False  # any([]) == False in Python
+        assert not result  # any([]) == False in Python
 
 
 class TestBatchPerformance:

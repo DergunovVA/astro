@@ -130,7 +130,7 @@ class TestLexerRegression:
         """Lexer simple formula should not regress beyond warning threshold"""
         formula = "Sun.Sign"
 
-        result = benchmark(tokenize, formula)
+        benchmark(tokenize, formula)
         warning_us = get_threshold_us("lexer", "simple", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000  # Convert s to μs
 
@@ -143,7 +143,7 @@ class TestLexerRegression:
         """Lexer medium formula should not regress beyond warning threshold"""
         formula = "Sun.Sign == Aries AND Moon.House IN [1,2,3]"
 
-        result = benchmark(tokenize, formula)
+        benchmark(tokenize, formula)
 
         warning_us = get_threshold_us("lexer", "medium", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -156,7 +156,7 @@ class TestLexerRegression:
         """Lexer complex formula should not regress beyond warning threshold"""
         formula = "(Sun.Sign == Aries OR Moon.Sign == Taurus) AND (Jupiter.House IN [1,4,7,10])"
 
-        result = benchmark(tokenize, formula)
+        benchmark(tokenize, formula)
 
         warning_us = get_threshold_us("lexer", "complex", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -178,7 +178,7 @@ class TestParserRegression:
         """Parser simple formula should not regress beyond warning threshold"""
         formula = "Sun.Sign"
 
-        result = benchmark(parse, formula)
+        benchmark(parse, formula)
 
         warning_us = get_threshold_us("parser", "simple", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -191,7 +191,7 @@ class TestParserRegression:
         """Parser medium formula should not regress beyond warning threshold"""
         formula = "Sun.Sign == Aries AND Moon.House > 5"
 
-        result = benchmark(parse, formula)
+        benchmark(parse, formula)
 
         warning_us = get_threshold_us("parser", "medium", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -204,7 +204,7 @@ class TestParserRegression:
         """Parser complex formula should not regress beyond warning threshold"""
         formula = "Rulership IN planets.Dignity OR Exaltation IN planets.Dignity"
 
-        result = benchmark(parse, formula)
+        benchmark(parse, formula)
 
         warning_us = get_threshold_us("parser", "complex", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -226,7 +226,7 @@ class TestEvaluatorRegression:
         """Evaluator simple formula should not regress beyond warning threshold"""
         formula = "Sun.Sign"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("evaluator", "simple", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -239,7 +239,7 @@ class TestEvaluatorRegression:
         """Evaluator medium formula should not regress beyond warning threshold"""
         formula = "Sun.House IN [1,4,7,10] AND Moon.Dignity == Exaltation"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("evaluator", "medium", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -252,7 +252,7 @@ class TestEvaluatorRegression:
         """Evaluator complex formula should not regress beyond warning threshold"""
         formula = "Rulership IN planets.Dignity AND Sun.House IN [1,4,7,10]"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("evaluator", "complex", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -274,7 +274,7 @@ class TestEndToEndRegression:
         """End-to-end simple formula should not regress beyond warning threshold"""
         formula = "Sun.Sign == Aries"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("end_to_end", "simple", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -287,7 +287,7 @@ class TestEndToEndRegression:
         """End-to-end medium formula should not regress beyond warning threshold"""
         formula = "Sun.Sign == Aries AND Moon.House >= 1"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("end_to_end", "medium", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -300,7 +300,7 @@ class TestEndToEndRegression:
         """End-to-end complex formula should not regress beyond warning threshold"""
         formula = "(Sun.House IN [1,4,7,10] OR Moon.House IN [1,4,7,10]) AND (Rulership IN planets.Dignity OR Exaltation IN planets.Dignity)"
 
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         warning_us = get_threshold_us("end_to_end", "complex", "warning")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -324,7 +324,7 @@ class TestCriticalThresholds:
 
     def test_critical_lexer_simple(self, benchmark):
         """CRITICAL: Lexer simple must stay under critical threshold"""
-        result = benchmark(tokenize, "Sun.Sign")
+        benchmark(tokenize, "Sun.Sign")
 
         critical_us = get_threshold_us("lexer", "simple", "critical")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -335,7 +335,7 @@ class TestCriticalThresholds:
 
     def test_critical_parser_complex(self, benchmark):
         """CRITICAL: Parser complex must stay under critical threshold"""
-        result = benchmark(
+        benchmark(
             parse, "Rulership IN planets.Dignity OR Exaltation IN planets.Dignity"
         )
 
@@ -348,7 +348,7 @@ class TestCriticalThresholds:
 
     def test_critical_evaluator_complex(self, benchmark):
         """CRITICAL: Evaluator complex must stay under critical threshold"""
-        result = benchmark(
+        benchmark(
             evaluate,
             "Rulership IN planets.Dignity AND (Sun.House IN [1,4,7,10] OR Moon.House IN [1,4,7,10])",
             SAMPLE_CHART,
@@ -364,7 +364,7 @@ class TestCriticalThresholds:
     def test_critical_e2e_complex(self, benchmark):
         """CRITICAL: End-to-end complex must stay under critical threshold"""
         formula = "(Sun.House IN [1,4,7,10]) AND (Moon.House IN [1,4,7,10]) AND (Rulership IN planets.Dignity)"
-        result = benchmark(evaluate, formula, SAMPLE_CHART)
+        benchmark(evaluate, formula, SAMPLE_CHART)
 
         critical_us = get_threshold_us("end_to_end", "complex", "critical")
         mean_us = benchmark.stats["mean"] * 1_000_000
@@ -400,7 +400,7 @@ class TestThroughputRegression:
         def batch_eval():
             return [evaluate(f, SAMPLE_CHART) for f in formulas]
 
-        result = benchmark(batch_eval)
+        benchmark(batch_eval)
 
         # Throughput check: should process 10 formulas quickly
         mean_us = benchmark.stats["mean"] * 1_000_000

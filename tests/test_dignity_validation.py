@@ -50,7 +50,7 @@ class TestRetrogradeValidation:
         result = validator.check_retrograde("Sun")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert result.level == ValidationLevel.ERROR
         assert "Sun" in result.message
         assert "не может быть ретроградным" in result.message
@@ -60,7 +60,7 @@ class TestRetrogradeValidation:
         result = validator.check_retrograde("Moon")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert "Moon" in result.message
 
     def test_mercury_can_be_retrograde(self, validator):
@@ -79,7 +79,7 @@ class TestRetrogradeValidation:
         for angle in ["Asc", "MC", "IC", "Dsc"]:
             result = validator.check_retrograde(angle)
             assert result is not None
-            assert result.is_valid == False
+            assert not result.is_valid
 
     def test_error_message_contains_suggestions(self, validator):
         """Сообщение об ошибке содержит предложения"""
@@ -98,7 +98,7 @@ class TestSelfAspectValidation:
         result = validator.check_self_aspect("Mars", "Mars")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert result.level == ValidationLevel.ERROR
         assert "сам" in result.message.lower()
 
@@ -122,13 +122,13 @@ class TestRangeValidation:
         """Дом 0 невалиден"""
         result = validator.check_house_range(0)
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
     def test_invalid_house_13(self, validator):
         """Дом 13 невалиден"""
         result = validator.check_house_range(13)
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
     def test_valid_degrees_in_sign(self, validator):
         """Градусы 0-29 валидны"""
@@ -140,7 +140,7 @@ class TestRangeValidation:
         """Градус 30 в знаке невалиден"""
         result = validator.check_degree_range(30, absolute=False)
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
     def test_valid_absolute_degrees(self, validator):
         """Абсолютные градусы 0-359 валидны"""
@@ -162,7 +162,7 @@ class TestRulerValidation:
         result = validator.check_ruler_usage("Mars", "Venus")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert result.level == ValidationLevel.ERROR
         assert "бессмысленна" in result.message
         assert "Планета не" in result.details
@@ -197,7 +197,7 @@ class TestExaltationValidation:
         result = validator.check_exaltation("Sun", "Taurus")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert result.level == ValidationLevel.ERROR
         assert "Aries" in result.message  # Указывает правильный знак
         assert "НЕ в Taurus" in result.message
@@ -217,7 +217,7 @@ class TestExaltationValidation:
         result = validator.check_exaltation("Mars", "Aries")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert "Capricorn" in result.message
 
     def test_outer_planet_exaltation_warning(self, validator):
@@ -251,7 +251,7 @@ class TestConflictingDignities:
         result = validator.check_conflicting_dignities("Mars", "Rulership", "Fall")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert result.level == ValidationLevel.ERROR
         assert "одновременно" in result.message.lower()
 
@@ -260,7 +260,7 @@ class TestConflictingDignities:
         result = validator.check_conflicting_dignities("Sun", "Exaltation", "Detriment")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
     def test_same_dignity_ok(self, validator):
         """Одно и то же достоинство - не конфликт"""
@@ -290,7 +290,7 @@ class TestDignitySignMatch:
         result = validator.check_dignity_sign_match("Mars", "Taurus", "Rulership")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
         assert "Venus" in result.message  # Указывает правильного управителя
 
     def test_sun_exaltation_in_aries_ok(self, validator):
@@ -304,7 +304,7 @@ class TestDignitySignMatch:
         result = validator.check_dignity_sign_match("Sun", "Libra", "Exaltation")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
     def test_saturn_fall_in_aries_ok(self, validator):
         """Saturn в Aries + Fall = OK"""
@@ -317,7 +317,7 @@ class TestDignitySignMatch:
         result = validator.check_dignity_sign_match("Saturn", "Leo", "Fall")
 
         assert result is not None
-        assert result.is_valid == False
+        assert not result.is_valid
 
 
 class TestLookupTables:
@@ -333,7 +333,7 @@ class TestLookupTables:
         """Таблица exaltation_lookup построена"""
         assert hasattr(validator, "exaltation_lookup")
         assert ("Sun", "Aries") in validator.exaltation_lookup
-        assert validator.exaltation_lookup[("Sun", "Aries")] == True
+        assert validator.exaltation_lookup[("Sun", "Aries")]
 
     def test_fall_lookup_built(self, validator):
         """Таблица fall_lookup построена"""
@@ -391,27 +391,27 @@ class TestHelperMethods:
 
     def test_is_in_rulership(self, validator):
         """Проверка управления"""
-        assert validator.is_in_rulership("Mars", "Aries") == True
-        assert validator.is_in_rulership("Mars", "Taurus") == False
-        assert validator.is_in_rulership("Venus", "Taurus") == True
+        assert validator.is_in_rulership("Mars", "Aries")
+        assert not validator.is_in_rulership("Mars", "Taurus")
+        assert validator.is_in_rulership("Venus", "Taurus")
 
     def test_is_in_exaltation(self, validator):
         """Проверка экзальтации"""
-        assert validator.is_in_exaltation("Sun", "Aries") == True
-        assert validator.is_in_exaltation("Sun", "Taurus") == False
-        assert validator.is_in_exaltation("Moon", "Taurus") == True
+        assert validator.is_in_exaltation("Sun", "Aries")
+        assert not validator.is_in_exaltation("Sun", "Taurus")
+        assert validator.is_in_exaltation("Moon", "Taurus")
 
     def test_is_in_fall(self, validator):
         """Проверка падения"""
-        assert validator.is_in_fall("Sun", "Libra") == True
-        assert validator.is_in_fall("Sun", "Aries") == False
-        assert validator.is_in_fall("Saturn", "Aries") == True
+        assert validator.is_in_fall("Sun", "Libra")
+        assert not validator.is_in_fall("Sun", "Aries")
+        assert validator.is_in_fall("Saturn", "Aries")
 
     def test_is_in_detriment(self, validator):
         """Проверка изгнания"""
-        assert validator.is_in_detriment("Sun", "Aquarius") == True
-        assert validator.is_in_detriment("Sun", "Leo") == False
-        assert validator.is_in_detriment("Mars", "Libra") == True
+        assert validator.is_in_detriment("Sun", "Aquarius")
+        assert not validator.is_in_detriment("Sun", "Leo")
+        assert validator.is_in_detriment("Mars", "Libra")
 
     def test_get_dignity_status_rulership(self, validator):
         """Определение статуса: Rulership"""
@@ -496,7 +496,7 @@ class TestPerformance:
         """O(1) lookup должен быть быстрым"""
         # pytest-benchmark автоматически измеряет время
         result = benchmark(validator.is_in_rulership, "Mars", "Aries")
-        assert result == True
+        assert result
 
     def test_multiple_checks_fast(self, validator):
         """100 проверок должны выполниться быстро"""

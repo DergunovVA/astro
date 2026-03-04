@@ -20,6 +20,8 @@ Techniques implemented:
 - Antiscia / Contra-antiscia (mirror aspects around Cancer/Capricorn axis)
 - Besieging (planet enclosed between Mars and Saturn)
 - Via Combusta (Moon in 15° Libra – 15° Scorpio)
+- Fixed Stars (conjunctions to Regulus, Algol, Spica and 12 other stars)
+- Lord of the Hour (Chaldean planetary hour ruler at time of question)
 """
 
 from typing import Dict, Optional, Any, List
@@ -1536,5 +1538,280 @@ def is_via_combusta(moon_lon: float) -> Dict[str, Any]:
         "zone_start": _VIA_COMBUSTA_START,
         "zone_end": _VIA_COMBUSTA_END,
         "degrees_into_zone": degrees_into,
+        "explanation": explanation,
+    }
+
+
+# ============================================================
+# FIXED STARS
+# ============================================================
+
+# Tropical longitudes for epoch J2000.0 (precession ≈ 50.3"/yr from catalog).
+# Values here are traditional / approximate positions used in classical horary,
+# accurate to within ~1° for the early-21st-century window.
+# Source: Robson "Fixed Stars and Constellations" (1923), updated for J2000.
+FIXED_STARS: Dict[str, Dict[str, Any]] = {
+    "Algol": {
+        "lon": 56.3,  # 26°18' Taurus
+        "nature": "Saturn/Mars",
+        "effect": "Violence, losing one's head, misfortune",
+        "magnitude": 2.1,
+    },
+    "Pleiades": {
+        "lon": 60.0,  # 0° Gemini
+        "nature": "Moon/Mars",
+        "effect": "Injuries to the face or eyes, sorrow",
+        "magnitude": 1.6,
+    },
+    "Aldebaran": {
+        "lon": 69.9,  # 9°54' Gemini
+        "nature": "Mars",
+        "effect": "Honor, intelligence, courage — but danger",
+        "magnitude": 0.9,
+    },
+    "Rigel": {
+        "lon": 77.0,  # 17° Gemini
+        "nature": "Jupiter/Saturn",
+        "effect": "Honors, wealth, fortune",
+        "magnitude": 0.1,
+    },
+    "Capella": {
+        "lon": 81.9,  # 21°54' Gemini
+        "nature": "Mercury/Mars",
+        "effect": "Inquisitiveness, restlessness, success",
+        "magnitude": 0.1,
+    },
+    "Sirius": {
+        "lon": 104.0,  # 14° Cancer
+        "nature": "Jupiter/Mars",
+        "effect": "Success, renown, wealth, ardor",
+        "magnitude": -1.5,
+    },
+    "Regulus": {
+        "lon": 150.0,  # 0° Virgo (precessed from 29° Leo in earlier epoch)
+        "nature": "Jupiter/Mars",
+        "effect": "Royal success, honor, power — with risk of downfall",
+        "magnitude": 1.3,
+    },
+    "Spica": {
+        "lon": 203.7,  # 23°42' Libra
+        "nature": "Venus/Mercury",
+        "effect": "Protection, brilliance, fortune, success",
+        "magnitude": 0.9,
+    },
+    "Arcturus": {
+        "lon": 203.9,  # 23°54' Libra
+        "nature": "Jupiter/Mars",
+        "effect": "Riches and honor from the people",
+        "magnitude": -0.1,
+    },
+    "Antares": {
+        "lon": 249.7,  # 9°42' Sagittarius
+        "nature": "Mars/Jupiter",
+        "effect": "Recklessness, obstinacy, clashes — but success through courage",
+        "magnitude": 1.0,
+    },
+    "Vega": {
+        "lon": 285.2,  # 15°12' Capricorn
+        "nature": "Venus/Mercury",
+        "effect": "Luck in politics, music, and creative arts",
+        "magnitude": 0.0,
+    },
+    "Deneb Algedi": {
+        "lon": 323.3,  # 23°18' Aquarius
+        "nature": "Saturn/Jupiter",
+        "effect": "Justice, authority, sorrow and loss",
+        "magnitude": 2.8,
+    },
+    "Fomalhaut": {
+        "lon": 333.9,  # 3°54' Pisces
+        "nature": "Venus/Mercury",
+        "effect": "Fame, idealism, spiritual matters",
+        "magnitude": 1.2,
+    },
+    "Scheat": {
+        "lon": 349.1,  # 19°6' Pisces
+        "nature": "Mars/Mercury",
+        "effect": "Disasters, imprisonment, drowning",
+        "magnitude": 2.4,
+    },
+}
+
+_FIXED_STAR_DEFAULT_ORB = 1.0  # traditional horary: 1° orb for fixed stars
+
+
+def check_fixed_star_conjunctions(
+    planet_lon: float,
+    orb: float = _FIXED_STAR_DEFAULT_ORB,
+    stars: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Find fixed-star conjunctions for a given planetary longitude.
+
+    Only conjunctions are meaningful in traditional horary (not trines etc.).
+    The orb is typically 1° (strict) per Lilly and Frawley.
+
+    Args:
+        planet_lon: Ecliptic longitude of the planet (degrees, 0–360).
+        orb:        Maximum conjunction orb in degrees (default 1°).
+        stars:      Optional custom star catalogue.  Defaults to FIXED_STARS.
+
+    Returns:
+        List of dicts, one per conjunct star, sorted by ascending orb:
+        [
+            {
+                'star':      str,   # star name
+                'star_lon':  float, # star's longitude
+                'orb':       float, # actual separation
+                'nature':    str,   # planetary nature (e.g. 'Jupiter/Mars')
+                'effect':    str,   # traditional interpretation
+                'magnitude': float, # visual magnitude
+            },
+            ...
+        ]
+        Empty list if no stars are within orb.
+    """
+    catalog = stars if stars is not None else FIXED_STARS
+    p = planet_lon % 360.0
+    results = []
+
+    for name, data in catalog.items():
+        star_lon = data["lon"] % 360.0
+        # shortest arc
+        raw = abs(p - star_lon) % 360.0
+        separation = raw if raw <= 180.0 else 360.0 - raw
+        if separation <= orb:
+            results.append(
+                {
+                    "star": name,
+                    "star_lon": star_lon,
+                    "orb": round(separation, 4),
+                    "nature": data.get("nature", ""),
+                    "effect": data.get("effect", ""),
+                    "magnitude": data.get("magnitude", None),
+                }
+            )
+
+    results.sort(key=lambda x: x["orb"])
+    return results
+
+
+# ============================================================
+# LORD OF THE HOUR
+# ============================================================
+
+# Chaldean (descending) planetary order: Saturn → Jupiter → Mars → Sun → Venus → Mercury → Moon
+_CHALDEAN_ORDER: List[str] = [
+    "Saturn",
+    "Jupiter",
+    "Mars",
+    "Sun",
+    "Venus",
+    "Mercury",
+    "Moon",
+]
+
+# Day-of-week rulers (Monday=0 in Python weekday(); map to Chaldean planets)
+# Traditional: Sunday=Sun, Monday=Moon, Tuesday=Mars, Wednesday=Mercury,
+#              Thursday=Jupiter, Friday=Venus, Saturday=Saturn
+_DAY_RULERS: List[str] = [
+    "Moon",  # Monday   (weekday 0)
+    "Mars",  # Tuesday  (weekday 1)
+    "Mercury",  # Wednesday(weekday 2)
+    "Jupiter",  # Thursday (weekday 3)
+    "Venus",  # Friday   (weekday 4)
+    "Saturn",  # Saturday (weekday 5)
+    "Sun",  # Sunday   (weekday 6)
+]
+
+
+def calculate_lord_of_hour(
+    question_jd: float,
+    sunrise_jd: float,
+    sunset_jd: float,
+    weekday: int,
+) -> Dict[str, Any]:
+    """
+    Calculate the Lord of the Hour using the Chaldean planetary-hour system.
+
+    Planetary hours are unequal ("seasonal hours"): each half of the day is
+    divided into 12 equal segments.  The ruler of hour 1 of each day is the
+    day ruler; subsequent hours cycle through the Chaldean order.
+
+    Rules (Lilly CA, Book I):
+    - If question_jd is between sunrise and sunset: daytime hours.
+    - If before sunrise or after sunset: nighttime hours.
+    - Radicality: the chart is more radical if the Ascendant's ruler equals
+      the Lord of the Hour, or is of the same triplicity.
+
+    Args:
+        question_jd:  Julian Day Number of the moment of the question.
+        sunrise_jd:   Julian Day Number of sunrise on the same calendar day.
+        sunset_jd:    Julian Day Number of sunset on the same calendar day.
+        weekday:      Python weekday() of the question date (0=Mon … 6=Sun).
+
+    Returns:
+        {
+            'lord_of_hour':     str,    # planet name
+            'hour_number':      int,    # 1-based planetary hour index
+            'is_day':           bool,   # True if question is in daytime hours
+            'day_ruler':        str,    # ruler of the day
+            'hour_length_min':  float,  # length of one planetary hour in minutes
+            'explanation':      str,
+        }
+    """
+    day_ruler = _DAY_RULERS[weekday % 7]
+    day_ruler_idx = _CHALDEAN_ORDER.index(day_ruler)
+
+    is_day = sunrise_jd <= question_jd <= sunset_jd
+
+    if is_day:
+        period_start = sunrise_jd
+        period_length_jd = sunset_jd - sunrise_jd
+    else:
+        if question_jd < sunrise_jd:
+            # Before today's sunrise: night period started at previous sunset.
+            # Approximate: previous sunset ≈ sunset_jd − 1 day.
+            period_start = sunset_jd - 1.0
+        else:
+            # After today's sunset: night period starts at today's sunset.
+            period_start = sunset_jd
+        period_length_jd = 1.0 - (sunset_jd - sunrise_jd)  # night fraction of day
+
+    # Length of one planetary hour (in Julian Day fractions)
+    hour_len_jd = period_length_jd / 12.0 if period_length_jd > 0 else 1.0 / 24.0
+    hour_len_min = round(hour_len_jd * 24.0 * 60.0, 4)
+
+    # Which planetary hour are we in? (0-based within period)
+    elapsed = question_jd - period_start
+    if hour_len_jd > 0:
+        hour_index_0 = int(elapsed / hour_len_jd)
+    else:
+        hour_index_0 = 0
+    hour_index_0 = max(0, min(11, hour_index_0))  # clamp to 0–11
+
+    # Daytime hours continue the Chaldean sequence from hour 1 of the day.
+    # Night hours follow immediately after the 12th day hour.
+    if is_day:
+        offset = hour_index_0
+    else:
+        offset = 12 + hour_index_0  # night hours are 13th–24th of the 24-hour cycle
+
+    lord_idx = (day_ruler_idx + offset) % 7
+    lord = _CHALDEAN_ORDER[lord_idx]
+    hour_number = 1 + (hour_index_0 if is_day else 12 + hour_index_0)
+
+    period_name = "day" if is_day else "night"
+    explanation = (
+        f"Lord of the Hour: {lord} (#{hour_number}, {period_name} hour). "
+        f"Day ruler: {day_ruler}. Hour length: {hour_len_min:.1f} min."
+    )
+
+    return {
+        "lord_of_hour": lord,
+        "hour_number": hour_number,
+        "is_day": is_day,
+        "day_ruler": day_ruler,
+        "hour_length_min": hour_len_min,
         "explanation": explanation,
     }

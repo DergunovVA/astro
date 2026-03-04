@@ -202,7 +202,7 @@ class TelegramChannelAnalyzer:
 
         # Частота публикаций
         dates = [datetime.fromisoformat(p["date"]).date() for p in posts]
-        date_counts = Counter(dates)
+        Counter(dates)
         avg_posts_per_day = len(posts) / len(set(dates)) if dates else 0
 
         # Реакции

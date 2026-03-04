@@ -30,7 +30,7 @@ class TestLazyEvaluationAND:
         # Should return False without evaluating NonExistent.Sign
         # (which would raise an error)
         result = evaluator.evaluate(ast)
-        assert result == False
+        assert not result
 
     def test_and_evaluates_right_when_left_true(self):
         """Test that AND evaluates right when left is True"""
@@ -41,7 +41,7 @@ class TestLazyEvaluationAND:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == True
+        assert result
 
     def test_and_returns_false_when_both_false(self):
         """Test AND with both sides False"""
@@ -52,7 +52,7 @@ class TestLazyEvaluationAND:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == False
+        assert not result
 
 
 class TestLazyEvaluationOR:
@@ -74,7 +74,7 @@ class TestLazyEvaluationOR:
 
         # Should return True without evaluating NonExistent.Sign
         result = evaluator.evaluate(ast)
-        assert result == True
+        assert result
 
     def test_or_evaluates_right_when_left_false(self):
         """Test that OR evaluates right when left is False"""
@@ -85,7 +85,7 @@ class TestLazyEvaluationOR:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == True
+        assert result
 
     def test_or_returns_false_when_both_false(self):
         """Test OR with both sides False"""
@@ -96,7 +96,7 @@ class TestLazyEvaluationOR:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == False
+        assert not result
 
 
 class TestComplexLazyEvaluation:
@@ -119,7 +119,7 @@ class TestComplexLazyEvaluation:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == True
+        assert result
 
     def test_multiple_and_short_circuit(self):
         """Test multiple ANDs with early short-circuit"""
@@ -136,7 +136,7 @@ class TestComplexLazyEvaluation:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == False
+        assert not result
 
     def test_multiple_or_short_circuit(self):
         """Test multiple ORs with early short-circuit"""
@@ -153,7 +153,7 @@ class TestComplexLazyEvaluation:
         evaluator = Evaluator(chart)
 
         result = evaluator.evaluate(ast)
-        assert result == True
+        assert result
 
 
 class TestPerformanceBenefit:
@@ -177,7 +177,7 @@ class TestPerformanceBenefit:
         result = evaluator.evaluate(ast)
         elapsed = time.perf_counter() - start
 
-        assert result == False
+        assert not result
         # Should complete very quickly (< 1ms) because right side skipped
         assert elapsed < 0.001  # Less than 1 millisecond
 
@@ -199,7 +199,7 @@ class TestPerformanceBenefit:
         result = evaluator.evaluate(ast)
         elapsed = time.perf_counter() - start
 
-        assert result == True
+        assert result
         # Should complete very quickly
         assert elapsed < 0.001  # Less than 1 millisecond
 
