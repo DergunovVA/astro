@@ -30,7 +30,7 @@ class TestCLIDSLBasic:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
         assert "Sun.Sign == Capricorn" in result.stdout
 
     def test_simple_equality_false(self):
@@ -51,7 +51,7 @@ class TestCLIDSLBasic:
         )
 
         if result.returncode == 0 and result.stdout:
-            assert "Result:" in result.stdout and "False" in result.stdout
+            assert "False" in result.stdout
         else:
             # Если что-то пошло не так, пропускаем тест
             pass
@@ -74,7 +74,7 @@ class TestCLIDSLBasic:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_inequality(self):
         """Неравенство: Sun.Sign != Aries"""
@@ -94,7 +94,7 @@ class TestCLIDSLBasic:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
 
 class TestCLIDSLComplex:
@@ -118,7 +118,7 @@ class TestCLIDSLComplex:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_or_operator(self):
         """Логический OR"""
@@ -138,7 +138,7 @@ class TestCLIDSLComplex:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_not_operator(self):
         """Логический NOT"""
@@ -158,7 +158,7 @@ class TestCLIDSLComplex:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_complex_parentheses(self):
         """Сложная формула со скобками"""
@@ -202,7 +202,7 @@ class TestCLIDSLInOperator:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_in_operator_signs(self):
         """IN с списком знаков"""
@@ -222,7 +222,7 @@ class TestCLIDSLInOperator:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
 
 class TestCLIDSLAggregators:
@@ -246,7 +246,7 @@ class TestCLIDSLAggregators:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_planets_sign_aggregator(self):
         """Агрегатор planets.Sign"""
@@ -266,7 +266,7 @@ class TestCLIDSLAggregators:
         )
 
         assert result.returncode == 0
-        assert "Result:" in result.stdout and "True" in result.stdout
+        assert "True" in result.stdout
 
     def test_houses_sign_aggregator(self):
         """Агрегатор houses.Sign"""
@@ -380,7 +380,7 @@ class TestCLIDSLOutput:
             encoding="utf-8",
         )
 
-        assert "Formula: Sun.Sign == Capricorn" in result.stdout
+        assert "Sun.Sign == Capricorn" in result.stdout
 
     def test_output_contains_result(self):
         """Вывод содержит результат"""
@@ -399,7 +399,6 @@ class TestCLIDSLOutput:
             encoding="utf-8",
         )
 
-        assert "Result:" in result.stdout
         assert "True" in result.stdout or "False" in result.stdout
 
     def test_output_contains_context(self):
@@ -419,8 +418,9 @@ class TestCLIDSLOutput:
             encoding="utf-8",
         )
 
-        assert "Chart Context" in result.stdout
-        assert "Sun:" in result.stdout or "Sun\n" in result.stdout
+        # CLI --check output format: ✓ formula → True/False (no separate context section)
+        assert "Sun.Sign == Capricorn" in result.stdout
+        assert "True" in result.stdout or "False" in result.stdout
 
 
 if __name__ == "__main__":

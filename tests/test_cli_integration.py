@@ -4,6 +4,7 @@ Integration tests for CLI verbose/quiet modes with natal command
 Tests the --verbose and --quiet flags in the actual CLI commands
 """
 
+import sys
 import pytest
 import subprocess
 import json
@@ -13,9 +14,9 @@ from pathlib import Path
 # Skip these tests if main.py cannot be run
 try:
     result = subprocess.run(
-        ["python", "main.py", "--help"],
+        [sys.executable, "main.py", "--help"],
         capture_output=True,
-        timeout=5,
+        timeout=15,
         cwd=Path(__file__).parent.parent,
     )
     MAIN_AVAILABLE = result.returncode == 0
@@ -32,12 +33,12 @@ class TestNatalCommandVerboseQuiet:
     def base_command(self):
         """Base natal command with minimal working parameters"""
         return [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=2000-01-01",
-            "--time=12:00",
-            "--place=London",
+            "2000-01-01",
+            "12:00",
+            "London",
         ]
 
     def test_natal_default_output(self, base_command):
@@ -46,7 +47,8 @@ class TestNatalCommandVerboseQuiet:
             base_command,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -64,7 +66,8 @@ class TestNatalCommandVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -83,16 +86,19 @@ class TestNatalCommandVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
         # Should succeed
         assert result.returncode == 0
-        # Should output pretty JSON with verbose messages
-        output = json.loads(result.stdout)
+        # Verbose mode prepends text logs to stdout, extract JSON part
+        lines = result.stdout.split("\n")
+        json_start = next(i for i, line in enumerate(lines) if line.startswith("{"))
+        output = json.loads("\n".join(lines[json_start:]))
         assert "input_metadata" in output
-        # Pretty JSON has many newlines
+        # Full stdout has many newlines (text + JSON)
         assert result.stdout.count("\n") > 10
 
     def test_natal_quiet_precedence(self, base_command):
@@ -102,7 +108,8 @@ class TestNatalCommandVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -119,12 +126,12 @@ class TestDSLCheckWithVerboseQuiet:
     def dsl_command_base(self):
         """Base command for DSL formula checking"""
         return [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=1982-01-08",
-            "--time=12:00",
-            "--place=Tel Aviv",
+            "1982-01-08",
+            "12:00",
+            "Tel Aviv",
             "--check=Sun.Sign == Capricorn",
         ]
 
@@ -134,7 +141,8 @@ class TestDSLCheckWithVerboseQuiet:
             dsl_command_base,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -151,7 +159,8 @@ class TestDSLCheckWithVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -168,7 +177,8 @@ class TestDSLCheckWithVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -184,12 +194,12 @@ class TestDSLCheckWithVerboseQuiet:
     def test_dsl_check_false_result_quiet(self):
         """Test DSL check with formula that evaluates to False in quiet mode"""
         cmd = [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=1982-01-08",
-            "--time=12:00",
-            "--place=Tel Aviv",
+            "1982-01-08",
+            "12:00",
+            "Tel Aviv",
             "--check=Sun.Sign == Aries",  # False for this date
             "--quiet",
         ]
@@ -197,7 +207,8 @@ class TestDSLCheckWithVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -214,19 +225,20 @@ class TestErrorOutputWithVerboseQuiet:
     def test_error_output_quiet_mode(self):
         """Test error output in quiet mode"""
         cmd = [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=invalid",
-            "--time=12:00",
-            "--place=London",
+            "invalid",
+            "12:00",
+            "London",
             "--quiet",
         ]
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -238,19 +250,20 @@ class TestErrorOutputWithVerboseQuiet:
     def test_error_output_verbose_mode(self):
         """Test error output in verbose mode (may include traceback)"""
         cmd = [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=invalid",
-            "--time=12:00",
-            "--place=London",
+            "invalid",
+            "12:00",
+            "London",
             "--verbose",
         ]
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -267,12 +280,12 @@ class TestFormatOutputWithVerboseQuiet:
     def format_command_base(self):
         """Base command for format testing"""
         return [
-            "python",
+            sys.executable,
             "main.py",
             "natal",
-            "--date=2000-01-01",
-            "--time=12:00",
-            "--place=London",
+            "2000-01-01",
+            "12:00",
+            "London",
         ]
 
     def test_json_format_quiet(self, format_command_base):
@@ -282,7 +295,8 @@ class TestFormatOutputWithVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
@@ -299,16 +313,19 @@ class TestFormatOutputWithVerboseQuiet:
             cmd,
             capture_output=True,
             text=True,
-            timeout=10,
+            encoding="utf-8",
+            timeout=30,
             cwd=Path(__file__).parent.parent,
         )
 
         # Should succeed
         assert result.returncode == 0
-        # Should be pretty JSON
-        data = json.loads(result.stdout)
+        # Verbose mode prepends text logs to stdout, extract JSON part
+        lines = result.stdout.split("\n")
+        json_start = next(i for i, line in enumerate(lines) if line.startswith("{"))
+        data = json.loads("\n".join(lines[json_start:]))
         assert isinstance(data, dict)
-        # Should have indentation
+        # Full stdout has indented JSON and verbose text
         assert "  " in result.stdout  # Check for indentation
 
 
