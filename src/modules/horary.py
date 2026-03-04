@@ -14,6 +14,9 @@ Techniques implemented:
 - Prohibition (3rd planet intercepts applying aspect)
 - Refrenation (planet turns retrograde before perfecting aspect)
 - Reception quality (friendly/hostile/neutral reception between planets)
+- Combust / Cazimi / Under Beams (planet proximity to Sun)
+- Part of Fortune (Arabic lot: ASC ± Moon ∓ Sun)
+- Frustration (planet changes sign before perfecting aspect)
 """
 
 from typing import Dict, Optional, Any, List
@@ -865,4 +868,351 @@ def analyze_reception_quality(
         "planet2_receives_planet1": p2_receives_p1,
         "is_mutual": is_mutual,
         "overall_quality": overall,
+    }
+
+
+# ============================================================
+# COMBUST / CAZIMI / UNDER BEAMS
+# ============================================================
+
+# Thresholds (degrees) — traditional values from Lilly CA Book II
+_CAZIMI_LIMIT = 17 / 60  # 17 arcminutes = 0.2833°
+_COMBUST_LIMIT = 8.5  # 8°30'
+_UNDER_BEAMS_LIMIT = 17.0  # 17°
+
+# Strength modifiers (accidental dignity scale, Lilly)
+_COMBUST_MODIFIER = -5
+_UNDER_BEAMS_MODIFIER = -2
+_CAZIMI_MODIFIER = +5
+
+# Planets that cannot be combust (Sun itself; Moon rules differ — excluded)
+_COMBUST_EXEMPT = {"Sun"}
+
+
+def check_combust_cazimi(
+    planet_name: str,
+    planet_lon: float,
+    sun_lon: float,
+) -> Dict[str, Any]:
+    """
+    Check planet's accidental state relative to the Sun.
+
+    Traditional rules (Lilly CA Book II):
+    - Cazimi   (within 17'): planet in "heart of Sun" — greatly strengthened
+    - Combust  (<8°30'):     planet "burned up" — very weak, cannot act
+    - Under Beams (<17°):   planet weakened but less than combust
+    - Free:                 no solar impediment
+
+    The Sun cannot be combust. Moon combustion is noted but treated
+    separately in traditional practice (different thresholds apply).
+
+    Args:
+        planet_name: Name of the planet to test.
+        planet_lon:  Ecliptic longitude of the planet (degrees, 0–360).
+        sun_lon:     Ecliptic longitude of the Sun (degrees, 0–360).
+
+    Returns:
+        {
+            'state':             'cazimi' | 'combust' | 'under_beams' | 'free',
+            'distance':          float,   # |planet − Sun| normalised 0–180
+            'strength_modifier': int,     # accidental dignity points
+            'is_impaired':       bool,    # True for combust / under_beams
+            'is_strengthened':   bool,    # True for cazimi
+            'explanation':       str,
+        }
+    """
+    if planet_name in _COMBUST_EXEMPT:
+        return {
+            "state": "free",
+            "distance": 0.0,
+            "strength_modifier": 0,
+            "is_impaired": False,
+            "is_strengthened": False,
+            "explanation": f"{planet_name} cannot be combust.",
+        }
+
+    # Shortest arc between the two longitudes
+    raw = abs(planet_lon - sun_lon) % 360.0
+    distance = raw if raw <= 180.0 else 360.0 - raw
+
+    if distance <= _CAZIMI_LIMIT:
+        state = "cazimi"
+        modifier = _CAZIMI_MODIFIER
+        explanation = (
+            f"{planet_name} is Cazimi (within 17' of Sun, distance={distance:.2f}°). "
+            "Planet is in the heart of the Sun — greatly strengthened."
+        )
+        impaired, strengthened = False, True
+    elif distance <= _COMBUST_LIMIT:
+        state = "combust"
+        modifier = _COMBUST_MODIFIER
+        explanation = (
+            f"{planet_name} is Combust (within 8°30' of Sun, distance={distance:.2f}°). "
+            "Planet is burned up — very weak, significator cannot act effectively."
+        )
+        impaired, strengthened = True, False
+    elif distance <= _UNDER_BEAMS_LIMIT:
+        state = "under_beams"
+        modifier = _UNDER_BEAMS_MODIFIER
+        explanation = (
+            f"{planet_name} is Under the Beams (within 17° of Sun, distance={distance:.2f}°). "
+            "Planet is weakened but less severely than combustion."
+        )
+        impaired, strengthened = True, False
+    else:
+        state = "free"
+        modifier = 0
+        explanation = (
+            f"{planet_name} is free of solar impediment (distance={distance:.2f}°)."
+        )
+        impaired, strengthened = False, False
+
+    return {
+        "state": state,
+        "distance": round(distance, 4),
+        "strength_modifier": modifier,
+        "is_impaired": impaired,
+        "is_strengthened": strengthened,
+        "explanation": explanation,
+    }
+
+
+# ============================================================
+# PART OF FORTUNE
+# ============================================================
+
+# Traditional sign rulers (Chaldean, same as in dignities.py)
+_SIGN_RULERS_LOT = {
+    "Aries": "Mars",
+    "Taurus": "Venus",
+    "Gemini": "Mercury",
+    "Cancer": "Moon",
+    "Leo": "Sun",
+    "Virgo": "Mercury",
+    "Libra": "Venus",
+    "Scorpio": "Mars",
+    "Sagittarius": "Jupiter",
+    "Capricorn": "Saturn",
+    "Aquarius": "Saturn",
+    "Pisces": "Jupiter",
+}
+
+_SIGNS_ORDER = [
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+]
+
+
+def calculate_part_of_fortune(
+    asc_lon: float,
+    sun_lon: float,
+    moon_lon: float,
+    is_day_chart: bool,
+) -> Dict[str, Any]:
+    """
+    Calculate the Part of Fortune (Pars Fortunae / Lot of Fortune).
+
+    Traditional formula (Dorotheus, Lilly CA):
+    - Day chart  (Sun above horizon): ASC + Moon − Sun
+    - Night chart (Sun below horizon): ASC + Sun  − Moon
+
+    Args:
+        asc_lon:      Ascendant longitude (degrees, 0–360).
+        sun_lon:      Sun longitude (degrees, 0–360).
+        moon_lon:     Moon longitude (degrees, 0–360).
+        is_day_chart: True when the Sun is above the horizon
+                      (between ASC and DSC going through MC).
+
+    Returns:
+        {
+            'longitude':  float,  # 0–360
+            'sign':       str,
+            'degree_in_sign': float,  # 0–30
+            'ruler':      str,   # traditional sign ruler
+            'formula':    str,   # formula used
+            'explanation': str,
+        }
+    """
+    if is_day_chart:
+        raw = (asc_lon + moon_lon - sun_lon) % 360.0
+        formula = "ASC + Moon − Sun  (day chart)"
+    else:
+        raw = (asc_lon + sun_lon - moon_lon) % 360.0
+        formula = "ASC + Sun − Moon  (night chart)"
+
+    lon = raw % 360.0  # ensure 0 ≤ lon < 360
+    sign_index = int(lon // 30)
+    sign = _SIGNS_ORDER[sign_index]
+    degree_in_sign = lon % 30.0
+    ruler = _SIGN_RULERS_LOT.get(sign, "Unknown")
+
+    explanation = (
+        f"Part of Fortune at {degree_in_sign:.2f}° {sign} "
+        f"(lon={lon:.4f}°). Ruler: {ruler}. Formula: {formula}."
+    )
+
+    return {
+        "longitude": round(lon, 4),
+        "sign": sign,
+        "degree_in_sign": round(degree_in_sign, 4),
+        "ruler": ruler,
+        "formula": formula,
+        "explanation": explanation,
+    }
+
+
+# ============================================================
+# FRUSTRATION
+# ============================================================
+
+
+def check_frustration(
+    planet1_lon: float,
+    planet1_speed: float,
+    planet2_lon: float,
+    planet2_speed: float,
+    aspect_angle: float,
+) -> Dict[str, Any]:
+    """
+    Check if an applying aspect will be frustrated by a sign change.
+
+    Frustration (Bonatti "Liber Astronomiae", Lilly CA):
+    A planet applies to an aspect, but crosses into the next sign
+    BEFORE the aspect perfects. The matter is then "frustrated" —
+    it begins but does not complete.
+
+    Rule: only planet1 (the faster, applying planet) is checked for
+    sign change, since it is the one "reaching out" to make the aspect.
+
+    Args:
+        planet1_lon:   Ecliptic longitude of the applying planet (°).
+        planet1_speed: Daily velocity of planet1 (+/− degrees per day).
+        planet2_lon:   Ecliptic longitude of the receiving planet (°).
+        planet2_speed: Daily velocity of planet2 (degrees per day).
+        aspect_angle:  Target aspect in degrees (0, 60, 90, 120, 180).
+
+    Returns:
+        {
+            'is_frustrated':              bool,
+            'is_applying':                bool,
+            'days_to_perfection':         float | None,
+            'degrees_to_perfection':      float | None,
+            'degrees_to_sign_change':     float | None,
+            'days_to_sign_change':        float | None,
+            'planet1_sign_now':           str,
+            'planet1_sign_after_change':  str,
+            'explanation':                str,
+        }
+    """
+    # -- Determine if the aspect is applying ---------------------------
+    # Use the same angular-distance logic as time_to_perfection()
+    diff = (planet2_lon - planet1_lon) % 360.0  # how far ahead planet2 is
+
+    # Candidate perfection points: direct (diff to aspect_angle) and
+    # retrograde (360 - aspect_angle)
+    candidates = []
+    for target in (aspect_angle % 360.0, (360.0 - aspect_angle) % 360.0):
+        arc = (target - diff) % 360.0  # degrees planet1 must gain on planet2
+        if arc > 180.0:
+            arc -= 360.0  # negative → planet1 must lose ground (separating)
+        candidates.append(arc)
+
+    # Pick the smaller absolute arc
+    arc_to_perfection = min(candidates, key=abs)
+
+    relative_speed = planet1_speed - planet2_speed
+    is_applying = False
+    days_to_perfection = None
+    degrees_to_perfection = None
+
+    if relative_speed != 0 and abs(arc_to_perfection) <= 180:
+        days_raw = arc_to_perfection / relative_speed
+        if days_raw > 0:
+            is_applying = True
+            days_to_perfection = round(days_raw, 4)
+            degrees_to_perfection = round(abs(arc_to_perfection), 4)
+
+    if not is_applying:
+        sign_now = get_planet_sign(planet1_lon)
+        return {
+            "is_frustrated": False,
+            "is_applying": False,
+            "days_to_perfection": None,
+            "degrees_to_perfection": None,
+            "degrees_to_sign_change": None,
+            "days_to_sign_change": None,
+            "planet1_sign_now": sign_now,
+            "planet1_sign_after_change": sign_now,
+            "explanation": "Aspect is not applying — frustration cannot occur.",
+        }
+
+    # -- Degrees until planet1 leaves its current sign -----------------
+    sign_now = get_planet_sign(planet1_lon)
+    sign_index_now = int(planet1_lon // 30)
+
+    if planet1_speed > 0:
+        # Moving direct: distance to next sign boundary
+        degrees_to_sign_change = 30.0 - (planet1_lon % 30.0)
+        next_sign_index = (sign_index_now + 1) % 12
+    elif planet1_speed < 0:
+        # Retrograde: distance back to previous sign boundary
+        degrees_to_sign_change = planet1_lon % 30.0
+        next_sign_index = (sign_index_now - 1) % 12
+    else:
+        # Stationary: no sign change possible
+        sign_after = sign_now
+        return {
+            "is_frustrated": False,
+            "is_applying": True,
+            "days_to_perfection": days_to_perfection,
+            "degrees_to_perfection": degrees_to_perfection,
+            "degrees_to_sign_change": None,
+            "days_to_sign_change": None,
+            "planet1_sign_now": sign_now,
+            "planet1_sign_after_change": sign_now,
+            "explanation": (
+                f"Planet1 is stationary — sign change impossible. "
+                f"Aspect perfects in {days_to_perfection:.2f} days."
+            ),
+        }
+
+    sign_after = _SIGNS_ORDER[next_sign_index]
+    days_to_sign_change = round(degrees_to_sign_change / abs(planet1_speed), 4)
+    is_frustrated = days_to_sign_change < days_to_perfection
+
+    if is_frustrated:
+        explanation = (
+            f"FRUSTRATED: {sign_now} → {sign_after} in "
+            f"{days_to_sign_change:.2f} days ({degrees_to_sign_change:.2f}°), "
+            f"but aspect perfects in {days_to_perfection:.2f} days "
+            f"({degrees_to_perfection:.2f}°). "
+            "Planet crosses sign boundary before the aspect completes."
+        )
+    else:
+        explanation = (
+            f"Not frustrated: aspect perfects in {days_to_perfection:.2f} days "
+            f"({degrees_to_perfection:.2f}°) before sign change "
+            f"({sign_now} → {sign_after} in {days_to_sign_change:.2f} days)."
+        )
+
+    return {
+        "is_frustrated": is_frustrated,
+        "is_applying": True,
+        "days_to_perfection": days_to_perfection,
+        "degrees_to_perfection": degrees_to_perfection,
+        "degrees_to_sign_change": round(degrees_to_sign_change, 4),
+        "days_to_sign_change": days_to_sign_change,
+        "planet1_sign_now": sign_now,
+        "planet1_sign_after_change": sign_after,
+        "explanation": explanation,
     }
