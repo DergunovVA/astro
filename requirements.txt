@@ -8,5 +8,7 @@ timezonefinder
 dateparser
 rapidfuzz
 colorama
+fastapi
+uvicorn
 pytest>=7.0
 pytest-benchmark>=4.0
