@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astro — Сравнение с эталоном Zet/SE</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+body { background: #0e0e1a; color: #e0e0f0; padding: 24px; }
+h1 { color: #c9a84c; font-size: 2rem; margin-bottom: 8px; }
+h2 { color: #8fa8d8; font-size: 1.3rem; margin: 28px 0 10px; border-bottom: 1px solid #2a2a44; padding-bottom: 6px; }
+h3 { color: #7bbfaa; font-size: 1.05rem; margin: 18px 0 8px; }
+.meta { color: #8888aa; font-size: 0.85rem; margin-bottom: 24px; }
+.summary { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0; }
+.badge { background: #1a1a2e; border-radius: 8px; padding: 10px 18px; }
+.badge .val { font-size: 1.8rem; font-weight: bold; }
+.badge .lbl { font-size: 0.78rem; color: #8888aa; }
+.green  { color: #5de88e; }
+.yellow { color: #f0c040; }
+.red    { color: #f06060; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 24px; font-size: 0.88rem; }
+th { background: #1a1a2e; color: #8fa8d8; padding: 8px 10px; text-align: left; }
+td { padding: 6px 10px; border-bottom: 1px solid #1c1c30; }
+tr:hover td { background: #16162a; }
+.ok  { background: #0d2a1c; }
+.bad { background: #2a0d0d; }
+.retro { color: #f06060; font-weight: bold; }
+.delta-ok  { color: #5de88e; }
+.delta-bad { color: #f06060; }
+.section { background: #131320; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
+.chart-bar { height: 10px; border-radius: 5px; background: #5de88e; display: inline-block; }
+.chart-bar-bad { background: #f06060; }
+</style>
+</head>
+<body>
+  <h1>🔭 Сравнение с эталоном Swiss Ephemeris / Zet</h1>
+  <p class="meta">
+    Сгенерировано: 2026-06-01 20:01:36 &nbsp;|&nbsp;
+    Допуск планет: ±0.01° &nbsp;|&nbsp; Допуск углов: ±0.1° &nbsp;|&nbsp;
+    <b>Итого: 30/30 (100%)</b>
+  </p>
+  <p class="meta" style="margin-bottom:16px">
+    Zet использует Swiss Ephemeris — тот же движок, что и наше приложение.
+    Расхождения &gt; ±0.01° указывают на ошибки в расчётах (орбсы, округление, временной пояс).
+  </p>
+  
+<div class="section">
+  <h2>Альберт Эйнштейн (14.03.1879, 10:50 UTC, Ulm DE)</h2>
+  <div class="meta">UTC: 1879-03-14T10:50:03Z &nbsp;|&nbsp; Lat: 48.4011 Lon: 9.9876</div>
+  <div class="summary">
+    <div class="badge">
+      <div class="val green">10/10</div>
+      <div class="lbl">Планеты OK</div>
+    </div>
+    <div class="badge">
+      <div class="val green">100%</div>
+      <div class="lbl">Совпадений</div>
+    </div>
+    <div class="badge" style="flex:1; align-items:center; display:flex; gap:10px">
+      <span style="font-size:0.8rem; color:#8888aa">Точность:</span>
+      <div style="flex:1; background:#1a1a2e; border-radius:5px; height:10px">
+        <div class="chart-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>🪐 Планеты (допуск ±0.01°)</h3>
+  <table>
+    <thead><tr>
+      <th>Планета</th><th>Эталон (Zet/SE)</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>☉</b> Sun</td><td>23°30' ♓ Pisces (353.5078°) </td><td>23°30' ♓ Pisces (353.5078°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☽</b> Moon</td><td>14°31' ♐ Sagittarius (254.5264°) </td><td>14°31' ♐ Sagittarius (254.5264°) </td><td class="delta-ok">0.00000°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☿</b> Mercury</td><td>03°08' ♈ Aries (3.1440°) </td><td>03°08' ♈ Aries (3.1440°) </td><td class="delta-ok">0.00005°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♀</b> Venus</td><td>16°59' ♈ Aries (16.9851°) </td><td>16°59' ♈ Aries (16.9851°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♂</b> Mars</td><td>26°54' ♑ Capricorn (296.9142°) </td><td>26°54' ♑ Capricorn (296.9142°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♃</b> Jupiter</td><td>27°29' ♒ Aquarius (327.4840°) </td><td>27°29' ♒ Aquarius (327.4840°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♄</b> Saturn</td><td>04°11' ♈ Aries (4.1898°) </td><td>04°11' ♈ Aries (4.1898°) </td><td class="delta-ok">0.00002°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♅</b> Uranus</td><td>01°17' ♍ Virgo (151.2884°) <span class="retro">℞</span></td><td>01°17' ♍ Virgo (151.2884°) <span class="retro">℞</span></td><td class="delta-ok">0.00001°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♆</b> Neptune</td><td>07°52' ♉ Taurus (37.8722°) </td><td>07°52' ♉ Taurus (37.8722°) </td><td class="delta-ok">0.00001°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♇</b> Pluto</td><td>24°43' ♉ Taurus (54.7254°) </td><td>24°43' ♉ Taurus (54.7254°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr></tbody>
+  </table>
+
+  <h3>⬆️ Углы (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Угол</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>ASC</b></td><td>11°38' ♋ Cancer (101.6475°)</td><td>11°38' ♋ Cancer (101.6475°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td><b>MC</b></td><td>12°50' ♓ Pisces (342.8400°)</td><td>12°50' ♓ Pisces (342.8400°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td><b>Vertex</b></td><td>27°54' ♏ Scorpio (237.9057°)</td><td>27°54' ♏ Scorpio (237.9057°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr></tbody>
+  </table>
+
+  <h3>🏠 Дома Плацидус (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Дом</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td>H1</td><td>11°38' ♋ Cancer (101.6475°)</td><td>11°38' ♋ Cancer (101.6475°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H2</td><td>28°37' ♋ Cancer (118.6179°)</td><td>28°37' ♋ Cancer (118.6179°)</td><td class="delta-ok">0.00000°</td><td>✅</td></tr>
+<tr class="ok"><td>H3</td><td>17°48' ♌ Leo (137.8083°)</td><td>17°48' ♌ Leo (137.8083°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H4</td><td>12°50' ♍ Virgo (162.8400°)</td><td>12°50' ♍ Virgo (162.8400°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H5</td><td>18°19' ♎ Libra (198.3333°)</td><td>18°19' ♎ Libra (198.3333°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr>
+<tr class="ok"><td>H6</td><td>03°06' ♐ Sagittarius (243.1104°)</td><td>03°06' ♐ Sagittarius (243.1104°)</td><td class="delta-ok">0.00003°</td><td>✅</td></tr>
+<tr class="ok"><td>H7</td><td>11°38' ♑ Capricorn (281.6475°)</td><td>11°38' ♑ Capricorn (281.6475°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H8</td><td>28°37' ♑ Capricorn (298.6179°)</td><td>28°37' ♑ Capricorn (298.6179°)</td><td class="delta-ok">0.00000°</td><td>✅</td></tr>
+<tr class="ok"><td>H9</td><td>17°48' ♒ Aquarius (317.8083°)</td><td>17°48' ♒ Aquarius (317.8083°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H10</td><td>12°50' ♓ Pisces (342.8400°)</td><td>12°50' ♓ Pisces (342.8400°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H11</td><td>18°19' ♈ Aries (18.3333°)</td><td>18°19' ♈ Aries (18.3333°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr>
+<tr class="ok"><td>H12</td><td>03°06' ♊ Gemini (63.1104°)</td><td>03°06' ♊ Gemini (63.1104°)</td><td class="delta-ok">0.00003°</td><td>✅</td></tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Мэрилин Монро (01.06.1926, 17:30 UTC, Los Angeles CA)</h2>
+  <div class="meta">UTC: 1926-06-01T17:30:00Z &nbsp;|&nbsp; Lat: 34.0522 Lon: -118.2437</div>
+  <div class="summary">
+    <div class="badge">
+      <div class="val green">10/10</div>
+      <div class="lbl">Планеты OK</div>
+    </div>
+    <div class="badge">
+      <div class="val green">100%</div>
+      <div class="lbl">Совпадений</div>
+    </div>
+    <div class="badge" style="flex:1; align-items:center; display:flex; gap:10px">
+      <span style="font-size:0.8rem; color:#8888aa">Точность:</span>
+      <div style="flex:1; background:#1a1a2e; border-radius:5px; height:10px">
+        <div class="chart-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>🪐 Планеты (допуск ±0.01°)</h3>
+  <table>
+    <thead><tr>
+      <th>Планета</th><th>Эталон (Zet/SE)</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>☉</b> Sun</td><td>10°26' ♊ Gemini (70.4444°) </td><td>10°26' ♊ Gemini (70.4444°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☽</b> Moon</td><td>19°05' ♒ Aquarius (319.0984°) </td><td>19°05' ♒ Aquarius (319.0984°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☿</b> Mercury</td><td>06°46' ♊ Gemini (66.7787°) </td><td>06°46' ♊ Gemini (66.7787°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♀</b> Venus</td><td>28°45' ♈ Aries (28.7504°) </td><td>28°45' ♈ Aries (28.7504°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♂</b> Mars</td><td>20°43' ♓ Pisces (350.7316°) </td><td>20°43' ♓ Pisces (350.7316°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♃</b> Jupiter</td><td>26°49' ♒ Aquarius (326.8258°) </td><td>26°49' ♒ Aquarius (326.8258°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♄</b> Saturn</td><td>21°26' ♏ Scorpio (231.4416°) <span class="retro">℞</span></td><td>21°26' ♏ Scorpio (231.4416°) <span class="retro">℞</span></td><td class="delta-ok">0.00005°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♅</b> Uranus</td><td>28°59' ♓ Pisces (358.9948°) </td><td>28°59' ♓ Pisces (358.9948°) </td><td class="delta-ok">0.00003°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♆</b> Neptune</td><td>22°13' ♌ Leo (142.2227°) </td><td>22°13' ♌ Leo (142.2227°) </td><td class="delta-ok">0.00001°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♇</b> Pluto</td><td>13°23' ♋ Cancer (103.3916°) </td><td>13°23' ♋ Cancer (103.3916°) </td><td class="delta-ok">0.00001°</td><td>✅ ✅</td></tr></tbody>
+  </table>
+
+  <h3>⬆️ Углы (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Угол</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>ASC</b></td><td>13°04' ♌ Leo (133.0743°)</td><td>13°04' ♌ Leo (133.0743°)</td><td class="delta-ok">0.00003°</td><td>✅</td></tr>
+<tr class="ok"><td><b>MC</b></td><td>06°00' ♉ Taurus (36.0095°)</td><td>06°00' ♉ Taurus (36.0095°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td><b>Vertex</b></td><td>24°31' ♐ Sagittarius (264.5198°)</td><td>24°31' ♐ Sagittarius (264.5198°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr></tbody>
+  </table>
+
+  <h3>🏠 Дома Плацидус (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Дом</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td>H1</td><td>13°04' ♌ Leo (133.0743°)</td><td>13°04' ♌ Leo (133.0743°)</td><td class="delta-ok">0.00003°</td><td>✅</td></tr>
+<tr class="ok"><td>H2</td><td>06°08' ♍ Virgo (156.1394°)</td><td>06°08' ♍ Virgo (156.1394°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H3</td><td>03°40' ♎ Libra (183.6679°)</td><td>03°40' ♎ Libra (183.6679°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H4</td><td>06°00' ♏ Scorpio (216.0095°)</td><td>06°00' ♏ Scorpio (216.0095°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H5</td><td>10°35' ♐ Sagittarius (250.5884°)</td><td>10°35' ♐ Sagittarius (250.5884°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H6</td><td>13°30' ♑ Capricorn (283.5110°)</td><td>13°30' ♑ Capricorn (283.5110°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr>
+<tr class="ok"><td>H7</td><td>13°04' ♒ Aquarius (313.0743°)</td><td>13°04' ♒ Aquarius (313.0743°)</td><td class="delta-ok">0.00003°</td><td>✅</td></tr>
+<tr class="ok"><td>H8</td><td>06°08' ♓ Pisces (336.1394°)</td><td>06°08' ♓ Pisces (336.1394°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H9</td><td>03°40' ♈ Aries (3.6679°)</td><td>03°40' ♈ Aries (3.6679°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H10</td><td>06°00' ♉ Taurus (36.0095°)</td><td>06°00' ♉ Taurus (36.0095°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H11</td><td>10°35' ♊ Gemini (70.5884°)</td><td>10°35' ♊ Gemini (70.5884°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H12</td><td>13°30' ♋ Cancer (103.5110°)</td><td>13°30' ♋ Cancer (103.5110°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Карта Рехово́та (08.01.1982, 11:40 UTC)</h2>
+  <div class="meta">UTC: 1982-01-08T11:40:00Z &nbsp;|&nbsp; Lat: 31.8952 Lon: 34.8105</div>
+  <div class="summary">
+    <div class="badge">
+      <div class="val green">10/10</div>
+      <div class="lbl">Планеты OK</div>
+    </div>
+    <div class="badge">
+      <div class="val green">100%</div>
+      <div class="lbl">Совпадений</div>
+    </div>
+    <div class="badge" style="flex:1; align-items:center; display:flex; gap:10px">
+      <span style="font-size:0.8rem; color:#8888aa">Точность:</span>
+      <div style="flex:1; background:#1a1a2e; border-radius:5px; height:10px">
+        <div class="chart-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>🪐 Планеты (допуск ±0.01°)</h3>
+  <table>
+    <thead><tr>
+      <th>Планета</th><th>Эталон (Zet/SE)</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>☉</b> Sun</td><td>17°52' ♑ Capricorn (287.8709°) </td><td>17°52' ♑ Capricorn (287.8709°) </td><td class="delta-ok">0.00002°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☽</b> Moon</td><td>29°09' ♊ Gemini (89.1551°) </td><td>29°09' ♊ Gemini (89.1551°) </td><td class="delta-ok">0.00002°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>☿</b> Mercury</td><td>04°17' ♒ Aquarius (304.2907°) </td><td>04°17' ♒ Aquarius (304.2907°) </td><td class="delta-ok">0.00002°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♀</b> Venus</td><td>07°40' ♒ Aquarius (307.6724°) <span class="retro">℞</span></td><td>07°40' ♒ Aquarius (307.6724°) <span class="retro">℞</span></td><td class="delta-ok">0.00002°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♂</b> Mars</td><td>09°58' ♎ Libra (189.9829°) </td><td>09°58' ♎ Libra (189.9829°) </td><td class="delta-ok">0.00005°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♃</b> Jupiter</td><td>07°06' ♏ Scorpio (217.1055°) </td><td>07°06' ♏ Scorpio (217.1055°) </td><td class="delta-ok">0.00000°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♄</b> Saturn</td><td>21°47' ♎ Libra (201.7909°) </td><td>21°47' ♎ Libra (201.7909°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♅</b> Uranus</td><td>03°04' ♐ Sagittarius (243.0668°) </td><td>03°04' ♐ Sagittarius (243.0668°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♆</b> Neptune</td><td>25°25' ♐ Sagittarius (265.4195°) </td><td>25°25' ♐ Sagittarius (265.4195°) </td><td class="delta-ok">0.00001°</td><td>✅ ✅</td></tr>
+<tr class="ok"><td><b>♇</b> Pluto</td><td>26°47' ♎ Libra (206.7993°) </td><td>26°47' ♎ Libra (206.7993°) </td><td class="delta-ok">0.00004°</td><td>✅ ✅</td></tr></tbody>
+  </table>
+
+  <h3>⬆️ Углы (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Угол</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td><b>ASC</b></td><td>03°13' ♊ Gemini (63.2173°)</td><td>03°13' ♊ Gemini (63.2173°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td><b>MC</b></td><td>15°02' ♒ Aquarius (315.0430°)</td><td>15°02' ♒ Aquarius (315.0430°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td><b>Vertex</b></td><td>00°21' ♏ Scorpio (210.3573°)</td><td>00°21' ♏ Scorpio (210.3573°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr></tbody>
+  </table>
+
+  <h3>🏠 Дома Плацидус (допуск ±0.1°)</h3>
+  <table>
+    <thead><tr>
+      <th>Дом</th><th>Эталон</th><th>Расчёт</th><th>Δ (°)</th><th>OK</th>
+    </tr></thead>
+    <tbody><tr class="ok"><td>H1</td><td>03°13' ♊ Gemini (63.2173°)</td><td>03°13' ♊ Gemini (63.2173°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H2</td><td>28°06' ♊ Gemini (88.1066°)</td><td>28°06' ♊ Gemini (88.1066°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H3</td><td>20°38' ♋ Cancer (110.6443°)</td><td>20°38' ♋ Cancer (110.6443°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H4</td><td>15°02' ♌ Leo (135.0430°)</td><td>15°02' ♌ Leo (135.0430°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H5</td><td>15°06' ♍ Virgo (165.1037°)</td><td>15°06' ♍ Virgo (165.1037°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H6</td><td>22°58' ♎ Libra (202.9686°)</td><td>22°58' ♎ Libra (202.9686°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr>
+<tr class="ok"><td>H7</td><td>03°13' ♐ Sagittarius (243.2173°)</td><td>03°13' ♐ Sagittarius (243.2173°)</td><td class="delta-ok">0.00001°</td><td>✅</td></tr>
+<tr class="ok"><td>H8</td><td>28°06' ♐ Sagittarius (268.1066°)</td><td>28°06' ♐ Sagittarius (268.1066°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H9</td><td>20°38' ♑ Capricorn (290.6443°)</td><td>20°38' ♑ Capricorn (290.6443°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H10</td><td>15°02' ♒ Aquarius (315.0430°)</td><td>15°02' ♒ Aquarius (315.0430°)</td><td class="delta-ok">0.00005°</td><td>✅</td></tr>
+<tr class="ok"><td>H11</td><td>15°06' ♓ Pisces (345.1037°)</td><td>15°06' ♓ Pisces (345.1037°)</td><td class="delta-ok">0.00002°</td><td>✅</td></tr>
+<tr class="ok"><td>H12</td><td>22°58' ♈ Aries (22.9686°)</td><td>22°58' ♈ Aries (22.9686°)</td><td class="delta-ok">0.00004°</td><td>✅</td></tr></tbody>
+  </table>
+</div>
+
+</body>
+</html>

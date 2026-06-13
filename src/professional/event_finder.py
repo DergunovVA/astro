@@ -221,7 +221,11 @@ def find_retrogrades(facts: list[dict]) -> dict[str, Any]:
     retrogrades = []
 
     for fact in facts:
-        if fact.get("type") == "retrograde" and fact.get("value") == "Retrograde":
+        # Retrograde status is stored in details.retrograde on planet_in_sign facts
+        if (
+            fact.get("type") == "planet_in_sign"
+            and fact.get("details", {}).get("retrograde", False)
+        ):
             retrogrades.append(fact.get("object"))
 
     return {
@@ -317,22 +321,166 @@ def find_critical_degrees(facts: list[dict]) -> dict[str, Any]:
 
 def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, Any]:
     """
-    Найти основные аспектные паттерны.
+    Найти основные аспектные паттерны: Grand Trine, T-Square, Grand Cross, Yod.
 
-    Note: Полная реализация Grand Trine, T-Square требует сложной логики.
-    Пока возвращаем базовую информацию.
+    Args:
+        facts: Список фактов из интерпретационного слоя
+        max_orb: Максимальный орбис аспекта в паттерне (по умолчанию 5°)
+
+    Returns:
+        dict с найденными паттернами
     """
+    # Собрать позиции планет из фактов типа planet_in_sign
+    positions: dict[str, float] = {}
+    for fact in facts:
+        if fact.get("type") == "planet_in_sign":
+            lon = (fact.get("details") or {}).get("longitude")
+            planet = fact.get("object")
+            if lon is not None and planet:
+                positions[planet] = float(lon)
+
+    if len(positions) < 3:
+        return {
+            "found": False,
+            "patterns": {
+                "grand_trine": {"found": False, "count": 0, "instances": []},
+                "t_square": {"found": False, "count": 0, "instances": []},
+                "grand_cross": {"found": False, "count": 0, "instances": []},
+                "yod": {"found": False, "count": 0, "instances": []},
+            },
+            "total_count": 0,
+            "summary": "Not enough planets for pattern detection",
+        }
+
+    def angle_diff(a: float, b: float) -> float:
+        """Shortest arc between two longitudes."""
+        d = abs(a - b) % 360
+        return d if d <= 180 else 360 - d
+
+    def within(a: float, b: float, target: float) -> bool:
+        return abs(angle_diff(a, b) - target) <= max_orb
+
+    planets = list(positions.keys())
+    n = len(planets)
+
+    grand_trines: list[dict] = []
+    t_squares: list[dict] = []
+    grand_crosses: list[dict] = []
+    yods: list[dict] = []
+
+    # ── Grand Trine: three planets ~120° apart ────────────────────────────
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                a, b, c = planets[i], planets[j], planets[k]
+                if (
+                    within(positions[a], positions[b], 120)
+                    and within(positions[b], positions[c], 120)
+                    and within(positions[a], positions[c], 120)
+                ):
+                    grand_trines.append({
+                        "planets": [a, b, c],
+                        "orbs": {
+                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 120), 2),
+                            f"{b}-{c}": round(abs(angle_diff(positions[b], positions[c]) - 120), 2),
+                            f"{a}-{c}": round(abs(angle_diff(positions[a], positions[c]) - 120), 2),
+                        },
+                    })
+
+    # ── T-Square: two planets in opposition + apex square to both ─────────
+    for i in range(n):
+        for j in range(i + 1, n):
+            if not within(positions[planets[i]], positions[planets[j]], 180):
+                continue
+            a, b = planets[i], planets[j]
+            for k in range(n):
+                if k == i or k == j:
+                    continue
+                apex = planets[k]
+                if (
+                    within(positions[a], positions[apex], 90)
+                    and within(positions[b], positions[apex], 90)
+                ):
+                    t_squares.append({
+                        "opposition": [a, b],
+                        "apex": apex,
+                        "orbs": {
+                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 180), 2),
+                            f"{a}-{apex}": round(abs(angle_diff(positions[a], positions[apex]) - 90), 2),
+                            f"{b}-{apex}": round(abs(angle_diff(positions[b], positions[apex]) - 90), 2),
+                        },
+                    })
+
+    # ── Grand Cross: two oppositions + four mutual squares ────────────────
+    for i in range(n):
+        for j in range(i + 1, n):
+            if not within(positions[planets[i]], positions[planets[j]], 180):
+                continue
+            a, b = planets[i], planets[j]
+            for k in range(n):
+                if k == i or k == j:
+                    continue
+                for l in range(k + 1, n):
+                    if l == i or l == j:
+                        continue
+                    c, d = planets[k], planets[l]
+                    if (
+                        within(positions[c], positions[d], 180)
+                        and within(positions[a], positions[c], 90)
+                        and within(positions[a], positions[d], 90)
+                        and within(positions[b], positions[c], 90)
+                        and within(positions[b], positions[d], 90)
+                    ):
+                        members = sorted([a, b, c, d])
+                        if not any(gc["members"] == members for gc in grand_crosses):
+                            grand_crosses.append({"members": members})
+
+    # ── Yod (Finger of God): two quincunxes (150°) + one sextile (60°) ───
+    for i in range(n):
+        for j in range(i + 1, n):
+            a, b = planets[i], planets[j]
+            if not within(positions[a], positions[b], 60):
+                continue
+            for k in range(n):
+                if k == i or k == j:
+                    continue
+                apex = planets[k]
+                if (
+                    within(positions[a], positions[apex], 150)
+                    and within(positions[b], positions[apex], 150)
+                ):
+                    yods.append({
+                        "base": [a, b],
+                        "apex": apex,
+                        "orbs": {
+                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 60), 2),
+                            f"{a}-{apex}": round(abs(angle_diff(positions[a], positions[apex]) - 150), 2),
+                            f"{b}-{apex}": round(abs(angle_diff(positions[b], positions[apex]) - 150), 2),
+                        },
+                    })
+
+    total = len(grand_trines) + len(t_squares) + len(grand_crosses) + len(yods)
+
+    summaries = []
+    if grand_trines:
+        summaries.append(f"{len(grand_trines)} Grand Trine")
+    if t_squares:
+        summaries.append(f"{len(t_squares)} T-Square")
+    if grand_crosses:
+        summaries.append(f"{len(grand_crosses)} Grand Cross")
+    if yods:
+        summaries.append(f"{len(yods)} Yod")
+
     return {
-        "found": False,
+        "found": total > 0,
         "patterns": {
-            "grand_trine": {"found": False, "count": 0},
-            "t_square": {"found": False, "count": 0},
-            "grand_cross": {"found": False, "count": 0},
-            "yod": {"found": False, "count": 0},
+            "grand_trine": {"found": bool(grand_trines), "count": len(grand_trines), "instances": grand_trines},
+            "t_square": {"found": bool(t_squares), "count": len(t_squares), "instances": t_squares},
+            "grand_cross": {"found": bool(grand_crosses), "count": len(grand_crosses), "instances": grand_crosses},
+            "yod": {"found": bool(yods), "count": len(yods), "instances": yods},
         },
-        "total_count": 0,
-        "summary": "Pattern detection not fully implemented yet",
-        "note": "Use formula_validator.check_formula_exists() for specific patterns",
+        "total_count": total,
+        "summary": ", ".join(summaries) if summaries else "No major patterns found",
     }
 
 

@@ -10,7 +10,7 @@ Based on:
 - Ptolemaic doctrine
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 # HOUSE STRENGTH
 # Angular houses (1, 4, 7, 10) = strongest (+MODIFIER points)
@@ -138,20 +138,22 @@ def calculate_accidental_dignity(
 
     # 4. Oriental/Occidental (only if both longitudes provided)
     if longitude is not None and sun_longitude is not None:
-        # Calculate angular distance (shortest path in zodiac)
+        # diff = how many degrees the planet is AHEAD of the Sun in zodiac order
         diff = (longitude - sun_longitude) % 360
 
-        # Oriental: planet rises before Sun (90° to 180° behind Sun in zodiac)
-        # Occidental: planet sets after Sun (90° to 180° ahead of Sun)
+        # Oriental = rises before Sun = planet is BEHIND the Sun in zodiac
+        # (diff near 270-360°, i.e., planet has lower ecliptic longitude)
+        # Occidental = sets after Sun = planet is AHEAD of the Sun
+        # (diff near 0-90°, i.e., planet has higher ecliptic longitude)
 
         if planet in ["Mercury", "Venus"]:
-            # Inner planets: Oriental is favorable
-            if 90 <= diff <= 180:
-                result["oriental_occidental"] = 2  # Oriental (rising before Sun)
+            # Inner planets: Oriental (morning star, behind Sun) is favorable per Lilly
+            if diff >= 270:
+                result["oriental_occidental"] = 2  # Oriental
         elif planet in ["Mars", "Jupiter", "Saturn"]:
-            # Outer classical planets: Occidental is favorable
-            if 180 <= diff <= 270:
-                result["oriental_occidental"] = 2  # Occidental (setting after Sun)
+            # Outer classical planets: Oriental (0-180° ahead of Sun) is favorable per Lilly
+            if 0 < diff < 180:
+                result["oriental_occidental"] = 2  # Oriental
 
         result["score"] += result["oriental_occidental"]
 
@@ -171,9 +173,212 @@ def calculate_accidental_dignity(
     return result
 
 
-def get_total_dignity(essential: Dict, accidental: Dict) -> Dict[str, Any]:
+# ─────────────────────────────────────────────────────────────────────────────
+# CAZIMI / COMBUST / UNDER BEAMS  (Lilly, CA p.113-116)
+# ─────────────────────────────────────────────────────────────────────────────
+
+CAZIMI_ORB   = 17 / 60   # 0°17' in degrees
+COMBUST_ORB  = 8.5       # 8°30'
+BEAMS_ORB    = 17.0      # 17°00'
+
+SOLAR_CONDITION_SCORES = {
+    "cazimi":      +5,
+    "combust":     -5,
+    "under_beams": -4,
+    "free":         0,
+}
+
+
+def calc_solar_condition(
+    planet: str,
+    planet_longitude: float,
+    sun_longitude: float,
+) -> Dict[str, Any]:
+    """Determine if a planet is Cazimi, Combust, Under Beams, or Free.
+
+    Returns:
+        {"condition": str, "orb": float, "score": int}
     """
-    Combine essential and accidental dignities for total planetary strength.
+    if planet in ("Sun", "Moon"):
+        return {"condition": "free", "orb": 0.0, "score": 0}
+
+    diff = abs(planet_longitude - sun_longitude)
+    if diff > 180:
+        diff = 360 - diff
+
+    if diff <= CAZIMI_ORB:
+        condition = "cazimi"
+    elif diff <= COMBUST_ORB:
+        condition = "combust"
+    elif diff <= BEAMS_ORB:
+        condition = "under_beams"
+    else:
+        condition = "free"
+
+    return {
+        "condition": condition,
+        "orb": round(diff, 4),
+        "score": SOLAR_CONDITION_SCORES[condition],
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PEREGRINE  (Lilly CA p.114)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Import here to avoid circular module dependency
+from core.dignities import (  # noqa: E402
+    DOMICILE, EXALTATION, TRIPLICITY, SIGN_TO_ELEMENT,
+    get_planet_sign,
+)
+
+# Ptolemaic Terms (Chaldean order per Lilly)
+TERMS: Dict[str, List] = {
+    "Aries":       [{"p":"Jupiter","f":0,"t":6}, {"p":"Venus","f":6,"t":14},
+                    {"p":"Mercury","f":14,"t":21},{"p":"Mars","f":21,"t":26},
+                    {"p":"Saturn","f":26,"t":30}],
+    "Taurus":      [{"p":"Venus","f":0,"t":8},   {"p":"Mercury","f":8,"t":15},
+                    {"p":"Jupiter","f":15,"t":22},{"p":"Saturn","f":22,"t":26},
+                    {"p":"Mars","f":26,"t":30}],
+    "Gemini":      [{"p":"Mercury","f":0,"t":7}, {"p":"Jupiter","f":7,"t":14},
+                    {"p":"Venus","f":14,"t":21},  {"p":"Saturn","f":21,"t":25},
+                    {"p":"Mars","f":25,"t":30}],
+    "Cancer":      [{"p":"Mars","f":0,"t":6},    {"p":"Jupiter","f":6,"t":13},
+                    {"p":"Mercury","f":13,"t":20},{"p":"Venus","f":20,"t":27},
+                    {"p":"Saturn","f":27,"t":30}],
+    "Leo":         [{"p":"Jupiter","f":0,"t":6}, {"p":"Venus","f":6,"t":11},
+                    {"p":"Saturn","f":11,"t":18},{"p":"Mercury","f":18,"t":24},
+                    {"p":"Mars","f":24,"t":30}],
+    "Virgo":       [{"p":"Mercury","f":0,"t":7}, {"p":"Venus","f":7,"t":17},
+                    {"p":"Jupiter","f":17,"t":21},{"p":"Mars","f":21,"t":28},
+                    {"p":"Saturn","f":28,"t":30}],
+    "Libra":       [{"p":"Saturn","f":0,"t":6},  {"p":"Mercury","f":6,"t":14},
+                    {"p":"Jupiter","f":14,"t":21},{"p":"Venus","f":21,"t":28},
+                    {"p":"Mars","f":28,"t":30}],
+    "Scorpio":     [{"p":"Mars","f":0,"t":7},    {"p":"Jupiter","f":7,"t":11},
+                    {"p":"Venus","f":11,"t":19},  {"p":"Saturn","f":19,"t":24},
+                    {"p":"Mercury","f":24,"t":30}],
+    "Sagittarius": [{"p":"Jupiter","f":0,"t":12},{"p":"Venus","f":12,"t":17},
+                    {"p":"Mercury","f":17,"t":21},{"p":"Saturn","f":21,"t":26},
+                    {"p":"Mars","f":26,"t":30}],
+    "Capricorn":   [{"p":"Mercury","f":0,"t":7}, {"p":"Jupiter","f":7,"t":14},
+                    {"p":"Venus","f":14,"t":22},  {"p":"Saturn","f":22,"t":26},
+                    {"p":"Mars","f":26,"t":30}],
+    "Aquarius":    [{"p":"Mercury","f":0,"t":7}, {"p":"Venus","f":7,"t":13},
+                    {"p":"Jupiter","f":13,"t":20},{"p":"Mars","f":20,"t":25},
+                    {"p":"Saturn","f":25,"t":30}],
+    "Pisces":      [{"p":"Venus","f":0,"t":12},  {"p":"Jupiter","f":12,"t":16},
+                    {"p":"Mercury","f":16,"t":19},{"p":"Mars","f":19,"t":28},
+                    {"p":"Saturn","f":28,"t":30}],
+}
+
+# Chaldean face (decanate) sequence, repeating every 7
+_CHALDEAN = ["Mars","Sun","Venus","Mercury","Moon","Saturn","Jupiter"]
+
+
+def _get_term_ruler(longitude: float) -> Optional[str]:
+    sign = get_planet_sign(longitude)
+    deg  = longitude % 30
+    for t in TERMS.get(sign, []):
+        if t["f"] <= deg < t["t"]:
+            return t["p"]
+    return None
+
+
+def _get_face_ruler(longitude: float) -> str:
+    return _CHALDEAN[int(longitude / 10) % 7]
+
+
+def is_peregrine(planet: str, longitude: float, is_day: bool = True) -> bool:
+    """Return True if planet has NO essential dignity at this longitude.
+
+    Checks: Rulership, Exaltation (whole sign), Triplicity, Term, Face.
+    Only applies to classical 7 planets.
+    """
+    if planet not in ("Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn"):
+        return False
+
+    sign = get_planet_sign(longitude)
+
+    if sign in DOMICILE.get(planet, []):
+        return False
+    if planet in EXALTATION and EXALTATION[planet][0] == sign:
+        return False
+
+    element = SIGN_TO_ELEMENT.get(sign)
+    if element:
+        trip = TRIPLICITY[element]
+        ruler_key = "day" if is_day else "night"
+        if trip.get(ruler_key) == planet or trip.get("participatory") == planet:
+            return False
+
+    if _get_term_ruler(longitude) == planet:
+        return False
+    if _get_face_ruler(longitude) == planet:
+        return False
+
+    return True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HAYZ  (Lilly CA p.115)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_MASCULINE_SIGNS = {"Aries","Gemini","Leo","Libra","Sagittarius","Aquarius"}
+_FEMININE_SIGNS  = {"Taurus","Cancer","Virgo","Scorpio","Capricorn","Pisces"}
+_DIURNAL  = {"Sun","Jupiter","Saturn"}
+_NOCTURNAL = {"Moon","Venus","Mars"}
+
+
+def is_in_hayz(
+    planet: str,
+    longitude: float,
+    is_above_horizon: bool,
+    is_day: bool,
+    sun_longitude: Optional[float] = None,
+) -> bool:
+    """Return True if planet is in hayz (all three sect conditions met).
+
+    Conditions (all required):
+    1. Planet sect matches chart sect (diurnal/day or nocturnal/night)
+    2. Diurnal planet above horizon; nocturnal planet below horizon
+    3. Diurnal planet in masculine sign; nocturnal in feminine sign
+    """
+    if planet not in _DIURNAL | _NOCTURNAL | {"Mercury"}:
+        return False
+
+    sign = get_planet_sign(longitude)
+
+    if planet == "Mercury":
+        if sun_longitude is not None:
+            diff = (longitude - sun_longitude) % 360
+            planet_diurnal = diff >= 270  # oriental = morning star = diurnal
+        else:
+            planet_diurnal = True
+    else:
+        planet_diurnal = planet in _DIURNAL
+
+    if planet_diurnal != is_day:
+        return False
+    if planet_diurnal and not is_above_horizon:
+        return False
+    if not planet_diurnal and is_above_horizon:
+        return False
+    if planet_diurnal and sign not in _MASCULINE_SIGNS:
+        return False
+    if not planet_diurnal and sign not in _FEMININE_SIGNS:
+        return False
+
+    return True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMBINED TOTAL DIGNITY
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def get_total_dignity(essential: Dict, accidental: Dict) -> Dict[str, Any]:
+    """Combine essential and accidental dignities for total planetary strength.
 
     Args:
         essential: Result from calculate_essential_dignity()
@@ -183,15 +388,6 @@ def get_total_dignity(essential: Dict, accidental: Dict) -> Dict[str, Any]:
         dict with combined score and overall assessment
     """
     total_score = essential.get("score", 0) + accidental.get("score", 0)
-
-    # Total dignity scale:
-    # +15 to +28: Extremely Powerful (domicile + angular + direct + swift)
-    # +8 to +14: Very Strong
-    # +3 to +7: Strong
-    # -2 to +2: Neutral
-    # -7 to -3: Weak
-    # -12 to -8: Very Weak
-    # Below -12: Extremely Debilitated
 
     if total_score >= 15:
         overall = "Extremely Powerful"

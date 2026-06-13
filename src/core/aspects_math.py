@@ -33,14 +33,15 @@ ORB = 8  # degrees (default for major aspects)
 
 
 def calc_aspects(
-    planets: Dict[str, float], include_minor: bool = True, min_orb: float = 1.0
+    planets: Dict[str, float], include_minor: bool = True, min_orb: float = 0.0
 ) -> List[Tuple[str, str, str, float, str]]:
     """Calculate aspects between planets.
 
     Args:
         planets: Dict of planet names to longitudes (degrees)
         include_minor: If True, include minor aspects. If False, major only.
-        min_orb: Filter out aspects with orb smaller than this (helps with noise)
+        min_orb: Filter out aspects with orb smaller than this (0.0 = no filtering,
+                 keeps conjunctions and very tight aspects which are the strongest)
 
     Returns:
         List of (planet1, planet2, aspect_name, orb, aspect_type) tuples

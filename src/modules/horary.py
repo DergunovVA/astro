@@ -524,11 +524,11 @@ def check_prohibition(
         if other_name == planet1 or other_name == planet2:
             continue
 
-        if "longitude" not in other_data or "Speed" not in other_data:
+        if "longitude" not in other_data or "speed" not in other_data:
             continue
 
         other_lon = float(other_data["longitude"])
-        other_speed = float(other_data.get("Speed", 0.0))
+        other_speed = float(other_data.get("speed", 0.0))
 
         for aspect_name, aspect_config in MAJOR_ASPECTS.items():
             check_angle = aspect_config["angle"]
