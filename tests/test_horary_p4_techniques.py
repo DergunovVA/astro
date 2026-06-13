@@ -26,9 +26,9 @@ class TestCheckProhibition:
         but Mars at 12° intercepts Moon first.
         """
         all_planets = {
-            "Moon": {"longitude": 10.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
-            "Mars": {"longitude": 11.0, "Speed": 0.5},  # between Moon and Saturn
+            "Moon": {"longitude": 10.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
+            "Mars": {"longitude": 11.0, "speed": 0.5},  # between Moon and Saturn
         }
 
         result = check_prohibition(
@@ -53,9 +53,9 @@ class TestCheckProhibition:
     def test_no_prohibition_planet_behind(self):
         """No prohibition: Mars is behind Moon (already past), cannot intercept."""
         all_planets = {
-            "Moon": {"longitude": 10.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
-            "Mars": {"longitude": 25.0, "Speed": 0.5},  # past Saturn, can't intercept
+            "Moon": {"longitude": 10.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
+            "Mars": {"longitude": 25.0, "speed": 0.5},  # past Saturn, can't intercept
         }
 
         result = check_prohibition(
@@ -74,9 +74,9 @@ class TestCheckProhibition:
     def test_no_prohibition_separating_aspect(self):
         """No prohibition possible when main aspect is already separating."""
         all_planets = {
-            "Moon": {"longitude": 20.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
-            "Mars": {"longitude": 15.0, "Speed": 0.5},
+            "Moon": {"longitude": 20.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
+            "Mars": {"longitude": 15.0, "speed": 0.5},
         }
 
         # Moon at 20° moving away from Saturn at 18° (separating conjunction)
@@ -97,8 +97,8 @@ class TestCheckProhibition:
     def test_prohibition_planet1_excluded_from_intercept(self):
         """Significators themselves should not be checked as interceptors."""
         all_planets = {
-            "Moon": {"longitude": 10.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
+            "Moon": {"longitude": 10.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
         }
 
         # Only Moon and Saturn in the dict — no third planet to prohibit
@@ -121,11 +121,11 @@ class TestCheckProhibition:
         # Jupiter @ 14° Aries: Moon applies to Venus (trine), but Jupiter
         # conjoins Moon first within the orb window.
         all_planets = {
-            "Moon": {"longitude": 10.0, "Speed": 13.0},
-            "Venus": {"longitude": 142.0, "Speed": 1.2},
+            "Moon": {"longitude": 10.0, "speed": 13.0},
+            "Venus": {"longitude": 142.0, "speed": 1.2},
             "Jupiter": {
                 "longitude": 13.5,
-                "Speed": 0.2,
+                "speed": 0.2,
             },  # Moon applies to Jupiter first
         }
 
@@ -149,8 +149,8 @@ class TestCheckProhibition:
     def test_prohibition_result_keys(self):
         """Result must have all required keys."""
         all_planets = {
-            "Moon": {"longitude": 5.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
+            "Moon": {"longitude": 5.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
         }
 
         result = check_prohibition(
@@ -178,8 +178,8 @@ class TestCheckProhibition:
     def test_prohibition_skips_planets_missing_data(self):
         """Planets without longitude or Speed are silently skipped."""
         all_planets = {
-            "Moon": {"longitude": 10.0, "Speed": 13.0},
-            "Saturn": {"longitude": 18.0, "Speed": 0.03},
+            "Moon": {"longitude": 10.0, "speed": 13.0},
+            "Saturn": {"longitude": 18.0, "speed": 0.03},
             "BadPlanet": {"name": "no longitude field"},  # no longitude → skip
         }
 

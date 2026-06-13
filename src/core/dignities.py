@@ -204,30 +204,31 @@ def calculate_essential_dignity(
         dignity_info["domicile"] = True
         dignity_info["score"] += 5
 
-    # Check Exaltation (+4)
-    # Exact degree gives full points, within 5° gives partial
+    # Check Exaltation (+4 for the whole sign, +5 near exact degree)
+    # Per Ptolemy/Lilly: exaltation applies to the entire sign
+    # The specific degree is the peak of exaltation (exaltissimum)
     if planet in EXALTATION:
         exalt_sign, exalt_degree = EXALTATION[planet]
         if sign == exalt_sign:
+            dignity_info["exaltation"] = True
             degree_diff = abs(degree - exalt_degree)
-            if degree_diff <= 5:  # Within 5° orb
-                dignity_info["exaltation"] = True
-                # Full points if exact, scaled down by distance
-                dignity_info["score"] += max(2, 4 - int(degree_diff))
+            # +5 within 2° of exact degree, +4 for rest of sign
+            dignity_info["score"] += 5 if degree_diff <= 2 else 4
 
     # Check Detriment (-5)
     if planet in DETRIMENT and sign in DETRIMENT[planet]:
         dignity_info["detriment"] = True
         dignity_info["score"] -= 5
 
-    # Check Fall (-4)
+    # Check Fall (-4 for the whole sign, -5 near exact degree)
+    # Per Ptolemy/Lilly: fall applies to the entire sign
     if planet in FALL:
         fall_sign, fall_degree = FALL[planet]
         if sign == fall_sign:
             degree_diff = abs(degree - fall_degree)
-            if degree_diff <= 5:
-                dignity_info["fall"] = True
-                dignity_info["score"] -= max(2, 4 - int(degree_diff))
+            dignity_info["fall"] = True
+            # -5 within 2° of exact fall degree, -4 for rest of sign
+            dignity_info["score"] -= 5 if degree_diff <= 2 else 4
 
     # Check Triplicity (+3 day ruler, +2 night ruler, +1 participatory)
     element = SIGN_TO_ELEMENT.get(sign)

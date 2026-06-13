@@ -1,9 +1,12 @@
 # Astro Adapter Layer: Swiss Ephemeris → Core (tuple unwrapping, normalization)
+import logging
 import swisseph as swe
 import os
 from datetime import datetime
 from typing import Dict, Any, List
 from modules.house_systems import calc_houses
+
+logger = logging.getLogger(__name__)
 
 # Set ephemeris path for fictitious bodies (Proserpina requires seorbel.txt)
 ephe_path = os.environ.get("SWEPH_PATH", r"C:\sweph\ephe")
@@ -60,22 +63,16 @@ def calc_planets_raw(jd: float) -> Dict[str, float]:
     try:
         result = swe.calc_ut(jd, swe.CHIRON)
         planets["Chiron"] = float(result[0][0])
-    except Exception:
-        # Chiron calculation failed (missing ephemeris files)
-        # This is not critical, continue without it
-        pass
+    except Exception as e:
+        logger.debug("Chiron not available (missing ephemeris): %s", e)
 
     # Proserpina - ⚸ Hypothetical trans-Plutonian planet
     # Swiss Ephemeris ID 57 (requires seorbel.txt)
-    # Based on Valentin Abramov orbital elements
-    # NOTE: Different calculation methods exist - positions may vary between sources
-    # Swiss Ephemeris Proserpina may differ from Hamburg School Poseidon or other variants
     try:
         result = swe.calc_ut(jd, 57)  # Proserpina (Abramov version)
         planets["Proserpina"] = float(result[0][0])
-    except Exception:
-        # Proserpina calculation failed (seorbel.txt not available)
-        pass
+    except Exception as e:
+        logger.debug("Proserpina not available (seorbel.txt missing): %s", e)
 
     return planets
 
@@ -192,48 +189,21 @@ def calc_special_points(
     try:
         result = swe.calc_ut(jd, swe.OSCU_APOG)
         special["Lilith"] = float(result[0][0])
-    except Exception:
-        # Fallback to Mean Lilith if osculating fails
+    except Exception as e:
+        logger.debug("Osculating Lilith failed, trying Mean: %s", e)
         try:
             result = swe.calc_ut(jd, swe.MEAN_APOG)
             special["Lilith"] = float(result[0][0])
-        except Exception:
-            pass
+        except Exception as e2:
+            logger.warning("Lilith (both osculating and mean) unavailable: %s", e2)
 
-    # 2. VERTEX - Fated encounters, others' impact on us
-    # Formula: Intersection of Prime Vertical with the Ecliptic in Western hemisphere
-    # Simplified: Vertex is typically near the Descendant (7th house cusp)
-    # More accurate calculation requires ARMC (Right Ascension of MC)
+    # 2. VERTEX and EAST POINT
     try:
-        # Approximate formula using latitude
-        # Vertex longitude ≈ similar to Descendant but adjusted for latitude
-        # For now, use simplified approach: DESC + small offset based on latitude
-        asc = houses[0]
-        desc = (asc + 180.0) % 360.0
-
-        # Vertex is typically 5-20° from Descendant depending on latitude
-        # Simplified offset (this is an approximation)
-        lat_offset = lat * 0.2  # Rough adjustment
-        vertex_lon = (desc + lat_offset) % 360.0
-
-        special["Vertex"] = vertex_lon
-
-    except Exception:
-        # Vertex calculation failed
-        pass
-        # Vertex calculation failed
-        pass
-
-    # 3. EAST POINT - Ecliptic degree rising at due east
-    # This is the point on the ecliptic at the eastern horizon
-    # Simplified: EP ≈ ASC + 90° (rough approximation)
-    try:
-        asc = houses[0]  # Ascendant
-        east_point = (asc + 90.0) % 360.0
-        special["East Point"] = east_point
-
-    except Exception:
-        pass
+        _, ascmc = swe.houses(jd, lat, lon)
+        special["Vertex"] = float(ascmc[3])
+        special["East Point"] = float(ascmc[4])
+    except Exception as e:
+        logger.warning("Vertex/East Point calculation failed: %s", e)
 
     # 4. PART OF FORTUNE (Pars Fortunae) - Material fortune, body, health
     # Diurnal (day) chart: ASC + Moon - Sun
@@ -275,13 +245,10 @@ def calc_special_points(
 
         special["Part of Fortune"] = pof
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Part of Fortune calculation failed: %s", e)
 
-    # 5. PART OF SPIRIT (Pars Spiritus) - Spiritual purpose, soul
-    # Inverse of Part of Fortune:
-    # Diurnal: ASC + Sun - Moon
-    # Nocturnal: ASC + Moon - Sun
+    # 5. PART OF SPIRIT (Pars Spiritus)
     try:
         asc = houses[0]
 
@@ -311,8 +278,87 @@ def calc_special_points(
 
         special["Part of Spirit"] = pos
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Part of Spirit calculation failed: %s", e)
+
+    # ── Additional Classical Arabic Lots (Hermes / Bonatti / Lilly) ──────────
+    # All formulas: (ASC + A - B) % 360, reversed by day/night for some lots.
+    # Reference: "Liber Astronomiae" (Bonatti, 1277), "CA" (Lilly, 1647)
+    try:
+        asc = houses[0]
+
+        def _lon(name: str) -> float:
+            v = planets.get(name)
+            return v["longitude"] if isinstance(v, dict) else float(v or 0.0)
+
+        sun_lon    = _lon("Sun")
+        moon_lon   = _lon("Moon")
+        venus_lon  = _lon("Venus")
+        mars_lon   = _lon("Mars")
+        jupiter_lon = _lon("Jupiter")
+        saturn_lon = _lon("Saturn")
+        mercury_lon = _lon("Mercury")
+
+        # Re-determine is_diurnal using same logic as PoF above
+        _desc = (asc + 180.0) % 360.0
+        if _desc > asc:
+            _day = sun_lon >= _desc or sun_lon <= asc
+        else:
+            _day = sun_lon >= _desc and sun_lon <= asc
+
+        # Convenient helpers for lots with day/night reversal
+        pof_lon = special.get("Part of Fortune", (asc + moon_lon - sun_lon) % 360.0)
+        pos_lon = special.get("Part of Spirit", (asc + sun_lon - moon_lon) % 360.0)
+
+        # Part of Eros (Love / Desire) — Hermes
+        # Day: ASC + Venus - Spirit   Night: ASC + Spirit - Venus
+        if _day:
+            special["Part of Eros"] = (asc + venus_lon - pos_lon) % 360.0
+        else:
+            special["Part of Eros"] = (asc + pos_lon - venus_lon) % 360.0
+
+        # Part of Necessity (Constraint) — Hermes
+        # Day: ASC + Fortune - Mercury   Night: ASC + Mercury - Fortune
+        if _day:
+            special["Part of Necessity"] = (asc + pof_lon - mercury_lon) % 360.0
+        else:
+            special["Part of Necessity"] = (asc + mercury_lon - pof_lon) % 360.0
+
+        # Part of Courage (Bravery) — Hermes
+        # Day: ASC + Mars - Fortune   Night: ASC + Fortune - Mars
+        if _day:
+            special["Part of Courage"] = (asc + mars_lon - pof_lon) % 360.0
+        else:
+            special["Part of Courage"] = (asc + pof_lon - mars_lon) % 360.0
+
+        # Part of Victory (Success) — Hermes
+        # Day: ASC + Jupiter - Spirit   Night: ASC + Spirit - Jupiter
+        if _day:
+            special["Part of Victory"] = (asc + jupiter_lon - pos_lon) % 360.0
+        else:
+            special["Part of Victory"] = (asc + pos_lon - jupiter_lon) % 360.0
+
+        # Part of Nemesis (Retribution / Hidden Enemies) — Hermes
+        # Day: ASC + Saturn - Fortune   Night: ASC + Fortune - Saturn
+        if _day:
+            special["Part of Nemesis"] = (asc + saturn_lon - pof_lon) % 360.0
+        else:
+            special["Part of Nemesis"] = (asc + pof_lon - saturn_lon) % 360.0
+
+        # Part of Marriage (Venus / 7th house) — Lilly
+        # Day: ASC + Venus - Saturn   Night: ASC + Saturn - Venus
+        if _day:
+            special["Part of Marriage"] = (asc + venus_lon - saturn_lon) % 360.0
+        else:
+            special["Part of Marriage"] = (asc + saturn_lon - venus_lon) % 360.0
+
+        # Part of Death — Lilly (always nocturnal formula)
+        # House 8 cusp + Moon - Saturn
+        h8_cusp = houses[7] if len(houses) >= 8 else (asc + 210.0) % 360.0
+        special["Part of Death"] = (h8_cusp + moon_lon - saturn_lon) % 360.0
+
+    except Exception as e:
+        logger.warning("Arabic Lots calculation failed: %s", e)
 
     return special
 

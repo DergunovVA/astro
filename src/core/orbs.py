@@ -72,8 +72,8 @@ def get_aspect_orb(planet1: str, planet2: str, aspect_type: str) -> float:
     """
     Calculate appropriate orb for an aspect between two planets.
 
-    Uses the SMALLER of the two planet orbs (moiety method).
-    Then applies aspect type multiplier for minor aspects.
+    Uses the moiety method: half of each planet's orb summed together.
+    This is the traditional method per William Lilly.
 
     Args:
         planet1: Name of first planet
@@ -84,17 +84,17 @@ def get_aspect_orb(planet1: str, planet2: str, aspect_type: str) -> float:
         Orb in degrees (float)
 
     Examples:
-        Sun-Moon conjunction: min(17, 12) * 1.0 = 12°
-        Mercury-Saturn trine: min(7, 9) * 1.0 = 7°
-        Venus-Mars quintile: min(7, 7) * 0.5 = 3.5°
-        Sun-Pluto opposition: min(17, 5) * 1.0 = 5°
+        Sun-Moon conjunction: (17/2 + 12/2) * 1.0 = 14.5°
+        Mercury-Saturn trine: (7/2 + 9/2) * 1.0 = 8°
+        Venus-Mars quintile: (7/2 + 7/2) * 0.5 = 3.5°
+        Sun-Pluto opposition: (17/2 + 5/2) * 1.0 = 11°
     """
     # Get base orbs for each planet
     orb1 = PLANET_ORBS.get(planet1, DEFAULT_PLANET_ORB)
     orb2 = PLANET_ORBS.get(planet2, DEFAULT_PLANET_ORB)
 
-    # Use smaller orb (moiety/half-sum method)
-    base_orb = min(orb1, orb2)
+    # Moiety: sum of half-orbs (traditional Lilly method)
+    base_orb = (orb1 / 2) + (orb2 / 2)
 
     # Apply aspect type multiplier
     multiplier = ASPECT_ORB_MULTIPLIERS.get(aspect_type, 0.5)
@@ -119,7 +119,8 @@ def get_orb_for_angle(planet: str, aspect_type: str) -> float:
     angle_orb = 10.0  # Angles are critical, but not as wide as Sun
     planet_orb = PLANET_ORBS.get(planet, DEFAULT_PLANET_ORB)
 
-    base_orb = min(angle_orb, planet_orb)
+    # Moiety: sum of half-orbs
+    base_orb = (angle_orb + planet_orb) / 2
     multiplier = ASPECT_ORB_MULTIPLIERS.get(aspect_type, 0.5)
 
     return base_orb * multiplier

@@ -965,6 +965,10 @@ def solar(
     locale: str | None = None,
     strict: bool = False,
 ):
+    """Solar Return chart: find the moment Sun returns to natal longitude in YEAR."""
+    import swisseph as _swe
+    from modules.astro_adapter import julian_day
+
     try:
         ni = normalize_input(
             natal_date,
@@ -977,15 +981,80 @@ def solar(
             strict=strict,
         )
         ctx = InputContext.from_normalized(ni)
-        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon)
-        facts = facts_from_calculation(calc_result)
-        signals = signals_from_facts(facts)
-        decisions = decisions_from_signals(signals)
+
+        # ── 1. Get natal Sun longitude ─────────────────────────────────────
+        natal_jd = julian_day(ctx.utc_dt)
+        natal_sun = _swe.calc_ut(natal_jd, _swe.SUN)[0][0]
+
+        # ── 2. Find Julian Day of Solar Return in target year ─────────────
+        # Start search ~10 days before the expected anniversary
+        from zoneinfo import ZoneInfo
+        from datetime import datetime as _dt
+
+        approx_start = _dt(year, ctx.utc_dt.month, max(1, ctx.utc_dt.day - 10),
+                           tzinfo=ZoneInfo("UTC"))
+        jd_start = julian_day(approx_start)
+
+        # Iterate forward (max 380 days) until Sun longitude crosses natal_sun
+        step = 0.5  # half-day steps for coarse search
+        jd = jd_start
+        sr_jd = None
+
+        def _diff(target, current):
+            """Angular distance: how far current is before target (wraps at 360)."""
+            return (target - current) % 360
+
+        for _ in range(760):  # 380 days * 2 half-steps
+            sun_lon  = _swe.calc_ut(jd, _swe.SUN)[0][0]
+            next_lon = _swe.calc_ut(jd + step, _swe.SUN)[0][0]
+
+            d_now  = _diff(natal_sun, sun_lon)
+            d_next = _diff(natal_sun, next_lon)
+
+            # Detect crossing: Sun was BEFORE natal (d < 180) → now AFTER (d > 180)
+            if d_now < 180 and d_next > 180:
+                # Refine with bisection inside [jd, jd+step]
+                lo, hi = jd, jd + step
+                for _ in range(50):
+                    mid     = (lo + hi) / 2
+                    mid_lon = _swe.calc_ut(mid, _swe.SUN)[0][0]
+                    if _diff(natal_sun, mid_lon) < 180:
+                        lo = mid   # still before crossing → move lo forward
+                    else:
+                        hi = mid   # after crossing → move hi backward
+                sr_jd = (lo + hi) / 2
+                break
+            jd += step
+
+        if sr_jd is None:
+            raise ValueError(
+                f"Could not find Solar Return for year {year}. "
+                "Try a different start date or year."
+            )
+
+        # ── 3. Convert SR Julian Day back to UTC datetime ─────────────────
+        y, m, d, h = _swe.revjul(sr_jd)
+        hour = int(h)
+        minute = int((h - hour) * 60)
+        second = int(((h - hour) * 60 - minute) * 60)
+        sr_utc = _dt(y, m, d, hour, minute, second, tzinfo=ZoneInfo("UTC"))
+
+        # ── 4. Calculate SR chart at return location ───────────────────────
+        sr_result = natal_calculation(sr_utc, ctx.lat, ctx.lon)
+        sr_facts = facts_from_calculation(sr_result)
+        sr_signals = signals_from_facts(sr_facts)
+        sr_decisions = decisions_from_signals(sr_signals)
+
         result = {
+            "type": "solar_return",
+            "year": year,
+            "natal_sun_longitude": round(natal_sun, 4),
+            "solar_return_utc": sr_utc.isoformat(),
+            "solar_return_jd": round(sr_jd, 6),
             "input_metadata": ctx.to_metadata_dict_minimal(),
-            "facts": [f.model_dump() for f in facts],
-            "signals": [s.model_dump() for s in signals],
-            "decisions": [d.model_dump() for d in decisions],
+            "facts": [f.model_dump() for f in sr_facts],
+            "signals": [s.model_dump() for s in sr_signals],
+            "decisions": [d.model_dump() for d in sr_decisions],
         }
         typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
     except ValueError as e:
@@ -1061,6 +1130,178 @@ def rectify(
     except Exception as e:
         import traceback
 
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def profections(
+    date: str,
+    time: str,
+    place: str,
+    target_date: str = typer.Option(None, help="Target date ISO YYYY-MM-DD (default: today)"),
+    timeline: bool = typer.Option(False, help="Output full 72-year profection timeline"),
+    years: int = typer.Option(72, help="Years to include in timeline (requires --timeline)"),
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+):
+    """Annual Profections and Firdaria time lord analysis for a natal chart."""
+    from professional.time_lords import annual_profections as _prof, profection_timeline, firdaria
+
+    try:
+        ni = normalize_input(
+            date,
+            time,
+            place,
+            tz_override=tz,
+            lat_override=lat,
+            lon_override=lon,
+            locale=locale,
+            strict=strict,
+        )
+        ctx = InputContext.from_normalized(ni)
+
+        # Get ASC sign from natal chart
+        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon)
+        houses_raw = calc_result.get("houses", {})
+        asc_lon = houses_raw.get("H1") or list(houses_raw.values())[0] if houses_raw else None
+
+        asc_sign = None
+        if asc_lon is not None:
+            asc_sign = ZODIAC_SIGNS[int(float(asc_lon) / 30) % 12]
+
+        # House signs in zodiac order from ASC
+        house_signs = None
+        if asc_sign:
+            asc_idx = ZODIAC_SIGNS.index(asc_sign)
+            house_signs = [ZODIAC_SIGNS[(asc_idx + i) % 12] for i in range(12)]
+
+        birth_date_obj = ctx.utc_dt.date() if hasattr(ctx.utc_dt, "date") else ctx.utc_dt
+
+        # Determine day/night chart for Firdaria
+        planets_data = calc_result.get("planets", {})
+        sun_v = planets_data.get("Sun")
+        sun_lon = sun_v["longitude"] if isinstance(sun_v, dict) else float(sun_v or 0)
+        asc_lon_f = float(asc_lon) if asc_lon else 0.0
+        is_day = is_day_chart(sun_lon, asc_lon_f)
+
+        if timeline:
+            tl = profection_timeline(birth_date_obj, years=years, house_signs=house_signs)
+            result = {
+                "type": "profection_timeline",
+                "birth_date": birth_date_obj.isoformat() if hasattr(birth_date_obj, "isoformat") else str(birth_date_obj),
+                "asc_sign": asc_sign,
+                "timeline": tl,
+            }
+        else:
+            td = target_date if target_date else None
+            prof = _prof(birth_date_obj, td, house_signs=house_signs)
+            fird = firdaria(birth_date_obj, is_day_chart=is_day, target_date=td)
+            result = {
+                "type": "profections",
+                "input_metadata": ctx.to_metadata_dict_minimal(),
+                "asc_sign": asc_sign,
+                "is_day_chart": is_day,
+                "annual_profection": prof,
+                "firdaria": fird,
+            }
+
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+def _prog_base_command(date: str, time: str, place: str, target_date: str | None,
+                        tz: str | None, lat: float | None, lon: float | None,
+                        locale: str | None, strict: bool):
+    """Shared setup: normalise input and return (ctx, birth_date)."""
+    ni = normalize_input(date, time, place,
+                          tz_override=tz, lat_override=lat, lon_override=lon,
+                          locale=locale, strict=strict)
+    ctx = InputContext.from_normalized(ni)
+    return ctx
+
+
+@app.command()
+def progressions(
+    date: str,
+    time: str,
+    place: str,
+    target_date: str = typer.Option(None, help="Target date ISO YYYY-MM-DD (default: today)"),
+    no_houses: bool = typer.Option(False, help="Skip progressed house calculation"),
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+):
+    """Secondary Progressions (day-for-a-year method) for a natal chart."""
+    from professional.progressions import secondary_progressions
+
+    try:
+        ctx = _prog_base_command(date, time, place, target_date, tz, lat, lon, locale, strict)
+        birth_date = ctx.utc_dt.date() if hasattr(ctx.utc_dt, "date") else ctx.utc_dt
+        result = secondary_progressions(
+            birth_date=birth_date,
+            birth_lat=ctx.lat,
+            birth_lon=ctx.lon,
+            target_date=target_date,
+            include_houses=not no_houses,
+        )
+        result["input_metadata"] = ctx.to_metadata_dict_minimal()
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
+        typer.echo(f"Unexpected error: {e}", err=True)
+        traceback.print_exc()
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def solar_arc(
+    date: str,
+    time: str,
+    place: str,
+    target_date: str = typer.Option(None, help="Target date ISO YYYY-MM-DD (default: today)"),
+    tz: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    locale: str | None = None,
+    strict: bool = False,
+):
+    """Solar Arc Directions: apply progressed Sun arc to all natal planets."""
+    from professional.progressions import solar_arc_directions
+
+    try:
+        ctx = _prog_base_command(date, time, place, target_date, tz, lat, lon, locale, strict)
+        birth_date = ctx.utc_dt.date() if hasattr(ctx.utc_dt, "date") else ctx.utc_dt
+        result = solar_arc_directions(
+            birth_date=birth_date,
+            birth_lat=ctx.lat,
+            birth_lon=ctx.lon,
+            target_date=target_date,
+        )
+        result["input_metadata"] = ctx.to_metadata_dict_minimal()
+        typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=2)
+    except Exception as e:
+        import traceback
         typer.echo(f"Unexpected error: {e}", err=True)
         traceback.print_exc()
         raise typer.Exit(code=1)

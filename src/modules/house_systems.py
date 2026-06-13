@@ -45,12 +45,13 @@ def calc_houses_placidus(jd: float, lat: float, lon: float) -> List[float]:
 def calc_houses_whole_sign(jd: float, lat: float, lon: float) -> List[float]:
     """Whole Sign house system (modern/Vedic).
     
-    Simple: 12 equal 30° houses starting from Ascendant.
-    Ignores latitude effects.
+    12 equal 30° houses starting from 0° of the Ascendant's sign.
+    The entire sign containing the ASC becomes the 1st house.
     Popular in Vedic astrology and modern Western.
     """
     asc = swe.houses(jd, lat, lon)[0][0]
-    return [(asc + i * 30) % 360 for i in range(12)]
+    asc_sign_start = int(asc / 30) * 30
+    return [(asc_sign_start + i * 30) % 360 for i in range(12)]
 
 
 def calc_houses_koch(jd: float, lat: float, lon: float) -> List[float]:
