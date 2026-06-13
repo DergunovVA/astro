@@ -26,12 +26,12 @@ Techniques implemented:
 
 from typing import Dict, Optional, Any, List
 
-from src.core.dignities import (
+from core.dignities import (
     get_planet_sign,
     get_dispositor,
     calculate_essential_dignity,
 )
-from src.core.aspects_math import MAJOR_ASPECTS
+from core.aspects_math import MAJOR_ASPECTS
 
 
 # ============================================================
