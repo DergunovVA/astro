@@ -18,10 +18,13 @@ SOLAR ARC DIRECTIONS:
 
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime, timedelta
 from typing import Dict, Any, List, Tuple
 
 import swisseph as swe
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -89,8 +92,8 @@ def _calc_planets_at_jd(jd: float) -> Dict[str, Dict[str, Any]]:
             retro = speed < 0 and pid not in (swe.SUN, swe.MOON, swe.MEAN_NODE)
             result[name] = {"longitude": round(lon, 4), "speed": round(speed, 6),
                             "retrograde": retro}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Skipping planet %s at JD %.2f: %s", name, jd, e)
     return result
 
 
@@ -103,7 +106,8 @@ def _calc_houses_at_jd(jd: float, lat: float, lon_geo: float,
         houses["ASC"] = round(ascmc[0], 4)
         houses["MC"]  = round(ascmc[1], 4)
         return houses
-    except Exception:
+    except Exception as e:
+        logger.warning("House calculation failed at JD %.2f: %s", jd, e)
         return {}
 
 
@@ -251,7 +255,8 @@ def solar_arc_directions(
     # Solar arc = progressed Sun − natal Sun (always measured in direct direction)
     try:
         prog_sun_lon = round(float(swe.calc_ut(progressed_jd, swe.SUN)[0][0]), 4)
-    except Exception:
+    except Exception as e:
+        logger.warning("Could not compute progressed Sun at JD %.2f: %s", progressed_jd, e)
         prog_sun_lon = natal_planets.get("Sun", {}).get("longitude", 0.0)
 
     natal_sun_lon = natal_planets.get("Sun", {}).get("longitude", 0.0)

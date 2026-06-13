@@ -1,9 +1,12 @@
 # Astro Adapter Layer: Swiss Ephemeris → Core (tuple unwrapping, normalization)
+import logging
 import swisseph as swe
 import os
 from datetime import datetime
 from typing import Dict, Any, List
 from modules.house_systems import calc_houses
+
+logger = logging.getLogger(__name__)
 
 # Set ephemeris path for fictitious bodies (Proserpina requires seorbel.txt)
 ephe_path = os.environ.get("SWEPH_PATH", r"C:\sweph\ephe")
@@ -60,22 +63,16 @@ def calc_planets_raw(jd: float) -> Dict[str, float]:
     try:
         result = swe.calc_ut(jd, swe.CHIRON)
         planets["Chiron"] = float(result[0][0])
-    except Exception:
-        # Chiron calculation failed (missing ephemeris files)
-        # This is not critical, continue without it
-        pass
+    except Exception as e:
+        logger.debug("Chiron not available (missing ephemeris): %s", e)
 
     # Proserpina - ⚸ Hypothetical trans-Plutonian planet
     # Swiss Ephemeris ID 57 (requires seorbel.txt)
-    # Based on Valentin Abramov orbital elements
-    # NOTE: Different calculation methods exist - positions may vary between sources
-    # Swiss Ephemeris Proserpina may differ from Hamburg School Poseidon or other variants
     try:
         result = swe.calc_ut(jd, 57)  # Proserpina (Abramov version)
         planets["Proserpina"] = float(result[0][0])
-    except Exception:
-        # Proserpina calculation failed (seorbel.txt not available)
-        pass
+    except Exception as e:
+        logger.debug("Proserpina not available (seorbel.txt missing): %s", e)
 
     return planets
 
@@ -192,24 +189,21 @@ def calc_special_points(
     try:
         result = swe.calc_ut(jd, swe.OSCU_APOG)
         special["Lilith"] = float(result[0][0])
-    except Exception:
-        # Fallback to Mean Lilith if osculating fails
+    except Exception as e:
+        logger.debug("Osculating Lilith failed, trying Mean: %s", e)
         try:
             result = swe.calc_ut(jd, swe.MEAN_APOG)
             special["Lilith"] = float(result[0][0])
-        except Exception:
-            pass
+        except Exception as e2:
+            logger.warning("Lilith (both osculating and mean) unavailable: %s", e2)
 
-    # 2. VERTEX and EAST POINT - from Swiss Ephemeris houses() ascmc array
-    # swe.houses() returns (cusps, ascmc) where:
-    #   ascmc[3] = Vertex (intersection of prime vertical with ecliptic, western hemisphere)
-    #   ascmc[4] = Equatorial Ascendant (East Point) - ASC at zero geographic latitude
+    # 2. VERTEX and EAST POINT
     try:
         _, ascmc = swe.houses(jd, lat, lon)
         special["Vertex"] = float(ascmc[3])
         special["East Point"] = float(ascmc[4])
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Vertex/East Point calculation failed: %s", e)
 
     # 4. PART OF FORTUNE (Pars Fortunae) - Material fortune, body, health
     # Diurnal (day) chart: ASC + Moon - Sun
@@ -251,13 +245,10 @@ def calc_special_points(
 
         special["Part of Fortune"] = pof
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Part of Fortune calculation failed: %s", e)
 
-    # 5. PART OF SPIRIT (Pars Spiritus) - Spiritual purpose, soul
-    # Inverse of Part of Fortune:
-    # Diurnal: ASC + Sun - Moon
-    # Nocturnal: ASC + Moon - Sun
+    # 5. PART OF SPIRIT (Pars Spiritus)
     try:
         asc = houses[0]
 
@@ -287,8 +278,8 @@ def calc_special_points(
 
         special["Part of Spirit"] = pos
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Part of Spirit calculation failed: %s", e)
 
     # ── Additional Classical Arabic Lots (Hermes / Bonatti / Lilly) ──────────
     # All formulas: (ASC + A - B) % 360, reversed by day/night for some lots.
@@ -366,8 +357,8 @@ def calc_special_points(
         h8_cusp = houses[7] if len(houses) >= 8 else (asc + 210.0) % 360.0
         special["Part of Death"] = (h8_cusp + moon_lon - saturn_lon) % 360.0
 
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Arabic Lots calculation failed: %s", e)
 
     return special
 
