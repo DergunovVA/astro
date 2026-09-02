@@ -72,7 +72,7 @@ class TestSecondaryProgressions:
     def test_progressed_date_is_birth_plus_26_days(self, prog26):
         # Day-for-a-year: 26 completed years → progressed date = birth + 26 days
         prog_d = date.fromisoformat(prog26["progressed_date"])
-        expected = EINSTEIN_BIRTH + __import__('datetime').timedelta(days=26)
+        expected = EINSTEIN_BIRTH + __import__("datetime").timedelta(days=26)
         assert prog_d == expected
 
     def test_natal_planets_present(self, prog26):
@@ -104,9 +104,7 @@ class TestSecondaryProgressions:
         assert moon_arc > 10.0
 
     def test_progressed_houses_computed(self, prog26):
-        assert (
-            "H1" in prog26["progressed_houses"] or len(prog26["progressed_houses"]) > 0
-        )
+        assert "H1" in prog26["progressed_houses"] or len(prog26["progressed_houses"]) > 0
 
     def test_aspects_to_natal_is_list(self, prog26):
         assert isinstance(prog26["aspects_to_natal"], list)
@@ -231,12 +229,8 @@ class TestProgressionAges:
     def test_solar_arc_grows_with_age(self, age_years):
         from datetime import date as _d
 
-        target = _d(
-            EINSTEIN_BIRTH.year + age_years, EINSTEIN_BIRTH.month, EINSTEIN_BIRTH.day
-        )
-        r = solar_arc_directions(
-            EINSTEIN_BIRTH, EINSTEIN_LAT, EINSTEIN_LON, target_date=target
-        )
+        target = _d(EINSTEIN_BIRTH.year + age_years, EINSTEIN_BIRTH.month, EINSTEIN_BIRTH.day)
+        r = solar_arc_directions(EINSTEIN_BIRTH, EINSTEIN_LAT, EINSTEIN_LON, target_date=target)
         # Arc should be roughly age_years degrees (Sun moves ≈ 1°/year)
         assert r["solar_arc"] == pytest.approx(age_years, abs=5.0)
 
@@ -244,10 +238,6 @@ class TestProgressionAges:
     def test_progressions_age_field(self, age_years):
         from datetime import date as _d
 
-        target = _d(
-            EINSTEIN_BIRTH.year + age_years, EINSTEIN_BIRTH.month, EINSTEIN_BIRTH.day
-        )
-        r = secondary_progressions(
-            EINSTEIN_BIRTH, EINSTEIN_LAT, EINSTEIN_LON, target_date=target
-        )
+        target = _d(EINSTEIN_BIRTH.year + age_years, EINSTEIN_BIRTH.month, EINSTEIN_BIRTH.day)
+        r = secondary_progressions(EINSTEIN_BIRTH, EINSTEIN_LAT, EINSTEIN_LON, target_date=target)
         assert r["age_years"] == pytest.approx(age_years, abs=0.1)

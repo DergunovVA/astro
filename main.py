@@ -122,9 +122,7 @@ def natal(
             "decisions": [d.model_dump() for d in decisions],
         }
         if explain:
-            result["explain"] = [
-                {"signal": s.id, "reason": "Demo reason"} for s in signals
-            ]
+            result["explain"] = [{"signal": s.id, "reason": "Demo reason"} for s in signals]
             result["fix"] = [{"signal": s.id, "advice": "Demo advice"} for s in signals]
         if devils:
             result["devils"] = {"raw": True, "calc": calc_result}
@@ -137,9 +135,7 @@ def natal(
             from src.professional import validate_aspect_orbs, validate_dignities
 
             # Convert Pydantic models to dicts for professional tools
-            facts_dict = [
-                f.model_dump() if hasattr(f, "model_dump") else f for f in facts
-            ]
+            facts_dict = [f.model_dump() if hasattr(f, "model_dump") else f for f in facts]
 
             result["validation"] = {
                 "orbs": validate_aspect_orbs(facts_dict, strict=False),
@@ -150,9 +146,7 @@ def natal(
             from src.professional.event_finder import search_events
 
             # Convert Pydantic models to dicts for professional tools
-            facts_dict = [
-                f.model_dump() if hasattr(f, "model_dump") else f for f in facts
-            ]
+            facts_dict = [f.model_dump() if hasattr(f, "model_dump") else f for f in facts]
 
             result["events"] = search_events(facts_dict, find_events, max_orb=5.0)
 
@@ -493,9 +487,7 @@ def transit(
         from src.modules.output_formatter import format_transits
 
         # Normalize natal input
-        out.info(
-            f"Calculating natal chart for {natal_date} {natal_time} {natal_place}..."
-        )
+        out.info(f"Calculating natal chart for {natal_date} {natal_time} {natal_place}...")
         natal_ni = normalize_input(
             natal_date,
             natal_time,
@@ -681,9 +673,7 @@ def horary(
 
         # === EXTRACT PLANET DATA ===
         # Normalize planet longitudes and speeds
-        planet_longs = {
-            name: data.get("longitude", 0) for name, data in planets.items()
-        }
+        planet_longs = {name: data.get("longitude", 0) for name, data in planets.items()}
 
         # Calculate house positions for all planets
         planet_houses = calculate_house_positions(houses, planet_longs)
@@ -710,9 +700,7 @@ def horary(
         querent_ruler = get_dispositor(house1_sign, traditional=True)
 
         # Quesited: specified house ruler (use traditional rulers for horary)
-        quesited_cusp = (
-            houses[quesited_house - 1] if quesited_house <= len(houses) else 0
-        )
+        quesited_cusp = houses[quesited_house - 1] if quesited_house <= len(houses) else 0
         quesited_sign = get_planet_sign(quesited_cusp)
         quesited_ruler = get_dispositor(quesited_sign, traditional=True)
 
@@ -781,9 +769,7 @@ def horary(
         # Find Moon-Quesited aspect
         moon_quesited_aspect = None
         for p1, p2, asp_type, orb, category in all_aspects:
-            if (p1 == "Moon" and p2 == quesited_ruler) or (
-                p1 == quesited_ruler and p2 == "Moon"
-            ):
+            if (p1 == "Moon" and p2 == quesited_ruler) or (p1 == quesited_ruler and p2 == "Moon"):
                 moon_quesited_aspect = {
                     "type": asp_type,
                     "orb": orb,
@@ -829,9 +815,7 @@ def horary(
         # Radicality check
         output.append(f"\n{color('═══ РАДИКАЛЬНОСТЬ КАРТЫ ═══', Fore.CYAN)}")
         if radicality["is_radical"]:
-            output.append(
-                color("✓ Карта радикальна (валидна для суждения)", Fore.GREEN)
-            )
+            output.append(color("✓ Карта радикальна (валидна для суждения)", Fore.GREEN))
         else:
             output.append(color("✗ Карта НЕ радикальна - будьте осторожны!", Fore.RED))
         output.append(f"ASC: {radicality['asc_degree_in_sign']:.1f}° в знаке")
@@ -841,13 +825,9 @@ def horary(
         # VOC Moon
         output.append(f"\n{color('═══ ЛУНА БЕЗ КУРСА ═══', Fore.CYAN)}")
         if voc_result["is_void"]:
-            output.append(
-                color("✗ Луна БЕЗ КУРСА (не рекомендуется для суждения)", Fore.RED)
-            )
+            output.append(color("✗ Луна БЕЗ КУРСА (не рекомендуется для суждения)", Fore.RED))
         else:
-            output.append(
-                color("✓ Луна делает аспекты (хорошо для хорара)", Fore.GREEN)
-            )
+            output.append(color("✓ Луна делает аспекты (хорошо для хорара)", Fore.GREEN))
         output.append(f"Текущий знак: {voc_result['current_sign']}")
         output.append(f"До смены знака: {voc_result['next_sign_in_hours']:.1f} часов")
 
@@ -901,41 +881,27 @@ def horary(
             output.append(f"\n{color('═══ ВЗАИМНЫЕ РЕЦЕПЦИИ ═══', Fore.CYAN)}")
             for mr in mutual_receptions:
                 output.append(color(f"✓ {mr['planet1']} ↔ {mr['planet2']}", Fore.GREEN))
-                output.append(
-                    f"  {mr['planet1']} в {mr['planet1_sign']} (знак {mr['planet2']})"
-                )
-                output.append(
-                    f"  {mr['planet2']} в {mr['planet2_sign']} (знак {mr['planet1']})"
-                )
+                output.append(f"  {mr['planet1']} в {mr['planet1_sign']} (знак {mr['planet2']})")
+                output.append(f"  {mr['planet2']} в {mr['planet2_sign']} (знак {mr['planet1']})")
                 output.append(f"  Тип: {mr['type']}")
 
         # Judgment
         output.append(f"\n{color('═══ СУЖДЕНИЕ ═══', Fore.CYAN)}")
         if question_type == "lost-item":
-            if (
-                moon_quesited_aspect
-                and perfection_time
-                and perfection_time["is_applying"]
-            ):
+            if moon_quesited_aspect and perfection_time and perfection_time["is_applying"]:
                 output.append(color("✓ ПРОГНОЗ: Вещь БУДЕТ НАЙДЕНА", Fore.GREEN))
-                output.append(
-                    f"  Ожидаемое время находки: ~{perfection_time['days']:.1f} дней"
-                )
+                output.append(f"  Ожидаемое время находки: ~{perfection_time['days']:.1f} дней")
                 output.append(
                     "  Гармоничный аспект указывает на легкую находку"
                     if moon_quesited_aspect["type"] in ["trine", "sextile"]
                     else "  Напряженный аспект - потребуются усилия"
                 )
             else:
-                output.append(
-                    color("✗ ПРОГНОЗ: Находка маловероятна или затруднена", Fore.RED)
-                )
+                output.append(color("✗ ПРОГНОЗ: Находка маловероятна или затруднена", Fore.RED))
                 if not moon_quesited_aspect:
                     output.append("  Причина: Нет связи между сигнификаторами")
                 else:
-                    output.append(
-                        "  Причина: Аспект расходящийся (возможность упущена)"
-                    )
+                    output.append("  Причина: Аспект расходящийся (возможность упущена)")
 
         output.append("\n" + "═" * 80 + "\n")
 
@@ -991,8 +957,9 @@ def solar(
         from zoneinfo import ZoneInfo
         from datetime import datetime as _dt
 
-        approx_start = _dt(year, ctx.utc_dt.month, max(1, ctx.utc_dt.day - 10),
-                           tzinfo=ZoneInfo("UTC"))
+        approx_start = _dt(
+            year, ctx.utc_dt.month, max(1, ctx.utc_dt.day - 10), tzinfo=ZoneInfo("UTC")
+        )
         jd_start = julian_day(approx_start)
 
         # Iterate forward (max 380 days) until Sun longitude crosses natal_sun
@@ -1005,10 +972,10 @@ def solar(
             return (target - current) % 360
 
         for _ in range(760):  # 380 days * 2 half-steps
-            sun_lon  = _swe.calc_ut(jd, _swe.SUN)[0][0]
+            sun_lon = _swe.calc_ut(jd, _swe.SUN)[0][0]
             next_lon = _swe.calc_ut(jd + step, _swe.SUN)[0][0]
 
-            d_now  = _diff(natal_sun, sun_lon)
+            d_now = _diff(natal_sun, sun_lon)
             d_next = _diff(natal_sun, next_lon)
 
             # Detect crossing: Sun was BEFORE natal (d < 180) → now AFTER (d > 180)
@@ -1016,20 +983,19 @@ def solar(
                 # Refine with bisection inside [jd, jd+step]
                 lo, hi = jd, jd + step
                 for _ in range(50):
-                    mid     = (lo + hi) / 2
+                    mid = (lo + hi) / 2
                     mid_lon = _swe.calc_ut(mid, _swe.SUN)[0][0]
                     if _diff(natal_sun, mid_lon) < 180:
-                        lo = mid   # still before crossing → move lo forward
+                        lo = mid  # still before crossing → move lo forward
                     else:
-                        hi = mid   # after crossing → move hi backward
+                        hi = mid  # after crossing → move hi backward
                 sr_jd = (lo + hi) / 2
                 break
             jd += step
 
         if sr_jd is None:
             raise ValueError(
-                f"Could not find Solar Return for year {year}. "
-                "Try a different start date or year."
+                f"Could not find Solar Return for year {year}. Try a different start date or year."
             )
 
         # ── 3. Convert SR Julian Day back to UTC datetime ─────────────────
@@ -1086,9 +1052,7 @@ def relocate(place: str):
         "confidence": rp.confidence,
     }
     if rp.warnings:
-        result["warnings"] = [
-            {"code": w.code, "message": w.message} for w in rp.warnings
-        ]
+        result["warnings"] = [{"code": w.code, "message": w.message} for w in rp.warnings]
 
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
 
@@ -1193,7 +1157,9 @@ def profections(
             tl = profection_timeline(birth_date_obj, years=years, house_signs=house_signs)
             result = {
                 "type": "profection_timeline",
-                "birth_date": birth_date_obj.isoformat() if hasattr(birth_date_obj, "isoformat") else str(birth_date_obj),
+                "birth_date": birth_date_obj.isoformat()
+                if hasattr(birth_date_obj, "isoformat")
+                else str(birth_date_obj),
                 "asc_sign": asc_sign,
                 "timeline": tl,
             }
@@ -1222,13 +1188,28 @@ def profections(
         raise typer.Exit(code=1)
 
 
-def _prog_base_command(date: str, time: str, place: str, target_date: str | None,
-                        tz: str | None, lat: float | None, lon: float | None,
-                        locale: str | None, strict: bool):
+def _prog_base_command(
+    date: str,
+    time: str,
+    place: str,
+    target_date: str | None,
+    tz: str | None,
+    lat: float | None,
+    lon: float | None,
+    locale: str | None,
+    strict: bool,
+):
     """Shared setup: normalise input and return (ctx, birth_date)."""
-    ni = normalize_input(date, time, place,
-                          tz_override=tz, lat_override=lat, lon_override=lon,
-                          locale=locale, strict=strict)
+    ni = normalize_input(
+        date,
+        time,
+        place,
+        tz_override=tz,
+        lat_override=lat,
+        lon_override=lon,
+        locale=locale,
+        strict=strict,
+    )
     ctx = InputContext.from_normalized(ni)
     return ctx
 
@@ -1266,6 +1247,7 @@ def progressions(
         raise typer.Exit(code=2)
     except Exception as e:
         import traceback
+
         typer.echo(f"Unexpected error: {e}", err=True)
         traceback.print_exc()
         raise typer.Exit(code=1)
@@ -1302,6 +1284,7 @@ def solar_arc(
         raise typer.Exit(code=2)
     except Exception as e:
         import traceback
+
         typer.echo(f"Unexpected error: {e}", err=True)
         traceback.print_exc()
         raise typer.Exit(code=1)
@@ -1342,9 +1325,7 @@ def devils(
             "devils": {
                 "raw": True,
                 "calc": calc_result,
-                "weights": [s.weight for s in signals]
-                if any(s.weight for s in signals)
-                else [],
+                "weights": [s.weight for s in signals] if any(s.weight for s in signals) else [],
             },
         }
         typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
@@ -1363,12 +1344,8 @@ def devils(
 def comparative(
     date: str,
     time: str,
-    chart_type: str = typer.Option(
-        "natal", help="Chart type: natal, transit, solar, relocation"
-    ),
-    cities_file: Optional[str] = typer.Option(
-        None, help="File with city names (one per line)"
-    ),
+    chart_type: str = typer.Option("natal", help="Chart type: natal, transit, solar, relocation"),
+    cities_file: Optional[str] = typer.Option(None, help="File with city names (one per line)"),
     cities: Optional[List[str]] = typer.Argument(
         None, help="City names (if not using cities_file)"
     ),
@@ -1457,12 +1434,8 @@ def synastry(
         ctx2 = InputContext.from_normalized(ni2)
 
         # Calculate both natal charts
-        calc1 = natal_calculation(
-            ctx1.utc_dt, ctx1.lat, ctx1.lon, house_method=house_system
-        )
-        calc2 = natal_calculation(
-            ctx2.utc_dt, ctx2.lat, ctx2.lon, house_method=house_system
-        )
+        calc1 = natal_calculation(ctx1.utc_dt, ctx1.lat, ctx1.lon, house_method=house_system)
+        calc2 = natal_calculation(ctx2.utc_dt, ctx2.lat, ctx2.lon, house_method=house_system)
 
         # Calculate synastry aspects (cross-chart)
         synastry_aspects = calculate_synastry_aspects(
@@ -1633,9 +1606,7 @@ def houses(
         ctx = InputContext.from_normalized(ni)
 
         # Calculate houses
-        calc_result = natal_calculation(
-            ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system
-        )
+        calc_result = natal_calculation(ctx.utc_dt, ctx.lat, ctx.lon, house_method=house_system)
 
         houses_data = calc_result.get("houses", [])
 
@@ -1671,9 +1642,7 @@ def houses(
             for i in range(12):
                 sign = get_planet_sign(houses_data[i])
                 deg = get_planet_degree_in_sign(houses_data[i])
-                typer.echo(
-                    f"  {i + 1:2d}  │ {sign:11s} │ {deg:6.2f}°  │ {houses_data[i]:7.2f}°"
-                )
+                typer.echo(f"  {i + 1:2d}  │ {sign:11s} │ {deg:6.2f}°  │ {houses_data[i]:7.2f}°")
             typer.echo()
 
     except ValueError as e:

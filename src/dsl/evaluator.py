@@ -204,9 +204,7 @@ class Evaluator:
         elif node.value == "IN":
             # Правая часть должна быть списком
             if not isinstance(right, list):
-                raise EvaluatorError(
-                    f"Оператор IN требует список справа, получен: {type(right)}"
-                )
+                raise EvaluatorError(f"Оператор IN требует список справа, получен: {type(right)}")
             return left in right
         else:
             raise EvaluatorError(f"Неизвестный оператор сравнения: {node.value}")
@@ -228,9 +226,7 @@ class Evaluator:
         obj_name = self._eval_node(node.object)
 
         if not isinstance(obj_name, str):
-            raise EvaluatorError(
-                f"Имя объекта должно быть строкой, получен: {type(obj_name)}"
-            )
+            raise EvaluatorError(f"Имя объекта должно быть строкой, получен: {type(obj_name)}")
 
         property_name = node.property
 
@@ -319,9 +315,7 @@ class Evaluator:
                 if property_name in aspect:
                     result.append(aspect[property_name])
                 else:
-                    raise EvaluatorError(
-                        f"Свойство '{property_name}' не найдено у аспекта"
-                    )
+                    raise EvaluatorError(f"Свойство '{property_name}' не найдено у аспекта")
             return result
 
         else:

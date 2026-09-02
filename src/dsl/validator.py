@@ -92,9 +92,7 @@ class AstrologicalValidator:
         "Pluto",
     }
 
-    def __init__(
-        self, config_path: Optional[str] = None, mode: str = "modern", lang: str = "en"
-    ):
+    def __init__(self, config_path: Optional[str] = None, mode: str = "modern", lang: str = "en"):
         """
         Инициализация валидатора
 
@@ -136,8 +134,7 @@ class AstrologicalValidator:
             )
         except yaml.YAMLError as e:
             raise ValidationError(
-                f"❌ Ошибка парсинга YAML: {e}\n"
-                f"Проверьте синтаксис config/dignities.yaml"
+                f"❌ Ошибка парсинга YAML: {e}\nПроверьте синтаксис config/dignities.yaml"
             )
 
     def _build_lookup_tables(self):
@@ -204,9 +201,7 @@ class AstrologicalValidator:
             )
         return None
 
-    def check_self_aspect(
-        self, planet1: str, planet2: str
-    ) -> Optional[ValidationResult]:
+    def check_self_aspect(self, planet1: str, planet2: str) -> Optional[ValidationResult]:
         """Проверка аспекта планеты к самой себе"""
         if planet1 == planet2:
             return ValidationResult(
@@ -242,18 +237,14 @@ class AstrologicalValidator:
         self, degree: float, absolute: bool = False
     ) -> Optional[ValidationResult]:
         """Проверка диапазона градусов"""
-        valid_range = (
-            self.VALID_ABSOLUTE_DEGREES if absolute else self.VALID_DEGREES_IN_SIGN
-        )
+        valid_range = self.VALID_ABSOLUTE_DEGREES if absolute else self.VALID_DEGREES_IN_SIGN
 
         if degree not in valid_range:
             max_degree = 359 if absolute else 29
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=self.loc._(
-                    "errors.degree_range_error", max=max_degree, degree=degree
-                ),
+                message=self.loc._("errors.degree_range_error", max=max_degree, degree=degree),
                 details=(
                     self.loc._("errors.degree_in_sign_explanation")
                     if not absolute
@@ -278,9 +269,7 @@ class AstrologicalValidator:
             return ValidationResult(
                 is_valid=False,
                 level=ValidationLevel.ERROR,
-                message=self.loc._(
-                    "errors.dignity.ruler_error", planet=planet, target=target
-                ),
+                message=self.loc._("errors.dignity.ruler_error", planet=planet, target=target),
                 details=self.loc._("errors.dignity.ruler_explanation"),
                 suggestions=[
                     f"{planet}.Dignity == Rulership  # Планета в своем доме",
@@ -319,9 +308,7 @@ class AstrologicalValidator:
                     wrong_sign=sign,
                 ),
                 details=self.loc._("errors.dignity.exaltation_list"),
-                suggestions=[
-                    f"{planet}.Sign == {correct_sign} AND {planet}.Dignity == Exaltation"
-                ],
+                suggestions=[f"{planet}.Sign == {correct_sign} AND {planet}.Dignity == Exaltation"],
             )
         return None
 
@@ -353,9 +340,7 @@ class AstrologicalValidator:
                     "  - Fall (падение)\n"
                     "  - или нейтральное положение (ничего из вышеперечисленного)\n"
                 ),
-                suggestions=[
-                    f"{planet}.Dignity == {dignity1} OR {planet}.Dignity == {dignity2}"
-                ],
+                suggestions=[f"{planet}.Dignity == {dignity1} OR {planet}.Dignity == {dignity2}"],
             )
         return None
 
@@ -419,9 +404,7 @@ class AstrologicalValidator:
                     level=ValidationLevel.ERROR,
                     message=f"❌ Астрологическая ошибка: {planet} в изгнании в {signs_str}, НЕ в {sign}!",
                     details=None,
-                    suggestions=[
-                        f"{planet}.Dignity == Detriment  # Без указания знака"
-                    ],
+                    suggestions=[f"{planet}.Dignity == Detriment  # Без указания знака"],
                 )
 
         return None

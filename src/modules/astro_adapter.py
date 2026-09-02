@@ -291,10 +291,10 @@ def calc_special_points(
             v = planets.get(name)
             return v["longitude"] if isinstance(v, dict) else float(v or 0.0)
 
-        sun_lon    = _lon("Sun")
-        moon_lon   = _lon("Moon")
-        venus_lon  = _lon("Venus")
-        mars_lon   = _lon("Mars")
+        sun_lon = _lon("Sun")
+        moon_lon = _lon("Moon")
+        venus_lon = _lon("Venus")
+        mars_lon = _lon("Mars")
         jupiter_lon = _lon("Jupiter")
         saturn_lon = _lon("Saturn")
         mercury_lon = _lon("Mercury")
@@ -363,9 +363,7 @@ def calc_special_points(
     return special
 
 
-def calc_houses_raw(
-    jd: float, lat: float, lon: float, method: str = "Placidus"
-) -> List[float]:
+def calc_houses_raw(jd: float, lat: float, lon: float, method: str = "Placidus") -> List[float]:
     """Get house cusps (floats only) from house_systems module.
 
     Args:

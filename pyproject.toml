@@ -41,3 +41,17 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--ignore=tests/test_performance_dsl.py"
+
+[tool.ruff]
+exclude = [
+    "*.md",
+    "docs/",
+    ".git",
+    "__pycache__",
+    "*.txt",
+]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]  # line too long — handled by line-length above

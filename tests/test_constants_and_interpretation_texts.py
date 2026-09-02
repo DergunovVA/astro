@@ -482,9 +482,7 @@ class TestGenerateChartSummary:
         assert "nocturnal" in r["en"].lower() or "ночного" in r["ru"].lower()
 
     def test_dominant_element_included(self):
-        r = generate_chart_summary(
-            "Aries", "Leo", "Sagittarius", dominant_element="Fire"
-        )
+        r = generate_chart_summary("Aries", "Leo", "Sagittarius", dominant_element="Fire")
         assert "Fire" in r["en"]
         assert "огонь" in r["ru"].lower()
 
@@ -494,8 +492,6 @@ class TestGenerateChartSummary:
         assert "Cancer" in r["ru"]
 
     def test_multiple_stelliums(self):
-        r = generate_chart_summary(
-            "Libra", "Libra", "Aries", stelliums=["Libra", "7th house"]
-        )
+        r = generate_chart_summary("Libra", "Libra", "Aries", stelliums=["Libra", "7th house"])
         assert "Libra" in r["en"]
         assert "7th house" in r["en"]

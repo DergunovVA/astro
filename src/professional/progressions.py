@@ -31,11 +31,13 @@ logger = logging.getLogger(__name__)
 # HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _jd_from_date(dt: date | datetime) -> float:
     """Julian Day from a date or datetime (always treated as UTC noon if date-only)."""
     if isinstance(dt, datetime):
-        return swe.julday(dt.year, dt.month, dt.day,
-                          dt.hour + dt.minute / 60.0 + dt.second / 3600.0)
+        return swe.julday(
+            dt.year, dt.month, dt.day, dt.hour + dt.minute / 60.0 + dt.second / 3600.0
+        )
     # date-only → use noon UTC
     return swe.julday(dt.year, dt.month, dt.day, 12.0)
 
@@ -67,16 +69,16 @@ def _completed_years(birth: date, target: date) -> int:
 
 # All planet IDs we calculate
 _PLANET_IDS: List[Tuple[int | None, str]] = [
-    (swe.SUN,     "Sun"),
-    (swe.MOON,    "Moon"),
+    (swe.SUN, "Sun"),
+    (swe.MOON, "Moon"),
     (swe.MERCURY, "Mercury"),
-    (swe.VENUS,   "Venus"),
-    (swe.MARS,    "Mars"),
+    (swe.VENUS, "Venus"),
+    (swe.MARS, "Mars"),
     (swe.JUPITER, "Jupiter"),
-    (swe.SATURN,  "Saturn"),
-    (swe.URANUS,  "Uranus"),
+    (swe.SATURN, "Saturn"),
+    (swe.URANUS, "Uranus"),
     (swe.NEPTUNE, "Neptune"),
-    (swe.PLUTO,   "Pluto"),
+    (swe.PLUTO, "Pluto"),
     (swe.MEAN_NODE, "North Node"),
 ]
 
@@ -87,24 +89,26 @@ def _calc_planets_at_jd(jd: float) -> Dict[str, Dict[str, Any]]:
     for pid, name in _PLANET_IDS:
         try:
             raw = swe.calc_ut(jd, pid)[0]
-            lon   = float(raw[0])
+            lon = float(raw[0])
             speed = float(raw[3]) if len(raw) > 3 else 0.0
             retro = speed < 0 and pid not in (swe.SUN, swe.MOON, swe.MEAN_NODE)
-            result[name] = {"longitude": round(lon, 4), "speed": round(speed, 6),
-                            "retrograde": retro}
+            result[name] = {
+                "longitude": round(lon, 4),
+                "speed": round(speed, 6),
+                "retrograde": retro,
+            }
         except Exception as e:
             logger.debug("Skipping planet %s at JD %.2f: %s", name, jd, e)
     return result
 
 
-def _calc_houses_at_jd(jd: float, lat: float, lon_geo: float,
-                        system: str = "P") -> Dict[str, Any]:
+def _calc_houses_at_jd(jd: float, lat: float, lon_geo: float, system: str = "P") -> Dict[str, Any]:
     """Return house cusps and angles at given JD."""
     try:
         cusps, ascmc = swe.houses(jd, lat, lon_geo, system.encode())
-        houses = {f"H{i+1}": round(cusps[i], 4) for i in range(12)}
+        houses = {f"H{i + 1}": round(cusps[i], 4) for i in range(12)}
         houses["ASC"] = round(ascmc[0], 4)
-        houses["MC"]  = round(ascmc[1], 4)
+        houses["MC"] = round(ascmc[1], 4)
         return houses
     except Exception as e:
         logger.warning("House calculation failed at JD %.2f: %s", jd, e)
@@ -147,19 +151,19 @@ def secondary_progressions(
             "aspects_to_natal": [...],    # tight aspects (orb ≤ 1°)
         }
     """
-    birth  = _normalise_dt(birth_date)
+    birth = _normalise_dt(birth_date)
     target = _normalise_dt(target_date) if target_date else date.today()
 
-    age_days  = _age_days(birth, target)
+    age_days = _age_days(birth, target)
     age_years = age_days / 365.25
 
     # Progressed date = birth + completed_years DAYS (1 day = 1 year method)
     progressed_date = birth + timedelta(days=_completed_years(birth, target))
 
     # Use noon UTC for both JDs to avoid time-zone ambiguity
-    natal_jd      = _jd_from_date(birth)
+    natal_jd = _jd_from_date(birth)
     progressed_jd = _jd_from_date(progressed_date)
-    natal_planets      = _calc_planets_at_jd(natal_jd)
+    natal_planets = _calc_planets_at_jd(natal_jd)
     progressed_planets = _calc_planets_at_jd(progressed_jd)
 
     # Enrich progressed planets with arc and direction label
@@ -173,10 +177,10 @@ def secondary_progressions(
         prog["direction"] = "Retrograde" if prog["retrograde"] else "Direct"
 
     # Progressed Sun arc (key timing indicator)
-    prog_sun_lon  = progressed_planets.get("Sun", {}).get("longitude", 0.0)
+    prog_sun_lon = progressed_planets.get("Sun", {}).get("longitude", 0.0)
     natal_sun_lon = natal_planets.get("Sun", {}).get("longitude", 0.0)
     _raw_arc = (prog_sun_lon - natal_sun_lon) % 360
-    prog_sun_arc  = 0.0 if _raw_arc >= 360.0 else _raw_arc
+    prog_sun_arc = 0.0 if _raw_arc >= 360.0 else _raw_arc
 
     # Houses at progressed time (using natal location — standard practice)
     prog_houses: Dict[str, Any] = {}
@@ -204,6 +208,7 @@ def secondary_progressions(
 # ─────────────────────────────────────────────────────────────────────────────
 # SOLAR ARC DIRECTIONS
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def solar_arc_directions(
     birth_date: date | datetime | str,
@@ -238,16 +243,16 @@ def solar_arc_directions(
             "aspects_between_directed": [...],  # tight aspects within directed chart
         }
     """
-    birth  = _normalise_dt(birth_date)
+    birth = _normalise_dt(birth_date)
     target = _normalise_dt(target_date) if target_date else date.today()
 
-    age_days  = _age_days(birth, target)
+    age_days = _age_days(birth, target)
     age_years = age_days / 365.25
 
     # Progressed date = birth + completed_years DAYS (1 day = 1 year method)
     progressed_date = birth + timedelta(days=_completed_years(birth, target))
 
-    natal_jd      = _jd_from_date(birth)
+    natal_jd = _jd_from_date(birth)
     progressed_jd = _jd_from_date(progressed_date)
 
     natal_planets = _calc_planets_at_jd(natal_jd)
@@ -298,14 +303,14 @@ def solar_arc_directions(
 # ─────────────────────────────────────────────────────────────────────────────
 
 _ASPECT_ANGLES = {
-    "Conjunction":  0,
-    "Opposition":   180,
-    "Trine":        120,
-    "Square":       90,
-    "Sextile":      60,
-    "Quincunx":     150,
+    "Conjunction": 0,
+    "Opposition": 180,
+    "Trine": 120,
+    "Square": 90,
+    "Sextile": 60,
+    "Quincunx": 150,
     "Semi-sextile": 30,
-    "Semi-square":  45,
+    "Semi-square": 45,
     "Sesquiquadrate": 135,
 }
 
@@ -334,15 +339,17 @@ def _find_aspects(
             for asp_name, angle in _ASPECT_ANGLES.items():
                 delta = abs(diff - angle)
                 if delta <= orb:
-                    aspects.append({
-                        f"{label_from}_planet": p1,
-                        f"{label_to}_planet":   p2,
-                        "aspect":  asp_name,
-                        "angle":   angle,
-                        "orb":     round(delta, 3),
-                        f"{label_from}_longitude": round(lon1, 4),
-                        f"{label_to}_longitude":   round(lon2, 4),
-                    })
+                    aspects.append(
+                        {
+                            f"{label_from}_planet": p1,
+                            f"{label_to}_planet": p2,
+                            "aspect": asp_name,
+                            "angle": angle,
+                            "orb": round(delta, 3),
+                            f"{label_from}_longitude": round(lon1, 4),
+                            f"{label_to}_longitude": round(lon2, 4),
+                        }
+                    )
     return sorted(aspects, key=lambda x: x["orb"])
 
 
@@ -358,22 +365,22 @@ def _find_directed_natal_aspects(
     return _find_aspects(directed, natal, orb, "directed", "natal")
 
 
-def _find_directed_internal_aspects(
-    directed: Dict[str, Dict], orb: float
-) -> List[Dict]:
+def _find_directed_internal_aspects(directed: Dict[str, Dict], orb: float) -> List[Dict]:
     planets = list(directed.items())
     aspects = []
     for i, (p1, d1) in enumerate(planets):
-        for p2, d2 in planets[i+1:]:
+        for p2, d2 in planets[i + 1 :]:
             diff = _angular_diff(d1["longitude"], d2["longitude"])
             for asp_name, angle in _ASPECT_ANGLES.items():
                 delta = abs(diff - angle)
                 if delta <= orb:
-                    aspects.append({
-                        "planet_1": p1,
-                        "planet_2": p2,
-                        "aspect":   asp_name,
-                        "angle":    angle,
-                        "orb":      round(delta, 3),
-                    })
+                    aspects.append(
+                        {
+                            "planet_1": p1,
+                            "planet_2": p2,
+                            "aspect": asp_name,
+                            "angle": angle,
+                            "orb": round(delta, 3),
+                        }
+                    )
     return sorted(aspects, key=lambda x: x["orb"])

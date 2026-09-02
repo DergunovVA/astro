@@ -16,41 +16,41 @@ Firdaria (Medieval, per Abu Ma'shar / Lilly-era):
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Dict, Any, List, Optional
 
-from core.dignities import DOMICILE, ZODIAC_SIGNS
+from core.dignities import ZODIAC_SIGNS
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SIGN RULERS (traditional 7 planets only)
 # ─────────────────────────────────────────────────────────────────────────────
 
 _SIGN_RULER: Dict[str, str] = {
-    "Aries":       "Mars",
-    "Taurus":      "Venus",
-    "Gemini":      "Mercury",
-    "Cancer":      "Moon",
-    "Leo":         "Sun",
-    "Virgo":       "Mercury",
-    "Libra":       "Venus",
-    "Scorpio":     "Mars",      # traditional (not Pluto)
+    "Aries": "Mars",
+    "Taurus": "Venus",
+    "Gemini": "Mercury",
+    "Cancer": "Moon",
+    "Leo": "Sun",
+    "Virgo": "Mercury",
+    "Libra": "Venus",
+    "Scorpio": "Mars",  # traditional (not Pluto)
     "Sagittarius": "Jupiter",
-    "Capricorn":   "Saturn",
-    "Aquarius":    "Saturn",    # traditional (not Uranus)
-    "Pisces":      "Jupiter",   # traditional (not Neptune)
+    "Capricorn": "Saturn",
+    "Aquarius": "Saturn",  # traditional (not Uranus)
+    "Pisces": "Jupiter",  # traditional (not Neptune)
 }
 
 # Keywords per house (for interpretation)
 _HOUSE_THEMES: Dict[int, str] = {
-    1:  "Self, identity, vitality, new beginnings",
-    2:  "Resources, money, values, possessions",
-    3:  "Communication, siblings, short journeys, learning",
-    4:  "Home, family, roots, property, endings",
-    5:  "Creativity, children, romance, pleasures",
-    6:  "Health, daily routine, service, illness, work",
-    7:  "Partnerships, marriage, open enemies, contracts",
-    8:  "Death, transformation, shared resources, occult",
-    9:  "Travel, philosophy, religion, higher education",
+    1: "Self, identity, vitality, new beginnings",
+    2: "Resources, money, values, possessions",
+    3: "Communication, siblings, short journeys, learning",
+    4: "Home, family, roots, property, endings",
+    5: "Creativity, children, romance, pleasures",
+    6: "Health, daily routine, service, illness, work",
+    7: "Partnerships, marriage, open enemies, contracts",
+    8: "Death, transformation, shared resources, occult",
+    9: "Travel, philosophy, religion, higher education",
     10: "Career, reputation, authority, public life",
     11: "Friends, allies, groups, hopes, social networks",
     12: "Hidden enemies, isolation, undoing, secret matters",
@@ -106,7 +106,7 @@ def annual_profections(
     age = _age_in_years(birth_date, target_date)
 
     # Profected house (0-indexed → 1-indexed)
-    house_idx = age % 12           # 0-11
+    house_idx = age % 12  # 0-11
     profected_house = house_idx + 1
 
     # Exact zodiac degree: each year = 30°, each month ≈ 2.5°
@@ -128,10 +128,15 @@ def annual_profections(
 
     # Next birthday
     try:
-        next_bday = birth_date.replace(year=target_date.year + (
-            1 if (target_date.month, target_date.day) >= (birth_date.month, birth_date.day)
-            else 0
-        ))
+        next_bday = birth_date.replace(
+            year=target_date.year
+            + (
+                1
+                if (target_date.month, target_date.day)
+                >= (birth_date.month, birth_date.day)
+                else 0
+            )
+        )
     except ValueError:
         # Feb 29 edge case
         next_bday = birth_date.replace(year=target_date.year + 1, day=28)
@@ -186,21 +191,21 @@ def profection_timeline(
 
 # Period lengths in years (Chaldean-order planetary rulership)
 _FIRDARIA_YEARS: Dict[str, float] = {
-    "Sun":     10.0,
-    "Venus":    8.0,
+    "Sun": 10.0,
+    "Venus": 8.0,
     "Mercury": 13.0,
-    "Moon":     9.0,
-    "Saturn":  11.0,
+    "Moon": 9.0,
+    "Saturn": 11.0,
     "Jupiter": 12.0,
-    "Mars":     7.0,
+    "Mars": 7.0,
 }
 
 # Sequence for day/night charts
-_FIRDARIA_DAY_ORDER   = ["Sun","Venus","Mercury","Moon","Saturn","Jupiter","Mars"]
-_FIRDARIA_NIGHT_ORDER = ["Moon","Saturn","Jupiter","Mars","Sun","Venus","Mercury"]
+_FIRDARIA_DAY_ORDER = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"]
+_FIRDARIA_NIGHT_ORDER = ["Moon", "Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury"]
 
 # Chaldean order for sub-periods (same list, always)
-_CHALDEAN_SUB = ["Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"]
+_CHALDEAN_SUB = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
 
 
 def firdaria(
@@ -257,47 +262,57 @@ def firdaria(
         cursor += period_len
 
     major_len = _FIRDARIA_YEARS[major_lord]
-    major_start_date = _add_fractional_years(birth_date, major_start_yr + (age_decimal - age_in_cycle))
-    major_end_date   = _add_fractional_years(birth_date, major_start_yr + (age_decimal - age_in_cycle) + major_len)
+    major_start_date = _add_fractional_years(
+        birth_date, major_start_yr + (age_decimal - age_in_cycle)
+    )
+    major_end_date = _add_fractional_years(
+        birth_date, major_start_yr + (age_decimal - age_in_cycle) + major_len
+    )
 
     # Find sub-period within major period
     age_in_major = age_in_cycle - major_start_yr
-    sub_len_each  = major_len / 7.0  # each sub-period = 1/7 of major
-    sub_index     = int(age_in_major / sub_len_each)
-    sub_index     = min(sub_index, 6)
+    sub_len_each = major_len / 7.0  # each sub-period = 1/7 of major
+    sub_index = int(age_in_major / sub_len_each)
+    sub_index = min(sub_index, 6)
 
     # Sub-lords follow Chaldean order starting from the major lord's position
-    major_pos_in_chaldean = _CHALDEAN_SUB.index(major_lord) if major_lord in _CHALDEAN_SUB else 0
+    major_pos_in_chaldean = (
+        _CHALDEAN_SUB.index(major_lord) if major_lord in _CHALDEAN_SUB else 0
+    )
     sub_lord = _CHALDEAN_SUB[(major_pos_in_chaldean + sub_index) % 7]
 
-    sub_start_offset = major_start_yr + (age_decimal - age_in_cycle) + sub_index * sub_len_each
-    sub_start_date   = _add_fractional_years(birth_date, sub_start_offset)
-    sub_end_date     = _add_fractional_years(birth_date, sub_start_offset + sub_len_each)
+    sub_start_offset = (
+        major_start_yr + (age_decimal - age_in_cycle) + sub_index * sub_len_each
+    )
+    sub_start_date = _add_fractional_years(birth_date, sub_start_offset)
+    sub_end_date = _add_fractional_years(birth_date, sub_start_offset + sub_len_each)
 
     # Full sequence for reference
     full_sequence = []
     yr_cursor = 0.0
     for planet in order:
         pl = _FIRDARIA_YEARS[planet]
-        full_sequence.append({
-            "planet": planet,
-            "start_age": round(yr_cursor, 2),
-            "end_age":   round(yr_cursor + pl, 2),
-            "years":     pl,
-        })
+        full_sequence.append(
+            {
+                "planet": planet,
+                "start_age": round(yr_cursor, 2),
+                "end_age": round(yr_cursor + pl, 2),
+                "years": pl,
+            }
+        )
         yr_cursor += pl
 
     return {
-        "age_decimal":       round(age_decimal, 4),
-        "major_period":      major_lord,
-        "major_start_date":  major_start_date.isoformat(),
-        "major_end_date":    major_end_date.isoformat(),
-        "major_years":       major_len,
-        "sub_period":        sub_lord,
-        "sub_start_date":    sub_start_date.isoformat(),
-        "sub_end_date":      sub_end_date.isoformat(),
-        "sub_years":         round(sub_len_each, 4),
-        "full_sequence":     full_sequence,
+        "age_decimal": round(age_decimal, 4),
+        "major_period": major_lord,
+        "major_start_date": major_start_date.isoformat(),
+        "major_end_date": major_end_date.isoformat(),
+        "major_years": major_len,
+        "sub_period": sub_lord,
+        "sub_start_date": sub_start_date.isoformat(),
+        "sub_end_date": sub_end_date.isoformat(),
+        "sub_years": round(sub_len_each, 4),
+        "full_sequence": full_sequence,
     }
 
 

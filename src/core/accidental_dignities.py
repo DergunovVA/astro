@@ -177,15 +177,15 @@ def calculate_accidental_dignity(
 # CAZIMI / COMBUST / UNDER BEAMS  (Lilly, CA p.113-116)
 # ─────────────────────────────────────────────────────────────────────────────
 
-CAZIMI_ORB   = 17 / 60   # 0°17' in degrees
-COMBUST_ORB  = 8.5       # 8°30'
-BEAMS_ORB    = 17.0      # 17°00'
+CAZIMI_ORB = 17 / 60  # 0°17' in degrees
+COMBUST_ORB = 8.5  # 8°30'
+BEAMS_ORB = 17.0  # 17°00'
 
 SOLAR_CONDITION_SCORES = {
-    "cazimi":      +5,
-    "combust":     -5,
+    "cazimi": +5,
+    "combust": -5,
     "under_beams": -4,
-    "free":         0,
+    "free": 0,
 }
 
 
@@ -228,57 +228,108 @@ def calc_solar_condition(
 
 # Import here to avoid circular module dependency
 from core.dignities import (  # noqa: E402
-    DOMICILE, EXALTATION, TRIPLICITY, SIGN_TO_ELEMENT,
+    DOMICILE,
+    EXALTATION,
+    TRIPLICITY,
+    SIGN_TO_ELEMENT,
     get_planet_sign,
 )
 
 # Ptolemaic Terms (Chaldean order per Lilly)
 TERMS: Dict[str, List] = {
-    "Aries":       [{"p":"Jupiter","f":0,"t":6}, {"p":"Venus","f":6,"t":14},
-                    {"p":"Mercury","f":14,"t":21},{"p":"Mars","f":21,"t":26},
-                    {"p":"Saturn","f":26,"t":30}],
-    "Taurus":      [{"p":"Venus","f":0,"t":8},   {"p":"Mercury","f":8,"t":15},
-                    {"p":"Jupiter","f":15,"t":22},{"p":"Saturn","f":22,"t":26},
-                    {"p":"Mars","f":26,"t":30}],
-    "Gemini":      [{"p":"Mercury","f":0,"t":7}, {"p":"Jupiter","f":7,"t":14},
-                    {"p":"Venus","f":14,"t":21},  {"p":"Saturn","f":21,"t":25},
-                    {"p":"Mars","f":25,"t":30}],
-    "Cancer":      [{"p":"Mars","f":0,"t":6},    {"p":"Jupiter","f":6,"t":13},
-                    {"p":"Mercury","f":13,"t":20},{"p":"Venus","f":20,"t":27},
-                    {"p":"Saturn","f":27,"t":30}],
-    "Leo":         [{"p":"Jupiter","f":0,"t":6}, {"p":"Venus","f":6,"t":11},
-                    {"p":"Saturn","f":11,"t":18},{"p":"Mercury","f":18,"t":24},
-                    {"p":"Mars","f":24,"t":30}],
-    "Virgo":       [{"p":"Mercury","f":0,"t":7}, {"p":"Venus","f":7,"t":17},
-                    {"p":"Jupiter","f":17,"t":21},{"p":"Mars","f":21,"t":28},
-                    {"p":"Saturn","f":28,"t":30}],
-    "Libra":       [{"p":"Saturn","f":0,"t":6},  {"p":"Mercury","f":6,"t":14},
-                    {"p":"Jupiter","f":14,"t":21},{"p":"Venus","f":21,"t":28},
-                    {"p":"Mars","f":28,"t":30}],
-    "Scorpio":     [{"p":"Mars","f":0,"t":7},    {"p":"Jupiter","f":7,"t":11},
-                    {"p":"Venus","f":11,"t":19},  {"p":"Saturn","f":19,"t":24},
-                    {"p":"Mercury","f":24,"t":30}],
-    "Sagittarius": [{"p":"Jupiter","f":0,"t":12},{"p":"Venus","f":12,"t":17},
-                    {"p":"Mercury","f":17,"t":21},{"p":"Saturn","f":21,"t":26},
-                    {"p":"Mars","f":26,"t":30}],
-    "Capricorn":   [{"p":"Mercury","f":0,"t":7}, {"p":"Jupiter","f":7,"t":14},
-                    {"p":"Venus","f":14,"t":22},  {"p":"Saturn","f":22,"t":26},
-                    {"p":"Mars","f":26,"t":30}],
-    "Aquarius":    [{"p":"Mercury","f":0,"t":7}, {"p":"Venus","f":7,"t":13},
-                    {"p":"Jupiter","f":13,"t":20},{"p":"Mars","f":20,"t":25},
-                    {"p":"Saturn","f":25,"t":30}],
-    "Pisces":      [{"p":"Venus","f":0,"t":12},  {"p":"Jupiter","f":12,"t":16},
-                    {"p":"Mercury","f":16,"t":19},{"p":"Mars","f":19,"t":28},
-                    {"p":"Saturn","f":28,"t":30}],
+    "Aries": [
+        {"p": "Jupiter", "f": 0, "t": 6},
+        {"p": "Venus", "f": 6, "t": 14},
+        {"p": "Mercury", "f": 14, "t": 21},
+        {"p": "Mars", "f": 21, "t": 26},
+        {"p": "Saturn", "f": 26, "t": 30},
+    ],
+    "Taurus": [
+        {"p": "Venus", "f": 0, "t": 8},
+        {"p": "Mercury", "f": 8, "t": 15},
+        {"p": "Jupiter", "f": 15, "t": 22},
+        {"p": "Saturn", "f": 22, "t": 26},
+        {"p": "Mars", "f": 26, "t": 30},
+    ],
+    "Gemini": [
+        {"p": "Mercury", "f": 0, "t": 7},
+        {"p": "Jupiter", "f": 7, "t": 14},
+        {"p": "Venus", "f": 14, "t": 21},
+        {"p": "Saturn", "f": 21, "t": 25},
+        {"p": "Mars", "f": 25, "t": 30},
+    ],
+    "Cancer": [
+        {"p": "Mars", "f": 0, "t": 6},
+        {"p": "Jupiter", "f": 6, "t": 13},
+        {"p": "Mercury", "f": 13, "t": 20},
+        {"p": "Venus", "f": 20, "t": 27},
+        {"p": "Saturn", "f": 27, "t": 30},
+    ],
+    "Leo": [
+        {"p": "Jupiter", "f": 0, "t": 6},
+        {"p": "Venus", "f": 6, "t": 11},
+        {"p": "Saturn", "f": 11, "t": 18},
+        {"p": "Mercury", "f": 18, "t": 24},
+        {"p": "Mars", "f": 24, "t": 30},
+    ],
+    "Virgo": [
+        {"p": "Mercury", "f": 0, "t": 7},
+        {"p": "Venus", "f": 7, "t": 17},
+        {"p": "Jupiter", "f": 17, "t": 21},
+        {"p": "Mars", "f": 21, "t": 28},
+        {"p": "Saturn", "f": 28, "t": 30},
+    ],
+    "Libra": [
+        {"p": "Saturn", "f": 0, "t": 6},
+        {"p": "Mercury", "f": 6, "t": 14},
+        {"p": "Jupiter", "f": 14, "t": 21},
+        {"p": "Venus", "f": 21, "t": 28},
+        {"p": "Mars", "f": 28, "t": 30},
+    ],
+    "Scorpio": [
+        {"p": "Mars", "f": 0, "t": 7},
+        {"p": "Jupiter", "f": 7, "t": 11},
+        {"p": "Venus", "f": 11, "t": 19},
+        {"p": "Saturn", "f": 19, "t": 24},
+        {"p": "Mercury", "f": 24, "t": 30},
+    ],
+    "Sagittarius": [
+        {"p": "Jupiter", "f": 0, "t": 12},
+        {"p": "Venus", "f": 12, "t": 17},
+        {"p": "Mercury", "f": 17, "t": 21},
+        {"p": "Saturn", "f": 21, "t": 26},
+        {"p": "Mars", "f": 26, "t": 30},
+    ],
+    "Capricorn": [
+        {"p": "Mercury", "f": 0, "t": 7},
+        {"p": "Jupiter", "f": 7, "t": 14},
+        {"p": "Venus", "f": 14, "t": 22},
+        {"p": "Saturn", "f": 22, "t": 26},
+        {"p": "Mars", "f": 26, "t": 30},
+    ],
+    "Aquarius": [
+        {"p": "Mercury", "f": 0, "t": 7},
+        {"p": "Venus", "f": 7, "t": 13},
+        {"p": "Jupiter", "f": 13, "t": 20},
+        {"p": "Mars", "f": 20, "t": 25},
+        {"p": "Saturn", "f": 25, "t": 30},
+    ],
+    "Pisces": [
+        {"p": "Venus", "f": 0, "t": 12},
+        {"p": "Jupiter", "f": 12, "t": 16},
+        {"p": "Mercury", "f": 16, "t": 19},
+        {"p": "Mars", "f": 19, "t": 28},
+        {"p": "Saturn", "f": 28, "t": 30},
+    ],
 }
 
 # Chaldean face (decanate) sequence, repeating every 7
-_CHALDEAN = ["Mars","Sun","Venus","Mercury","Moon","Saturn","Jupiter"]
+_CHALDEAN = ["Mars", "Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter"]
 
 
 def _get_term_ruler(longitude: float) -> Optional[str]:
     sign = get_planet_sign(longitude)
-    deg  = longitude % 30
+    deg = longitude % 30
     for t in TERMS.get(sign, []):
         if t["f"] <= deg < t["t"]:
             return t["p"]
@@ -295,7 +346,7 @@ def is_peregrine(planet: str, longitude: float, is_day: bool = True) -> bool:
     Checks: Rulership, Exaltation (whole sign), Triplicity, Term, Face.
     Only applies to classical 7 planets.
     """
-    if planet not in ("Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn"):
+    if planet not in ("Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"):
         return False
 
     sign = get_planet_sign(longitude)
@@ -324,10 +375,10 @@ def is_peregrine(planet: str, longitude: float, is_day: bool = True) -> bool:
 # HAYZ  (Lilly CA p.115)
 # ─────────────────────────────────────────────────────────────────────────────
 
-_MASCULINE_SIGNS = {"Aries","Gemini","Leo","Libra","Sagittarius","Aquarius"}
-_FEMININE_SIGNS  = {"Taurus","Cancer","Virgo","Scorpio","Capricorn","Pisces"}
-_DIURNAL  = {"Sun","Jupiter","Saturn"}
-_NOCTURNAL = {"Moon","Venus","Mars"}
+_MASCULINE_SIGNS = {"Aries", "Gemini", "Leo", "Libra", "Sagittarius", "Aquarius"}
+_FEMININE_SIGNS = {"Taurus", "Cancer", "Virgo", "Scorpio", "Capricorn", "Pisces"}
+_DIURNAL = {"Sun", "Jupiter", "Saturn"}
+_NOCTURNAL = {"Moon", "Venus", "Mars"}
 
 
 def is_in_hayz(

@@ -10,11 +10,12 @@ tools/compare_reference.py
 
 Выходной файл: docs/reference_comparison.html (по умолчанию)
 """
+
 import sys
 import json
 import argparse
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -22,34 +23,66 @@ sys.path.insert(0, str(ROOT / "src"))
 from modules.astro_adapter import natal_calculation  # noqa: E402
 
 SIGNS = [
-    "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
-    "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
 ]
-SIGN_SYMBOLS = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"]
+SIGN_SYMBOLS = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"]
 PLANET_SYMBOLS = {
-    "Sun":"☉","Moon":"☽","Mercury":"☿","Venus":"♀","Mars":"♂",
-    "Jupiter":"♃","Saturn":"♄","Uranus":"♅","Neptune":"♆","Pluto":"♇",
+    "Sun": "☉",
+    "Moon": "☽",
+    "Mercury": "☿",
+    "Venus": "♀",
+    "Mars": "♂",
+    "Jupiter": "♃",
+    "Saturn": "♄",
+    "Uranus": "♅",
+    "Neptune": "♆",
+    "Pluto": "♇",
 }
 PLANET_TOL = 0.01
-ANGLE_TOL  = 0.10
+ANGLE_TOL = 0.10
 
-def _sign(lon): return SIGNS[int(lon/30) % 12]
-def _sign_sym(lon): return SIGN_SYMBOLS[int(lon/30) % 12]
-def _deg(lon): return lon % 30
+
+def _sign(lon):
+    return SIGNS[int(lon / 30) % 12]
+
+
+def _sign_sym(lon):
+    return SIGN_SYMBOLS[int(lon / 30) % 12]
+
+
+def _deg(lon):
+    return lon % 30
+
+
 def _fmt(lon):
     d = _deg(lon)
     dm = int(d)
-    ms = int((d-dm)*60)
+    ms = int((d - dm) * 60)
     return f"{dm:02d}°{ms:02d}' {_sign_sym(lon)} {_sign(lon)}"
+
 
 def _get_lon(result, planet):
     p = result["planets"].get(planet)
-    if p is None: return None
+    if p is None:
+        return None
     return p["longitude"] if isinstance(p, dict) else float(p)
+
 
 def _get_retro(result, planet):
     p = result["planets"].get(planet)
-    if isinstance(p, dict): return bool(p.get("retrograde", False))
+    if isinstance(p, dict):
+        return bool(p.get("retrograde", False))
     return False
 
 
@@ -60,72 +93,107 @@ def build_comparison(name: str, ref: dict) -> dict:
 
     rows = []
     for pname, ref_data in ref["planets"].items():
-        ref_lon  = ref_data["longitude"]
+        ref_lon = ref_data["longitude"]
         calc_lon = _get_lon(result, pname)
         if calc_lon is None:
-            rows.append({
-                "planet": pname, "symbol": PLANET_SYMBOLS.get(pname,""),
-                "ref_lon": ref_lon, "calc_lon": None,
-                "ref_retro": ref_data["retrograde"], "calc_retro": None,
-                "delta": None, "ok": False,
-            })
+            rows.append(
+                {
+                    "planet": pname,
+                    "symbol": PLANET_SYMBOLS.get(pname, ""),
+                    "ref_lon": ref_lon,
+                    "calc_lon": None,
+                    "ref_retro": ref_data["retrograde"],
+                    "calc_retro": None,
+                    "delta": None,
+                    "ok": False,
+                }
+            )
             continue
         delta = abs(calc_lon - ref_lon)
-        if delta > 180: delta = 360 - delta
-        ref_retro  = ref_data["retrograde"]
+        if delta > 180:
+            delta = 360 - delta
+        ref_retro = ref_data["retrograde"]
         calc_retro = _get_retro(result, pname)
-        rows.append({
-            "planet": pname,
-            "symbol": PLANET_SYMBOLS.get(pname, ""),
-            "ref_lon":    ref_lon,
-            "calc_lon":   calc_lon,
-            "ref_retro":  ref_retro,
-            "calc_retro": calc_retro,
-            "delta":      delta,
-            "ok":         delta <= PLANET_TOL and ref_retro == calc_retro,
-        })
+        rows.append(
+            {
+                "planet": pname,
+                "symbol": PLANET_SYMBOLS.get(pname, ""),
+                "ref_lon": ref_lon,
+                "calc_lon": calc_lon,
+                "ref_retro": ref_retro,
+                "calc_retro": calc_retro,
+                "delta": delta,
+                "ok": delta <= PLANET_TOL and ref_retro == calc_retro,
+            }
+        )
 
     # Angles
     calc_asc = result["houses"][0]
-    calc_mc  = result["houses"][9] if len(result["houses"]) > 9 else None
+    calc_mc = result["houses"][9] if len(result["houses"]) > 9 else None
     calc_vtx = result["special_points"].get("Vertex")
 
     angle_rows = []
     for aname, ref_val, calc_val, tol in [
-        ("ASC",    ref["angles"]["asc"],    calc_asc, ANGLE_TOL),
-        ("MC",     ref["angles"]["mc"],     calc_mc,  ANGLE_TOL),
+        ("ASC", ref["angles"]["asc"], calc_asc, ANGLE_TOL),
+        ("MC", ref["angles"]["mc"], calc_mc, ANGLE_TOL),
         ("Vertex", ref["angles"]["vertex"], calc_vtx, ANGLE_TOL),
     ]:
         if calc_val is None:
-            angle_rows.append({"name": aname, "ref": ref_val, "calc": None, "delta": None, "ok": False})
+            angle_rows.append(
+                {
+                    "name": aname,
+                    "ref": ref_val,
+                    "calc": None,
+                    "delta": None,
+                    "ok": False,
+                }
+            )
             continue
         delta = abs(ref_val - calc_val)
-        if delta > 180: delta = 360 - delta
-        angle_rows.append({
-            "name": aname, "ref": ref_val, "calc": calc_val,
-            "delta": delta, "ok": delta <= tol,
-        })
+        if delta > 180:
+            delta = 360 - delta
+        angle_rows.append(
+            {
+                "name": aname,
+                "ref": ref_val,
+                "calc": calc_val,
+                "delta": delta,
+                "ok": delta <= tol,
+            }
+        )
 
     # Houses
     house_rows = []
     ref_houses = ref.get("houses_placidus", {})
     for i, cusp in enumerate(result["houses"]):
-        hn = f"H{i+1}"
+        hn = f"H{i + 1}"
         ref_cusp = ref_houses.get(hn)
         if ref_cusp is not None:
             delta = abs(cusp - ref_cusp)
-            if delta > 180: delta = 360 - delta
-            house_rows.append({
-                "house": hn, "ref": ref_cusp, "calc": cusp,
-                "delta": delta, "ok": delta <= ANGLE_TOL,
-            })
+            if delta > 180:
+                delta = 360 - delta
+            house_rows.append(
+                {
+                    "house": hn,
+                    "ref": ref_cusp,
+                    "calc": cusp,
+                    "delta": delta,
+                    "ok": delta <= ANGLE_TOL,
+                }
+            )
 
     total = len(rows)
     passed = sum(1 for r in rows if r["ok"])
     return {
-        "name": name, "utc": ref["utc"], "lat": ref["lat"], "lon": ref["lon"],
-        "planet_rows": rows, "angle_rows": angle_rows, "house_rows": house_rows,
-        "passed": passed, "total": total,
+        "name": name,
+        "utc": ref["utc"],
+        "lat": ref["lat"],
+        "lon": ref["lon"],
+        "planet_rows": rows,
+        "angle_rows": angle_rows,
+        "house_rows": house_rows,
+        "passed": passed,
+        "total": total,
     }
 
 
@@ -157,56 +225,64 @@ tr:hover td { background: #16162a; }
 .chart-bar-bad { background: #f06060; }
 """
 
+
 def _planet_row(r):
-    ok_cls  = "ok" if r["ok"] else "bad"
+    ok_cls = "ok" if r["ok"] else "bad"
     if r["calc_lon"] is None:
-        return f'<tr class="{ok_cls}"><td>{r["symbol"]} {r["planet"]}</td>' \
-               f'<td>{_fmt(r["ref_lon"])}</td><td colspan="3" class="red">НЕ ВЫЧИСЛЕНО</td>' \
-               f'<td class="red">❌</td></tr>'
+        return (
+            f'<tr class="{ok_cls}"><td>{r["symbol"]} {r["planet"]}</td>'
+            f'<td>{_fmt(r["ref_lon"])}</td><td colspan="3" class="red">НЕ ВЫЧИСЛЕНО</td>'
+            f'<td class="red">❌</td></tr>'
+        )
     delta_cls = "delta-ok" if r["delta"] <= PLANET_TOL else "delta-bad"
-    ref_r  = '<span class="retro">℞</span>' if r["ref_retro"]  else ""
+    ref_r = '<span class="retro">℞</span>' if r["ref_retro"] else ""
     calc_r = '<span class="retro">℞</span>' if r["calc_retro"] else ""
     retro_ok = "✅" if r["ref_retro"] == r["calc_retro"] else "❌"
-    lon_ok   = "✅" if r["delta"] <= PLANET_TOL else "⚠️"
+    lon_ok = "✅" if r["delta"] <= PLANET_TOL else "⚠️"
     return (
         f'<tr class="{ok_cls}">'
-        f'<td><b>{r["symbol"]}</b> {r["planet"]}</td>'
-        f'<td>{_fmt(r["ref_lon"])} ({r["ref_lon"]:.4f}°) {ref_r}</td>'
-        f'<td>{_fmt(r["calc_lon"])} ({r["calc_lon"]:.4f}°) {calc_r}</td>'
+        f"<td><b>{r['symbol']}</b> {r['planet']}</td>"
+        f"<td>{_fmt(r['ref_lon'])} ({r['ref_lon']:.4f}°) {ref_r}</td>"
+        f"<td>{_fmt(r['calc_lon'])} ({r['calc_lon']:.4f}°) {calc_r}</td>"
         f'<td class="{delta_cls}">{r["delta"]:.5f}°</td>'
-        f'<td>{lon_ok} {retro_ok}</td>'
-        f'</tr>'
+        f"<td>{lon_ok} {retro_ok}</td>"
+        f"</tr>"
     )
+
 
 def _angle_row(r):
     ok_cls = "ok" if r["ok"] else "bad"
     if r["calc"] is None:
-        return f'<tr class="{ok_cls}"><td><b>{r["name"]}</b></td>' \
-               f'<td>{_fmt(r["ref"])}</td><td class="red">НЕ ВЫЧИСЛЕНО</td>' \
-               f'<td>—</td><td class="red">❌</td></tr>'
+        return (
+            f'<tr class="{ok_cls}"><td><b>{r["name"]}</b></td>'
+            f'<td>{_fmt(r["ref"])}</td><td class="red">НЕ ВЫЧИСЛЕНО</td>'
+            f'<td>—</td><td class="red">❌</td></tr>'
+        )
     delta_cls = "delta-ok" if r["delta"] <= ANGLE_TOL else "delta-bad"
     return (
         f'<tr class="{ok_cls}">'
-        f'<td><b>{r["name"]}</b></td>'
-        f'<td>{_fmt(r["ref"])} ({r["ref"]:.4f}°)</td>'
-        f'<td>{_fmt(r["calc"])} ({r["calc"]:.4f}°)</td>'
+        f"<td><b>{r['name']}</b></td>"
+        f"<td>{_fmt(r['ref'])} ({r['ref']:.4f}°)</td>"
+        f"<td>{_fmt(r['calc'])} ({r['calc']:.4f}°)</td>"
         f'<td class="{delta_cls}">{r["delta"]:.5f}°</td>'
-        f'<td>{"✅" if r["ok"] else "⚠️"}</td>'
-        f'</tr>'
+        f"<td>{'✅' if r['ok'] else '⚠️'}</td>"
+        f"</tr>"
     )
 
+
 def _house_row(r):
-    ok_cls    = "ok" if r["ok"] else "bad"
+    ok_cls = "ok" if r["ok"] else "bad"
     delta_cls = "delta-ok" if r["delta"] <= ANGLE_TOL else "delta-bad"
     return (
         f'<tr class="{ok_cls}">'
-        f'<td>{r["house"]}</td>'
-        f'<td>{_fmt(r["ref"])} ({r["ref"]:.4f}°)</td>'
-        f'<td>{_fmt(r["calc"])} ({r["calc"]:.4f}°)</td>'
+        f"<td>{r['house']}</td>"
+        f"<td>{_fmt(r['ref'])} ({r['ref']:.4f}°)</td>"
+        f"<td>{_fmt(r['calc'])} ({r['calc']:.4f}°)</td>"
         f'<td class="{delta_cls}">{r["delta"]:.5f}°</td>'
-        f'<td>{"✅" if r["ok"] else "⚠️"}</td>'
-        f'</tr>'
+        f"<td>{'✅' if r['ok'] else '⚠️'}</td>"
+        f"</tr>"
     )
+
 
 def render_section(comp: dict) -> str:
     pct = int(comp["passed"] / comp["total"] * 100) if comp["total"] else 0
@@ -215,8 +291,8 @@ def render_section(comp: dict) -> str:
     badge_cls = "green" if pct == 100 else ("yellow" if pct >= 80 else "red")
 
     planet_rows = "\n".join(_planet_row(r) for r in comp["planet_rows"])
-    angle_rows  = "\n".join(_angle_row(r) for r in comp["angle_rows"])
-    house_rows  = "\n".join(_house_row(r) for r in comp["house_rows"])
+    angle_rows = "\n".join(_angle_row(r) for r in comp["angle_rows"])
+    house_rows = "\n".join(_house_row(r) for r in comp["house_rows"])
 
     return f"""
 <div class="section">
@@ -267,8 +343,12 @@ def render_section(comp: dict) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate reference comparison HTML report")
-    parser.add_argument("--output", default=str(ROOT / "docs" / "reference_comparison.html"))
+    parser = argparse.ArgumentParser(
+        description="Generate reference comparison HTML report"
+    )
+    parser.add_argument(
+        "--output", default=str(ROOT / "docs" / "reference_comparison.html")
+    )
     args = parser.parse_args()
 
     ref_path = ROOT / "tests" / "fixtures" / "zet_reference_charts.json"
@@ -276,8 +356,8 @@ def main():
 
     CHART_LABELS = {
         "einstein": "Альберт Эйнштейн (14.03.1879, 10:50 UTC, Ulm DE)",
-        "marilyn":  "Мэрилин Монро (01.06.1926, 17:30 UTC, Los Angeles CA)",
-        "rehovot":  "Карта Рехово́та (08.01.1982, 11:40 UTC)",
+        "marilyn": "Мэрилин Монро (01.06.1926, 17:30 UTC, Los Angeles CA)",
+        "rehovot": "Карта Рехово́та (08.01.1982, 11:40 UTC)",
     }
 
     sections_html = ""
@@ -288,7 +368,7 @@ def main():
         comp = build_comparison(label, ref)
         sections_html += render_section(comp)
         total_pass += comp["passed"]
-        total_all  += comp["total"]
+        total_all += comp["total"]
 
     overall_pct = int(total_pass / total_all * 100) if total_all else 0
 
