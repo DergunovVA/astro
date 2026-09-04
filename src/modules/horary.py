@@ -837,16 +837,12 @@ def analyze_reception_quality(
 
     # planet2 receives planet1 (planet1 is in planet2's sign)
     p2_receives_p1 = (
-        _assess(planet2, planet1, planet1_lon, p1_sign)
-        if p1_ruler == planet2
-        else _empty.copy()
+        _assess(planet2, planet1, planet1_lon, p1_sign) if p1_ruler == planet2 else _empty.copy()
     )
 
     # planet1 receives planet2 (planet2 is in planet1's sign)
     p1_receives_p2 = (
-        _assess(planet1, planet2, planet2_lon, p2_sign)
-        if p2_ruler == planet1
-        else _empty.copy()
+        _assess(planet1, planet2, planet2_lon, p2_sign) if p2_ruler == planet1 else _empty.copy()
     )
 
     is_mutual = p1_receives_p2["has_reception"] and p2_receives_p1["has_reception"]
@@ -967,9 +963,7 @@ def check_combust_cazimi(
     else:
         state = "free"
         modifier = 0
-        explanation = (
-            f"{planet_name} is free of solar impediment (distance={distance:.2f}°)."
-        )
+        explanation = f"{planet_name} is free of solar impediment (distance={distance:.2f}°)."
         impaired, strengthened = False, False
 
     return {
@@ -1522,14 +1516,10 @@ def is_via_combusta(moon_lon: float) -> Dict[str, Any]:
     else:
         if lon < _VIA_COMBUSTA_START:
             dist = round(_VIA_COMBUSTA_START - lon, 4)
-            explanation = (
-                f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° before Via Combusta."
-            )
+            explanation = f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° before Via Combusta."
         else:
             dist = round(lon - _VIA_COMBUSTA_END, 4)
-            explanation = (
-                f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° past Via Combusta."
-            )
+            explanation = f"Moon at {lon:.2f}° ({sign}) is {dist:.2f}° past Via Combusta."
 
     return {
         "is_via_combusta": in_zone,

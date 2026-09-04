@@ -206,9 +206,7 @@ def find_stelliums(
                         "count": len(cluster),
                         "sign": signs[sign_num],
                         "average_longitude": round(avg_lon, 2),
-                        "tight": all(
-                            abs(p["longitude"] - avg_lon) < 8 for p in cluster
-                        ),
+                        "tight": all(abs(p["longitude"] - avg_lon) < 8 for p in cluster),
                     }
                 )
                 checked.add(planets_set)
@@ -222,9 +220,8 @@ def find_retrogrades(facts: list[dict]) -> dict[str, Any]:
 
     for fact in facts:
         # Retrograde status is stored in details.retrograde on planet_in_sign facts
-        if (
-            fact.get("type") == "planet_in_sign"
-            and fact.get("details", {}).get("retrograde", False)
+        if fact.get("type") == "planet_in_sign" and fact.get("details", {}).get(
+            "retrograde", False
         ):
             retrogrades.append(fact.get("object"))
 
@@ -378,14 +375,22 @@ def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, A
                     and within(positions[b], positions[c], 120)
                     and within(positions[a], positions[c], 120)
                 ):
-                    grand_trines.append({
-                        "planets": [a, b, c],
-                        "orbs": {
-                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 120), 2),
-                            f"{b}-{c}": round(abs(angle_diff(positions[b], positions[c]) - 120), 2),
-                            f"{a}-{c}": round(abs(angle_diff(positions[a], positions[c]) - 120), 2),
-                        },
-                    })
+                    grand_trines.append(
+                        {
+                            "planets": [a, b, c],
+                            "orbs": {
+                                f"{a}-{b}": round(
+                                    abs(angle_diff(positions[a], positions[b]) - 120), 2
+                                ),
+                                f"{b}-{c}": round(
+                                    abs(angle_diff(positions[b], positions[c]) - 120), 2
+                                ),
+                                f"{a}-{c}": round(
+                                    abs(angle_diff(positions[a], positions[c]) - 120), 2
+                                ),
+                            },
+                        }
+                    )
 
     # ── T-Square: two planets in opposition + apex square to both ─────────
     for i in range(n):
@@ -397,19 +402,26 @@ def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, A
                 if k == i or k == j:
                     continue
                 apex = planets[k]
-                if (
-                    within(positions[a], positions[apex], 90)
-                    and within(positions[b], positions[apex], 90)
+                if within(positions[a], positions[apex], 90) and within(
+                    positions[b], positions[apex], 90
                 ):
-                    t_squares.append({
-                        "opposition": [a, b],
-                        "apex": apex,
-                        "orbs": {
-                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 180), 2),
-                            f"{a}-{apex}": round(abs(angle_diff(positions[a], positions[apex]) - 90), 2),
-                            f"{b}-{apex}": round(abs(angle_diff(positions[b], positions[apex]) - 90), 2),
-                        },
-                    })
+                    t_squares.append(
+                        {
+                            "opposition": [a, b],
+                            "apex": apex,
+                            "orbs": {
+                                f"{a}-{b}": round(
+                                    abs(angle_diff(positions[a], positions[b]) - 180), 2
+                                ),
+                                f"{a}-{apex}": round(
+                                    abs(angle_diff(positions[a], positions[apex]) - 90), 2
+                                ),
+                                f"{b}-{apex}": round(
+                                    abs(angle_diff(positions[b], positions[apex]) - 90), 2
+                                ),
+                            },
+                        }
+                    )
 
     # ── Grand Cross: two oppositions + four mutual squares ────────────────
     for i in range(n):
@@ -445,19 +457,26 @@ def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, A
                 if k == i or k == j:
                     continue
                 apex = planets[k]
-                if (
-                    within(positions[a], positions[apex], 150)
-                    and within(positions[b], positions[apex], 150)
+                if within(positions[a], positions[apex], 150) and within(
+                    positions[b], positions[apex], 150
                 ):
-                    yods.append({
-                        "base": [a, b],
-                        "apex": apex,
-                        "orbs": {
-                            f"{a}-{b}": round(abs(angle_diff(positions[a], positions[b]) - 60), 2),
-                            f"{a}-{apex}": round(abs(angle_diff(positions[a], positions[apex]) - 150), 2),
-                            f"{b}-{apex}": round(abs(angle_diff(positions[b], positions[apex]) - 150), 2),
-                        },
-                    })
+                    yods.append(
+                        {
+                            "base": [a, b],
+                            "apex": apex,
+                            "orbs": {
+                                f"{a}-{b}": round(
+                                    abs(angle_diff(positions[a], positions[b]) - 60), 2
+                                ),
+                                f"{a}-{apex}": round(
+                                    abs(angle_diff(positions[a], positions[apex]) - 150), 2
+                                ),
+                                f"{b}-{apex}": round(
+                                    abs(angle_diff(positions[b], positions[apex]) - 150), 2
+                                ),
+                            },
+                        }
+                    )
 
     total = len(grand_trines) + len(t_squares) + len(grand_crosses) + len(yods)
 
@@ -474,9 +493,17 @@ def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, A
     return {
         "found": total > 0,
         "patterns": {
-            "grand_trine": {"found": bool(grand_trines), "count": len(grand_trines), "instances": grand_trines},
+            "grand_trine": {
+                "found": bool(grand_trines),
+                "count": len(grand_trines),
+                "instances": grand_trines,
+            },
             "t_square": {"found": bool(t_squares), "count": len(t_squares), "instances": t_squares},
-            "grand_cross": {"found": bool(grand_crosses), "count": len(grand_crosses), "instances": grand_crosses},
+            "grand_cross": {
+                "found": bool(grand_crosses),
+                "count": len(grand_crosses),
+                "instances": grand_crosses,
+            },
             "yod": {"found": bool(yods), "count": len(yods), "instances": yods},
         },
         "total_count": total,
@@ -484,9 +511,7 @@ def find_aspect_patterns(facts: list[dict], max_orb: float = 5.0) -> dict[str, A
     }
 
 
-def search_events(
-    facts: list[dict], query: str, max_orb: float = 5.0
-) -> dict[str, Any]:
+def search_events(facts: list[dict], query: str, max_orb: float = 5.0) -> dict[str, Any]:
     """
     Поиск событий/паттернов по текстовому запросу.
 
